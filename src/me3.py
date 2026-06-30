@@ -27,12 +27,13 @@ from tqdm import tqdm
 from .api.xtools import get_recent_editcount
 from .api.category import get_category_members_titles
 from .wtp_parse import get_section_by_heading, extract_subpage_links
+
 from .api.mwclient_req import (
     connect_to_meta,
     get_page_wikitext,
     get_global_editcounts,
     get_global_userinfo,
-    get_global_userinfo_site,
+    get_global_userinfo,
 )
 
 BASE_PAGE = "Hardware donation program"
@@ -134,7 +135,7 @@ def get_home_wikis_and_recent_editcounts(
 
     for username in tqdm(users, desc="Fetching home wiki / recent edits", unit="user"):
         # info = get_global_userinfo(username)
-        info = get_global_userinfo_site(site, username)
+        info = get_global_userinfo(site, username)
         home_wikis[username] = (info.get("home") or "unknown") if info else "unknown"
         time.sleep(0.1)
 
