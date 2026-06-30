@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 # User-Agent header (required by Wikimedia)
 USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
 
+# Always include a descriptive User-Agent header per Wikipedia API guidelines
+HEADERS = {"User-Agent": USER_AGENT}
+
 def get_category_count(category_name: str) -> int:
     # Ensure the title has the proper prefix
     if not category_name.startswith("Category:"):
@@ -41,14 +44,11 @@ def get_category_count(category_name: str) -> int:
         "formatversion": "2",
     }
 
-    # Always include a descriptive User-Agent header per Wikipedia API guidelines
-    headers = {"User-Agent": USER_AGENT}
-
     try:
         response = requests.get(
             url,
             params=params,
-            headers=headers,
+            headers=HEADERS,
             timeout=10,
         )
         response.raise_for_status()

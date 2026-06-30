@@ -14,14 +14,12 @@ import os
 from pathlib import Path
 from typing import Optional
 
-import mwclient
-import mwclient.errors
-from mwclient.client import Site
 
 from .api.category import get_category_members_titles
 from .wtp_parse import get_section_by_heading, extract_subpage_links
 
 from .api.mwclient_req import (
+    connect_to_meta,
     get_page_wikitext,
     get_last_edit_timestamp,
     get_global_editcounts,

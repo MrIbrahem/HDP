@@ -8,11 +8,13 @@ from typing import Optional
 
 import requests
 
-
 # How many days back counts as "recent" for the recent-edits column.
 RECENT_DAYS = 90
 XTOOLS_GLOBALCONTRIBS_URL = "https://xtools.wmcloud.org/api/user/globalcontribs"
+
 USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
+
+HEADERS = {"User-Agent": USER_AGENT}
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,6 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
     start = today - timedelta(days=days)
     base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{username}/all/{start.isoformat()}/{today.isoformat()}"
 
-    headers = {"User-Agent": USER_AGENT}
     total = 0
     offset = None
     delay = 0.5
@@ -41,7 +42,7 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
     for _ in range(max_pages):
         params = {"offset": offset} if offset else {}
         try:
-            response = requests.get(base_url, params=params, headers=headers, timeout=15)
+            response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
             response.raise_for_status()
             data = response.json()
         except (requests.RequestException, ValueError) as e:

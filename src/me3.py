@@ -21,9 +21,6 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import mwclient
-import mwclient.errors
-import requests
 from mwclient.client import Site
 from tqdm import tqdm
 
@@ -31,8 +28,11 @@ from .api.xtools import get_recent_editcount
 from .api.category import get_category_members_titles
 from .wtp_parse import get_section_by_heading, extract_subpage_links
 from .api.mwclient_req import (
+    connect_to_meta,
     get_page_wikitext,
     get_global_editcounts,
+    get_global_userinfo,
+    get_global_userinfo_site,
 )
 
 BASE_PAGE = "Hardware donation program"
@@ -117,6 +117,7 @@ def build_wikitable(rows) -> str:
 # -----------------------------------------
 
 def get_home_wikis_and_recent_editcounts(
+    site: Site,
     users: list[str],
     recent_days: int = RECENT_DAYS,
 ) -> tuple[dict[str, str], dict[str, int]]:
@@ -132,7 +133,8 @@ def get_home_wikis_and_recent_editcounts(
     recent_editcounts: dict[str, int] = {}
 
     for username in tqdm(users, desc="Fetching home wiki / recent edits", unit="user"):
-        info = get_global_userinfo(username)
+        # info = get_global_userinfo(username)
+        info = get_global_userinfo_site(site, username)
         home_wikis[username] = (info.get("home") or "unknown") if info else "unknown"
         time.sleep(0.1)
 
@@ -199,7 +201,7 @@ def main() -> None:
         users = [x["username"] for x in data if x["username"]]
 
         editcounts = get_global_editcounts(site, users)
-        home_wikis, recent_editcounts = get_home_wikis_and_recent_editcounts(users)
+        home_wikis, recent_editcounts = get_home_wikis_and_recent_editcounts(site, users)
 
         rows = []
         for sub in data:

@@ -4,17 +4,19 @@
 import logging
 import requests
 
+import mwclient.errors
 from mwclient.client import Site
 
 API_URL = "https://meta.wikimedia.org/w/api.php"
 
 # User-Agent header (required by Wikimedia)
 USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
+HEADERS = {"User-Agent": USER_AGENT}
 
 logger = logging.getLogger(__name__)
 
 
-def connect_to_meta(username: str, password: str) -> Optional[Site]:
+def connect_to_meta(username: str, password: str) -> Site | None:
     """
     Connect to Wikimedia Commons using mwclient.
 
@@ -53,6 +55,8 @@ def get_page_wikitext(site: Site, page_title):
         "formatversion": 2,
         "format": "json",
     }
+    data = {}
+
     try:
         data = site.get("query", **params)
     except Exception as e:
@@ -73,6 +77,7 @@ def get_last_edit_timestamp(site: Site, page_title):
         "formatversion": 2,
         "format": "json",
     }
+    data = {}
     try:
         data = site.get("query", **params)
     except Exception as e:
@@ -123,17 +128,45 @@ def get_global_editcounts(site: Site, users) -> dict[str, int]:
         "format": "json",
     }
 
+    data = {}
+
     try:
         data = site.get("query", **params)
     except Exception as e:
         logger.error("API request failed %s", str(e))
-        data = {}
 
     result = data.get("query", {}).get("globalusers", [])
     # [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
 
     logger.info(f"len of data: {len(result)}")
     return {x["name"]: x["editcount"] for x in result if x.get("editcount")}
+
+def get_global_userinfo_site(site: Site, username: str) -> dict:
+    """
+    Fetch CentralAuth global user info for a single user from meta.wikimedia.org.
+
+    Returns the raw 'globaluserinfo' dict, which includes:
+      - 'home': dbname of the user's home wiki (e.g. "enwiki"), may be empty
+
+    Note: meta=globaluserinfo only accepts a single username at a time
+    (no batching), so this is called once per user.
+    """
+    params = {
+        # "action": "query",
+        "meta": "globaluserinfo",
+        "guiuser": username,
+        "guiprop": "editcount",
+        "formatversion": "2",
+        "format": "json",
+    }
+    data = {}
+    try:
+        data = site.get("query", **params)
+    except Exception as e:
+        logger.error("API request failed %s", str(e))
+        return {}
+
+    return data.get("query", {}).get("globaluserinfo", {})
 
 
 def get_global_userinfo(username: str) -> dict:
@@ -154,37 +187,9 @@ def get_global_userinfo(username: str) -> dict:
         "formatversion": "2",
         "format": "json",
     }
-    headers = {"User-Agent": USER_AGENT}
+
     try:
-        response = requests.get(API_URL, params=params, headers=headers, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-    except (requests.RequestException, ValueError) as e:
-        logger.error(f"Failed to fetch globaluserinfo for {username}: {e}")
-        return {}
-
-    return data.get("query", {}).get("globaluserinfo", {})
-
-def get_global_userinfo_site(site: Site, username: str) -> dict:
-    """
-    Fetch CentralAuth global user info for a single user from meta.wikimedia.org.
-
-    Returns the raw 'globaluserinfo' dict, which includes:
-      - 'home': dbname of the user's home wiki (e.g. "enwiki"), may be empty
-
-    Note: meta=globaluserinfo only accepts a single username at a time
-    (no batching), so this is called once per user.
-    """
-    params = {
-        "action": "query",
-        "meta": "globaluserinfo",
-        "guiuser": username,
-        "guiprop": "editcount",
-        "formatversion": "2",
-        "format": "json",
-    }
-    try:
-        response = requests.get(API_URL, params=params, headers=headers, timeout=10)
+        response = requests.get(API_URL, params=params, headers=HEADERS, timeout=10)
         response.raise_for_status()
         data = response.json()
     except (requests.RequestException, ValueError) as e:
@@ -194,6 +199,7 @@ def get_global_userinfo_site(site: Site, username: str) -> dict:
     return data.get("query", {}).get("globaluserinfo", {})
 
 __all__ = [
+    "connect_to_meta",
     "get_page_wikitext",
     "get_last_edit_timestamp",
     "get_page_creator",
