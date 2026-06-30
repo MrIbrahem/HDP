@@ -5,7 +5,7 @@ and, for each linked subpage, prints:
   - last edit timestamp of that subpage
   - the global edit count of the user who created it
 
-python -m src.main_app.dj.me1
+python -m src.main_app.dj.v1
 
 """
 
@@ -73,7 +73,7 @@ def build_wikitable(rows) -> str:
         "! Page",
         "! Last edited to application",
         "! User ",
-        "! Global edits ",
+        "! Global edits",
     ]
     for row in rows:
         lines.append("|-")

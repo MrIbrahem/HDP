@@ -11,7 +11,7 @@ subpage, prints/tabulates:
 
 Run this every few months (e.g. via cron) to keep the table current.
 
-python -m src.main_app.dj.me1
+python -m src.main_app.dj.v1
 
 """
 
@@ -87,8 +87,8 @@ def build_wikitable(rows) -> str:
     """rows: list of rows data."""
     lines = [
         '{| class="wikitable sortable"',
-        "! Page ",
-        "! Last edited to application ",
+        "! Page",
+        "! Last edited to application",
         "! User ",
         "! Global edits",
         "! Edits in last 3 months",
