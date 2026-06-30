@@ -225,7 +225,10 @@ def extract_subpage_links(section, base_page):
 
 def build_wikitable(rows):
     """rows: list of (page_link, last_edit, user_link, editcount_str) tuples."""
-    lines = ['{| class="wikitable sortable"', "! Page !! Last edited !! User !! Global edits"]
+    lines = [
+        '{| class="wikitable sortable"',
+        "! Page !! Last edited !! User !! Global edits",
+    ]
     for page_link, last_edit, user_link, editcount_str in rows:
         lines.append("|-")
         lines.append(f"| {page_link} || {last_edit} || {user_link} || {editcount_str}")
