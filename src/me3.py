@@ -30,6 +30,11 @@ from tqdm import tqdm
 from .api.xtools import get_recent_editcount
 from .api.category import get_category_members_titles
 from .wtp_parse import get_section_by_heading, extract_subpage_links
+from .api.mwclient_req import (
+    get_page_wikitext,
+    get_page_creator,
+    get_global_editcounts,
+)
 
 API_URL = "https://meta.wikimedia.org/w/api.php"
 
@@ -143,7 +148,7 @@ def connect_to_meta(username: str, password: str) -> Optional[Site]:
         return None
 
 
-def get_page_wikitext(site, page_title):
+def get_page_wikitext(site: Site, page_title):
     """Fetch the full raw wikitext of a page via the API."""
     logger.info(f"Fetching wikitext of {page_title}...")
     params = {
@@ -163,7 +168,7 @@ def get_page_wikitext(site, page_title):
 
     return pages[0]["revisions"][0]["slots"]["main"]["content"]
 
-def get_page_creator(site, page_title):
+def get_page_creator(site: Site, page_title):
     """Username of the oldest revision (i.e. who created the page)."""
     logger.info(f"Fetching page creator of {page_title}...")
     params = {
@@ -189,7 +194,7 @@ def get_page_creator(site, page_title):
     return None
 
 
-def get_global_editcounts(site, users) -> dict[str, int]:
+def get_global_editcounts(site: Site, users) -> dict[str, int]:
     logger.info(f"Fetching global edit count of {len(users)}...")
 
     params = {
@@ -312,7 +317,7 @@ def main() -> None:
         for sub in subpages:
             full_title = f"{BASE_PAGE}/{sub}"
             user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(site, full_title)
+            username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(sitex, full_title)
             # first letter upper
             username = username[0].upper() + username[1:]
             data.append(

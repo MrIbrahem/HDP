@@ -16,11 +16,16 @@ from typing import Optional
 
 import mwclient
 import mwclient.errors
-import wikitextparser as wtp
 from mwclient.client import Site
 
 from .api.category import get_category_members_titles
-
+from .wtp_parse import get_section_by_heading, extract_subpage_links
+from .api.mwclient_req import (
+    get_page_wikitext,
+    get_last_edit_timestamp,
+    get_page_creator,
+    get_global_editcounts,
+)
 API_URL = "https://meta.wikimedia.org/w/api.php"
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"
@@ -66,26 +71,7 @@ def load_credentials() -> tuple[Optional[str], Optional[str]]:
     return username, password
 
 
-def get_section_by_heading(wikitext, heading):
-    """Use wikitextparser to find a section by its heading text."""
-    parsed = wtp.parse(wikitext)
-    for section in parsed.get_sections(include_subsections=True):
-        if section.title and section.title.strip() == heading:
-            return section
-    raise ValueError(f"Section '{heading}' not found")
 
-
-def extract_subpage_links(section, base_page):
-    """Use wikitextparser's wikilinks to pull out 'Base/Sub' page names."""
-    prefix = base_page + "/"
-    seen = []
-    for link in section.wikilinks:
-        title = link.title.strip()
-        if title.startswith(prefix):
-            name = title[len(prefix) :]
-            if name not in seen:
-                seen.append(name)
-    return seen
 
 
 def build_wikitable(rows):
@@ -140,100 +126,6 @@ def connect_to_meta(username: str, password: str) -> Optional[Site]:
         return None
 
 
-def get_page_wikitext(site, page_title):
-    """Fetch the full raw wikitext of a page via the API."""
-    logger.info(f"Fetching wikitext of {page_title}...")
-    params = {
-        "prop": "revisions",
-        "titles": page_title,
-        "rvslots": "main",
-        "rvprop": "content",
-        "formatversion": 2,
-        "format": "json",
-    }
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-
-    pages = data.get("query", {}).get("pages", [])
-
-    return pages[0]["revisions"][0]["slots"]["main"]["content"]
-
-
-def get_last_edit_timestamp(site, page_title):
-    logger.info(f"Fetching last edit timestamp of {page_title}...")
-    params = {
-        "prop": "revisions",
-        "titles": page_title,
-        "rvlimit": 1,
-        "rvprop": "timestamp",
-        "formatversion": 2,
-        "format": "json",
-    }
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-        return None
-
-    pages = data.get("query", {}).get("pages", [])
-    if pages and "revisions" in pages[0]:
-        return pages[0]["revisions"][0]["timestamp"]
-
-    return None
-
-
-def get_page_creator(site, page_title):
-    """Username of the oldest revision (i.e. who created the page)."""
-    logger.info(f"Fetching page creator of {page_title}...")
-    params = {
-        "prop": "revisions",
-        "titles": page_title,
-        "rvlimit": 1,
-        "rvdir": "newer",
-        "rvprop": "user",
-        "formatversion": 2,
-        "format": "json",
-    }
-
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-        return None
-
-    pages = data.get("query", {}).get("pages", [])
-    if pages and "revisions" in pages[0]:
-        return pages[0]["revisions"][0]["user"]
-
-    return None
-
-
-def get_global_editcounts(site, users) -> dict[str, int]:
-    logger.info(f"Fetching global edit count of {len(users)}...")
-
-    params = {
-        "list": "globalusers",
-        "gusprop": "editcount",
-        "gususers": "|".join(users),
-        "formatversion": 2,
-        "format": "json",
-    }
-
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-        data = {}
-
-    result = data.get("query", {}).get("globalusers", [])
-    # [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
-
-    logger.info(f"len of data: {len(result)}")
-    return {x["name"]: x["editcount"] for x in result if x.get("editcount")}
-
-
 def main() -> None:
     # Load credentials
 
@@ -277,7 +169,7 @@ def main() -> None:
             full_title = f"{BASE_PAGE}/{sub}"
             last_edit = get_last_edit_timestamp(site, full_title) or "unknown"
             user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(site, full_title)
+            username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(sitesite,, full_title)
             # first letter upper
             username = username[0].upper() + username[1:]
             data.append(
