@@ -58,7 +58,12 @@ users_redirects = {
 
 
 def calculate_age(registration: str) -> int:
-    # "registration": "2008-07-24T01:18:05Z",
+    """
+    Input example:
+        registration: "2008-07-24T01:18:05Z"
+    Returns example:
+        0 year, 0 months
+    """
     age_years = 0
     now = datetime.now()
     try:
