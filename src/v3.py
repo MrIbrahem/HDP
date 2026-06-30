@@ -15,7 +15,7 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 import logging
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
@@ -56,21 +56,32 @@ users_redirects = {
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
-
-def calculate_age(registration: str) -> int:
+def calculate_age(registration: str) -> str:
     """
     Input example:
         registration: "2008-07-24T01:18:05Z"
     Returns example:
-        0 year, 0 months
+        {{age in years and months |2008|07|24}}
     """
-    age_years = 0
-    now = datetime.now()
     try:
-        age_years = now.year - int(registration[:4])
+        # Parse the ISO 8601 string into a datetime object
+        # Replacing 'Z' with '+00:00' to ensure compatibility with fromisoformat
+        reg_date = datetime.fromisoformat(registration.replace("Z", "+00:00"))
+
+        # Extract year, month, and day with zero-padding for month and day
+        year = reg_date.year
+        month = f"{reg_date.month:02d}"
+        day = f"{reg_date.day:02d}"
+
+        # Return the formatted template string
+        return f"{{{{age in years and months|{year}|{month}|{day}}}}}"
+
     except Exception as e:
-        logger.error(f"Error calculating age: {e}")
-    return age_years
+        logger.error(f"Error formatting age template: {e}")
+
+        # Fallback template format in case of an error
+        return registration
+
 
 
 def load_credentials() -> tuple[Optional[str], Optional[str]]:
