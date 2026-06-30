@@ -15,7 +15,7 @@
 | [[User:511KeV]]
 | 289,021
 | unknown
-| 6
+| {{age in years and months|2020|12|13}}
 | enwiki
 | 
 |-
@@ -24,7 +24,7 @@
 | [[User:Vjsuseela]]
 | 20,135
 | unknown
-| 12
+| {{age in years and months|2014|04|16}}
 | enwiki
 | 
 |-
@@ -33,7 +33,7 @@
 | [[User:Aafi]]
 | 73,935
 | unknown
-| 7
+| {{age in years and months|2019|03|21}}
 | enwiki
 | 
 |-
@@ -42,7 +42,7 @@
 | [[User:Gwanki]]
 | 70,443
 | unknown
-| 13
+| {{age in years and months|2013|11|16}}
 | hawiki
 | 
 |-
@@ -51,7 +51,7 @@
 | [[User:ChiK]]
 | 46,296
 | unknown
-| 9
+| {{age in years and months|2017|05|08}}
 | enwiki
 | 
 |-
@@ -60,7 +60,7 @@
 | [[User:Jagmit Singh Brar]]
 | 52,463
 | unknown
-| 9
+| {{age in years and months|2017|05|07}}
 | pawiki
 | 
 |-
@@ -69,7 +69,7 @@
 | [[User:J ansari]]
 | 68,425
 | unknown
-| 10
+| {{age in years and months|2016|09|04}}
 | hiwiki
 | 
 |-
@@ -78,7 +78,7 @@
 | [[User:MYADAM ABHILASH]]
 | 8,865
 | unknown
-| 5
+| {{age in years and months|2021|01|22}}
 | tewiki
 | 
 |-
@@ -87,7 +87,7 @@
 | [[User:Suyash.dwivedi]]
 | 239,876
 | unknown
-| 13
+| {{age in years and months|2013|09|06}}
 | enwiki
 | 
 |-
@@ -96,7 +96,7 @@
 | [[User:Ран-кан]]
 | 231,603
 | unknown
-| 14
+| {{age in years and months|2012|02|04}}
 | srwiki
 | 
 |-
@@ -105,7 +105,7 @@
 | [[User:Nokib Sarkar]]
 | 24,062
 | unknown
-| 9
+| {{age in years and months|2017|04|15}}
 | enwiki
 | 
 |-
@@ -114,7 +114,7 @@
 | [[User:Ndahiro derrick]]
 | 5,307
 | unknown
-| 7
+| {{age in years and months|2019|03|02}}
 | enwiki
 | 
 |-
@@ -123,7 +123,7 @@
 | [[User:Dezedien]]
 | 64,300
 | unknown
-| 14
+| {{age in years and months|2012|05|10}}
 | arwiki
 | 
 |-
@@ -132,16 +132,16 @@
 | [[User:Ballardmaize]]
 | 43,008
 | unknown
-| 12
+| {{age in years and months|2014|07|26}}
 | incubatorwiki
 | 
 |-
 | [[Hardware donation program/justwiki]] 
 | {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/justwiki}}}}
 | [[User:Justwiki]]
-| 104,355
+| 104,363
 | unknown
-| 18
+| {{age in years and months|2008|10|12}}
 | arwiki
 | 
 |-
@@ -150,7 +150,7 @@
 | [[User:ZI Jony]]
 | 407,237
 | unknown
-| 9
+| {{age in years and months|2017|03|16}}
 | enwiki
 | 
 |-
@@ -159,7 +159,7 @@
 | [[User:DaSupremo]]
 | 475,690
 | unknown
-| 12
+| {{age in years and months|2014|05|15}}
 | enwiki
 | 
 |-
@@ -168,7 +168,7 @@
 | [[User:Ogundele1]]
 | 2,779
 | unknown
-| 8
+| {{age in years and months|2018|07|21}}
 | enwiki
 | 
 |-
@@ -177,7 +177,7 @@
 | [[User:Abike25]]
 | 43,576
 | unknown
-| 4
+| {{age in years and months|2022|09|23}}
 | metawiki
 | 
 |-
@@ -186,7 +186,7 @@
 | [[User:Dolphyb]]
 | 2,378,631
 | unknown
-| 6
+| {{age in years and months|2020|06|21}}
 | enwiki
 | 
 |-
@@ -195,7 +195,7 @@
 | [[User:Philemon Niyomwungeli]]
 | 789
 | unknown
-| 4
+| {{age in years and months|2022|09|29}}
 | metawiki
 | 
 |-
@@ -204,7 +204,7 @@
 | [[User:Global Open Initiative]]
 | 41
 | unknown
-| 7
+| {{age in years and months|2019|04|04}}
 | metawiki
 | 
 |-
@@ -213,7 +213,7 @@
 | [[User:Kalakpagh]]
 | 41,900
 | unknown
-| 3
+| {{age in years and months|2023|01|05}}
 | wikidatawiki
 | 
 |-
@@ -222,7 +222,7 @@
 | [[User:Jwale2]]
 | 26,088
 | unknown
-| 11
+| {{age in years and months|2015|01|20}}
 | enwiki
 | 
 |-
@@ -231,7 +231,7 @@
 | [[User:Orokbest1]]
 | 23,513
 | unknown
-| 2
+| {{age in years and months|2024|07|08}}
 | enwiki
 | 
 |-
@@ -240,7 +240,7 @@
 | [[User:Annick green]]
 | 2,513
 | unknown
-| 5
+| {{age in years and months|2021|07|17}}
 | enwiki
 | 
 |-
@@ -249,7 +249,7 @@
 | [[User:Abakar B]]
 | 6,391
 | unknown
-| 8
+| {{age in years and months|2018|03|28}}
 | frwiki
 | 
 |-
@@ -258,7 +258,7 @@
 | [[User:Yaw tuba]]
 | 50,919
 | unknown
-| 4
+| {{age in years and months|2022|06|18}}
 | enwiki
 | 
 |-
@@ -267,7 +267,7 @@
 | [[User:Ibjaja055]]
 | 29,905
 | unknown
-| 5
+| {{age in years and months|2021|12|04}}
 | enwiki
 | 
 |-
@@ -276,7 +276,7 @@
 | [[User:EYo237]]
 | 6,013
 | unknown
-| 6
+| {{age in years and months|2020|12|10}}
 | frwiki
 | 
 |-
@@ -285,7 +285,7 @@
 | [[User:Pharouqenr]]
 | 63,468
 | unknown
-| 3
+| {{age in years and months|2023|11|25}}
 | hawiki
 | 
 |-
@@ -294,7 +294,7 @@
 | [[User:Nnamadee]]
 | 21,408
 | unknown
-| 2
+| {{age in years and months|2024|09|08}}
 | hawiki
 | 
 |-
@@ -303,7 +303,7 @@
 | [[User:Senator Choko]]
 | 8,091
 | unknown
-| 4
+| {{age in years and months|2022|02|24}}
 | enwiki
 | 
 |-
@@ -312,7 +312,7 @@
 | [[User:BnHamid]]
 | 79,753
 | unknown
-| 5
+| {{age in years and months|2021|01|11}}
 | enwiki
 | 
 |-
@@ -321,7 +321,7 @@
 | [[User:ᱯᱨᱚᱯᱷᱮᱥᱥᱚᱨ]]
 | 2,955
 | unknown
-| 7
+| {{age in years and months|2019|02|19}}
 | enwiki
 | 
 |-
@@ -330,7 +330,7 @@
 | [[User:Sardeeq]]
 | 31,982
 | unknown
-| 1
+| {{age in years and months|2025|11|06}}
 | hawiki
 | 
 |-
@@ -339,7 +339,7 @@
 | [[User:Yendifa]]
 | 7,618
 | unknown
-| 2
+| {{age in years and months|2024|03|16}}
 | frwiki
 | 
 |-
@@ -348,7 +348,7 @@
 | [[User:Vinoda mamatharai]]
 | 8,691
 | unknown
-| 10
+| {{age in years and months|2016|06|10}}
 | incubatorwiki
 | 
 |-
@@ -357,7 +357,7 @@
 | [[User:Mercyuniverse]]
 | 1,419
 | unknown
-| 3
+| {{age in years and months|2023|04|22}}
 | metawiki
 | 
 |-
@@ -366,7 +366,7 @@
 | [[User:Nguini Désiré]]
 | 2,024
 | unknown
-| 3
+| {{age in years and months|2023|03|18}}
 | frwiki
 | 
 |-
@@ -375,7 +375,7 @@
 | [[User:Agbalagba]]
 | 10,862
 | unknown
-| 9
+| {{age in years and months|2017|04|25}}
 | enwiki
 | 
 |-
@@ -384,7 +384,7 @@
 | [[User:Chinemeremprince]]
 | 16,652
 | unknown
-| 4
+| {{age in years and months|2022|03|05}}
 | enwiki
 | 
 |-
@@ -393,7 +393,7 @@
 | [[User:Ola.mahadi]]
 | 11,101
 | unknown
-| 8
+| {{age in years and months|2018|11|25}}
 | enwiki
 | 
 |-
@@ -402,7 +402,7 @@
 | [[User:Tmamatha]]
 | 7,502
 | unknown
-| 5
+| {{age in years and months|2021|02|22}}
 | commonswiki
 | 
 |-
@@ -411,7 +411,7 @@
 | [[User:V Bhavya]]
 | 94,099
 | unknown
-| 4
+| {{age in years and months|2022|07|16}}
 | tewiki
 | 
 |-
@@ -420,7 +420,7 @@
 | [[User:रोहित साव27]]
 | 104,201
 | unknown
-| 7
+| {{age in years and months|2019|01|25}}
 | enwikisource
 | 
 |-
@@ -429,7 +429,7 @@
 | [[User:Muralikrishna m]]
 | 48,074
 | unknown
-| 5
+| {{age in years and months|2021|05|23}}
 | tewiki
 | 
 |-
@@ -438,7 +438,7 @@
 | [[User:Aminwa 21]]
 | 3,736
 | unknown
-| 5
+| {{age in years and months|2021|06|30}}
 | enwiki
 | 
 |-
@@ -447,7 +447,7 @@
 | [[User:Joy Agyepong]]
 | 5,462
 | unknown
-| 10
+| {{age in years and months|2016|08|27}}
 | enwiki
 | 
 |-
@@ -456,7 +456,7 @@
 | [[User:Kandarpajit Kallol]]
 | 76,872
 | unknown
-| 13
+| {{age in years and months|2013|02|15}}
 | bnwiki
 | 
 |-
@@ -465,7 +465,7 @@
 | [[User:Emmanuel Anin]]
 | 8,331
 | unknown
-| 2
+| {{age in years and months|2024|06|08}}
 | enwiki
 | 
 |-
@@ -474,7 +474,7 @@
 | [[User:Mbaidoo]]
 | 2,681
 | unknown
-| 5
+| {{age in years and months|2021|03|15}}
 | enwiki
 | 
 |-
@@ -483,7 +483,7 @@
 | [[User:Pragathi. BH]]
 | 18,126
 | unknown
-| 2
+| {{age in years and months|2024|05|08}}
 | commonswiki
 | 
 |-
@@ -492,7 +492,7 @@
 | [[User:Obangmoy]]
 | 8,650
 | unknown
-| 11
+| {{age in years and months|2015|01|09}}
 | enwiki
 | 
 |-
@@ -501,7 +501,7 @@
 | [[User:Santhosh Notagar]]
 | 5,872
 | unknown
-| 7
+| {{age in years and months|2019|02|10}}
 | knwiki
 | 
 |-
@@ -510,7 +510,7 @@
 | [[User:Thirumalgoud]]
 | 4,920
 | unknown
-| 5
+| {{age in years and months|2021|02|15}}
 | enwiki
 | 
 |-
@@ -519,7 +519,7 @@
 | [[User:Thiyagu Ganesh]]
 | 5,922
 | unknown
-| 11
+| {{age in years and months|2015|11|17}}
 | tawiki
 | 
 |-
@@ -528,7 +528,7 @@
 | [[User:Таңһылыу]]
 | 31,299
 | unknown
-| 10
+| {{age in years and months|2016|05|14}}
 | bawiki
 | 
 |-
@@ -537,7 +537,7 @@
 | [[User:Һәҙиә]]
 | 9,916
 | unknown
-| 11
+| {{age in years and months|2015|11|11}}
 | bawiki
 | 
 |-
@@ -546,7 +546,7 @@
 | [[User:Felino Volador]]
 | 126,836
 | unknown
-| 13
+| {{age in years and months|2013|04|29}}
 | eswiki
 | 
 |-
@@ -555,7 +555,7 @@
 | [[User:নৰুনা বৰুৱা]]
 | 16,563
 | unknown
-| 1
+| {{age in years and months|2025|03|27}}
 | aswiki
 | 
 |-
@@ -564,7 +564,7 @@
 | [[User:Albetudu]]
 | 3,026
 | unknown
-| 7
+| {{age in years and months|2019|02|18}}
 | satwiki
 | 
 |-
@@ -573,7 +573,7 @@
 | [[User:Nicole mwenge]]
 | 8,001
 | unknown
-| 3
+| {{age in years and months|2023|08|28}}
 | frwiki
 | 
 |-
@@ -582,7 +582,7 @@
 | [[User:Noooote]]
 | 1,856
 | unknown
-| 3
+| {{age in years and months|2023|12|05}}
 | cbk_zamwiki
 | 
 |-
@@ -591,7 +591,7 @@
 | [[User:Dev ammar]]
 | 6,030
 | unknown
-| 4
+| {{age in years and months|2022|01|28}}
 | enwiki
 | 
 |-
@@ -600,7 +600,7 @@
 | [[User:Mwintirew]]
 | 5,616
 | unknown
-| 10
+| {{age in years and months|2016|04|09}}
 | enwiki
 | 
 |-
@@ -609,7 +609,7 @@
 | [[User:Asamoah Daniel Kwame Oware]]
 | 4,045
 | unknown
-| 3
+| {{age in years and months|2023|03|11}}
 | twwiki
 | 
 |-
@@ -618,7 +618,7 @@
 | [[User:Kikanakana]]
 | 2,210
 | unknown
-| 3
+| {{age in years and months|2023|09|29}}
 | commonswiki
 | 
 |-
@@ -627,7 +627,7 @@
 | [[User:Tenaciuos Ntaawa]]
 | 9,317
 | unknown
-| 2
+| {{age in years and months|2024|08|13}}
 | dagwiki
 | 
 |-
@@ -636,7 +636,7 @@
 | [[User:Eunice Ameh]]
 | 2,441
 | unknown
-| 2
+| {{age in years and months|2024|02|27}}
 | enwiki
 | 
 |-
@@ -645,7 +645,7 @@
 | [[User:Vision L1]]
 | 24,867
 | unknown
-| 3
+| {{age in years and months|2023|03|25}}
 | incubatorwiki
 | 
 |-
@@ -654,7 +654,7 @@
 | [[User:ChéRatou]]
 | 4,694
 | unknown
-| 2
+| {{age in years and months|2024|10|09}}
 | frwiki
 | 
 |-
@@ -663,7 +663,7 @@
 | [[User:Amikeco]]
 | 37,035
 | unknown
-| 18
+| {{age in years and months|2008|04|09}}
 | oswiki
 | 
 |-
@@ -672,7 +672,7 @@
 | [[User:Muhdavdullahi]]
 | 26,207
 | unknown
-| 2
+| {{age in years and months|2024|12|09}}
 | hawiki
 | 
 |-
@@ -681,7 +681,7 @@
 | [[User:Merci Kahubangwa]]
 | 1,207
 | unknown
-| 2
+| {{age in years and months|2024|08|22}}
 | metawiki
 | 
 |-
@@ -690,7 +690,7 @@
 | [[User:Ibrahim abusufyan]]
 | 40,216
 | unknown
-| 4
+| {{age in years and months|2022|10|05}}
 | hawiki
 | 
 |-
@@ -699,7 +699,7 @@
 | [[User:Manamarthe]]
 | 5,964
 | unknown
-| 1
+| {{age in years and months|2025|07|20}}
 | frwiki
 | 
 |-
@@ -708,7 +708,7 @@
 | [[User:Mr. Snatch]]
 | 15,829
 | unknown
-| 4
+| {{age in years and months|2022|03|17}}
 | enwiki
 | 
 |-
@@ -717,7 +717,7 @@
 | [[User:Knowledge and philosophy]]
 | 3,503
 | unknown
-| 5
+| {{age in years and months|2021|07|31}}
 | enwiki
 | 
 |-
@@ -726,7 +726,7 @@
 | [[User:CalebTokula6]]
 | 954
 | unknown
-| 2
+| {{age in years and months|2024|03|02}}
 | wikifunctionswiki
 | 
 |-
@@ -735,7 +735,7 @@
 | [[User:Obedmakolo]]
 | 8,208
 | unknown
-| 4
+| {{age in years and months|2022|05|19}}
 | wikidatawiki
 | 
 |-
@@ -744,7 +744,7 @@
 | [[User:Africany]]
 | 17,497
 | unknown
-| 3
+| {{age in years and months|2023|07|03}}
 | frwiki
 | 
 |-
@@ -753,7 +753,7 @@
 | [[User:Bamjos]]
 | 18,779
 | unknown
-| 2
+| {{age in years and months|2024|01|08}}
 | enwikivoyage
 | 
 |-
@@ -762,7 +762,7 @@
 | [[User:Maryleine]]
 | 3,328
 | unknown
-| 3
+| {{age in years and months|2023|11|28}}
 | frwiki
 | 
 |-
@@ -771,7 +771,7 @@
 | [[User:Ennydavids]]
 | 4,305
 | unknown
-| 4
+| {{age in years and months|2022|05|16}}
 | igwiki
 | 
 |-
@@ -780,7 +780,7 @@
 | [[User:Charles Kalanzi]]
 | 6,066
 | unknown
-| 1
+| {{age in years and months|2025|03|20}}
 | enwiki
 | 
 |-
@@ -789,7 +789,7 @@
 | [[User:Mahuta]]
 | 40,329
 | unknown
-| 6
+| {{age in years and months|2020|06|26}}
 | enwiki
 | 
 |-
@@ -798,7 +798,7 @@
 | [[User:Nacharhopon]]
 | 1,621
 | unknown
-| 7
+| {{age in years and months|2019|12|19}}
 | enwiki
 | 
 |-
@@ -807,7 +807,7 @@
 | [[User:ParasharSarthak]]
 | 367
 | unknown
-| 5
+| {{age in years and months|2021|03|10}}
 | metawiki
 | 
 |-
@@ -816,16 +816,16 @@
 | [[User:Anasskoko]]
 | 22,953
 | unknown
-| 7
+| {{age in years and months|2019|05|29}}
 | enwiki
 | 
 |-
 | [[Hardware donation program/Antonyahu]] 
 | {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Antonyahu}}}}
 | [[User:Antonyahu]]
-| 28,255
+| 28,256
 | unknown
-| 11
+| {{age in years and months|2015|06|03}}
 | ukwiki
 | 
 |-
@@ -834,7 +834,7 @@
 | [[User:Sir Amugi]]
 | 61,619
 | unknown
-| 5
+| {{age in years and months|2021|01|29}}
 | enwiki
 | 
 |-
@@ -843,7 +843,7 @@
 | [[User:Shahidul Hasan Roman]]
 | 16,890
 | unknown
-| 10
+| {{age in years and months|2016|04|14}}
 | bnwiki
 | 
 |-
@@ -852,7 +852,7 @@
 | [[User:Leeturtle]]
 | 4,796
 | unknown
-| 16
+| {{age in years and months|2010|10|07}}
 | enwiki
 | 
 |-
