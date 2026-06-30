@@ -5,15 +5,12 @@ and, for each linked subpage, prints:
   - last edit timestamp of that subpage
   - the global edit count of the user who created it
 
-python -m src.main_app.dj.v1
-
 """
 
 import logging
 import os
 from pathlib import Path
 from typing import Optional
-
 from .api.category import get_category_members_titles
 from .api.mwclient_req import (
     connect_to_meta,

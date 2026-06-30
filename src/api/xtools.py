@@ -4,6 +4,7 @@ import logging
 import time
 from datetime import UTC, datetime, timedelta
 from typing import Optional
+from tqdm import tqdm
 
 import requests
 
@@ -73,3 +74,30 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
         logger.warning(f"Hit max_pages cap fetching globalcontribs for {username}")
 
     return total
+
+def get_recent_editcounts(
+    users: list[str],
+    recent_days: int = RECENT_DAYS,
+) -> dict[str, int]:
+    """
+    For each username:
+      - fetch their last-`recent_days`-day global edit count via XTools'
+        Global Contributions API
+
+    Returns recent_editcounts
+    """
+    recent_editcounts: dict[str, int] = {}
+
+    for username in tqdm(users, desc="Fetching recent edits", unit="user"):
+
+        recent_count = get_recent_editcount(username, days=recent_days)
+        if recent_count is not None:
+            recent_editcounts[username] = recent_count
+        time.sleep(0.3)
+
+    return recent_editcounts
+
+__all__ = [
+    "get_recent_editcount",
+    "get_recent_editcounts",
+]

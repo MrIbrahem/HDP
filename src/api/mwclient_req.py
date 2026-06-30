@@ -1,9 +1,11 @@
 """ """
 
 import logging
+import time
 
 import mwclient.errors
 from mwclient.client import Site
+from tqdm import tqdm
 
 # User-Agent header (required by Wikimedia)
 USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
@@ -165,6 +167,32 @@ def get_global_userinfo(site: Site, username: str) -> dict:
     return data.get("query", {}).get("globaluserinfo", {})
 
 
+
+# -----------------------------------------
+# API
+# -----------------------------------------
+
+
+def get_home_wikis(
+    site: Site,
+    users: list[str],
+) -> dict[str, str]:
+    """
+    For each username:
+      - fetch their CentralAuth home wiki via meta=globaluserinfo
+
+    Returns home_wikis
+    """
+    home_wikis: dict[str, str] = {}
+
+    for username in tqdm(users, desc="Fetching home wiki", unit="user"):
+        # info = get_global_userinfo(username)
+        info = get_global_userinfo(site, username)
+        home_wikis[username] = (info.get("home") or "unknown") if info else "unknown"
+        time.sleep(0.1)
+
+    return home_wikis
+
 __all__ = [
     "connect_to_meta",
     "get_page_wikitext",
@@ -172,4 +200,5 @@ __all__ = [
     "get_page_creator",
     "get_global_editcounts",
     "get_global_userinfo",
+    "get_home_wikis",
 ]

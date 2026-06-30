@@ -11,27 +11,21 @@ subpage, prints/tabulates:
 
 Run this every few months (e.g. via cron) to keep the table current.
 
-python -m src.main_app.dj.v1
-
 """
 
 import logging
 import os
-import time
 from pathlib import Path
 from typing import Optional
-
-from mwclient.client import Site
-from tqdm import tqdm
 
 from .api.category import get_category_members_titles
 from .api.mwclient_req import (
     connect_to_meta,
     get_global_editcounts,
-    get_global_userinfo,
+    get_home_wikis,
     get_page_wikitext,
 )
-from .api.xtools import get_recent_editcount
+from .api.xtools import get_recent_editcounts
 from .wtp_parse import extract_subpage_links, get_section_by_heading
 
 BASE_PAGE = "Hardware donation program"
@@ -111,41 +105,6 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-# -----------------------------------------
-# API
-# -----------------------------------------
-
-
-def get_home_wikis_and_recent_editcounts(
-    site: Site,
-    users: list[str],
-    recent_days: int = RECENT_DAYS,
-) -> tuple[dict[str, str], dict[str, int]]:
-    """
-    For each username:
-      - fetch their CentralAuth home wiki via meta=globaluserinfo
-      - fetch their last-`recent_days`-day global edit count via XTools'
-        Global Contributions API
-
-    Returns (home_wikis, recent_editcounts), both keyed by username.
-    """
-    home_wikis: dict[str, str] = {}
-    recent_editcounts: dict[str, int] = {}
-
-    for username in tqdm(users, desc="Fetching home wiki / recent edits", unit="user"):
-        # info = get_global_userinfo(username)
-        info = get_global_userinfo(site, username)
-        home_wikis[username] = (info.get("home") or "unknown") if info else "unknown"
-        time.sleep(0.1)
-
-        recent_count = get_recent_editcount(username, days=recent_days)
-        if recent_count is not None:
-            recent_editcounts[username] = recent_count
-        time.sleep(0.3)
-
-    return home_wikis, recent_editcounts
-
-
 def main() -> None:
     # Load credentials
     username, password = load_credentials()
@@ -201,7 +160,8 @@ def main() -> None:
         users = [x["username"] for x in data if x["username"]]
 
         editcounts = get_global_editcounts(site, users)
-        home_wikis, recent_editcounts = get_home_wikis_and_recent_editcounts(site, users)
+        recent_editcounts = get_recent_editcounts(users)
+        home_wikis = get_home_wikis(site, users)
 
         rows = []
         for sub in data:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-
-python HDP/dj.py
+python run.py
+python -m run
 
 """
 
@@ -9,7 +9,7 @@ import logging
 
 from dotenv import load_dotenv
 
-from v3 import main
+from src.v3 import main
 
 try:
     load_dotenv("I:/TOOLFORGE_TOOLS/.env")
