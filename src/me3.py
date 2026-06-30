@@ -234,24 +234,28 @@ def extract_subpage_links(section, base_page):
 
 
 def build_wikitable(rows) -> str:
-    """rows: list of (page_link, last_edit, user_link, home_wiki, editcount_str, recent_editcount_str) tuples."""
+    """rows: list of rows data."""
     lines = [
         '{| class="wikitable sortable"',
-        "! Page",
-        "! Last edited to application",
+        "! Page ",
+        "! Last edited to application ",
         "! User ",
-        "! Home wiki ",
-        "! Global edits ",
+        "! Global edits",
         "! Edits in last 3 months",
+        "! Age of account",
+        "! Home Wiki",
+        "! Approved",
     ]
     for row in rows:
         lines.append("|-")
-        lines.append(f"| {row['page_link']}")
-        lines.append(f"| {row['last_edit']}")
+        lines.append(f"| [[{row['full_title']}]] ")
+        lines.append(f"| {{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}")
         lines.append(f"| {row['user_link']}")
-        lines.append(f"| {row['home_wiki']}")
         lines.append(f"| {row['editcount_str']}")
         lines.append(f"| {row['recent_editcount_str']}")
+        lines.append("| ")
+        lines.append(f"| {row['home_wiki']}")
+        lines.append("| ")
 
     lines.append("|}")
 
@@ -310,30 +314,6 @@ def get_page_wikitext(site, page_title):
     pages = data.get("query", {}).get("pages", [])
 
     return pages[0]["revisions"][0]["slots"]["main"]["content"]
-
-
-def get_last_edit_timestamp(site, page_title):
-    logger.info(f"Fetching last edit timestamp of {page_title}...")
-    params = {
-        "prop": "revisions",
-        "titles": page_title,
-        "rvlimit": 1,
-        "rvprop": "timestamp",
-        "formatversion": 2,
-        "format": "json",
-    }
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-        return None
-
-    pages = data.get("query", {}).get("pages", [])
-    if pages and "revisions" in pages[0]:
-        return pages[0]["revisions"][0]["timestamp"]
-
-    return None
-
 
 def get_page_creator(site, page_title):
     """Username of the oldest revision (i.e. who created the page)."""
@@ -544,7 +524,6 @@ def main() -> None:
 
         for sub in subpages:
             full_title = f"{BASE_PAGE}/{sub}"
-            last_edit = get_last_edit_timestamp(site, full_title) or "unknown"
             user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
             username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(site, full_title)
             # first letter upper
@@ -552,7 +531,6 @@ def main() -> None:
             data.append(
                 {
                     "full_title": full_title,
-                    "last_edit": last_edit,
                     "username": username,
                 }
             )
@@ -565,7 +543,6 @@ def main() -> None:
         rows = []
         for sub in data:
             full_title = sub["full_title"]
-            last_edit = sub["last_edit"]
             username = sub["username"]
             editcount = editcounts.get(username) if username else None
             editcount_str = f"{editcount:,}" if isinstance(editcount, int) else "unknown"
@@ -573,16 +550,14 @@ def main() -> None:
             recent_editcount = recent_editcounts.get(username) if username else None
             recent_editcount_str = f"{recent_editcount:,}" if isinstance(recent_editcount, int) else "unknown"
 
-            page_link = f"[[{full_title}]]"
             user_link = f"[[User:{username}]]" if username else "unknown"
+
             row_data = {
-                "page_link": page_link,
-                "last_edit": last_edit,
+                "full_title": full_title,
                 "user_link": user_link,
                 "home_wiki": home_wiki,
                 "editcount_str": editcount_str,
                 "recent_editcount_str": recent_editcount_str,
-
             }
             rows.append(row_data)
 

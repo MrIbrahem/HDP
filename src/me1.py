@@ -234,7 +234,7 @@ def build_wikitable(rows):
     ]
     for row in rows:
         lines.append("|-")
-        lines.append(f"| {row['page_link']}")
+        lines.append(f"| [[{row['full_title']}]] ")
         lines.append(f"| {row['last_edit']}")
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row['editcount_str']}")
@@ -435,10 +435,9 @@ def main() -> None:
             editcount = editcounts.get(username) if username else None
             editcount_str = f"{editcount:,}" if isinstance(editcount, int) else "unknown"
 
-            page_link = f"[[{full_title}]]"
             user_link = f"[[User:{username}]]" if username else "unknown"
             row_data = {
-                "page_link": page_link,
+                "full_title": full_title,
                 "last_edit": last_edit,
                 "user_link": user_link,
                 "editcount_str": editcount_str,
