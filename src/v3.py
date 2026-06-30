@@ -13,9 +13,9 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 """
 
-from datetime import datetime
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -57,6 +57,7 @@ users_redirects = {
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
+
 def calculate_age(registration: str) -> int:
     # "registration": "2008-07-24T01:18:05Z",
     age_years = 0
@@ -66,6 +67,8 @@ def calculate_age(registration: str) -> int:
     except Exception as e:
         logger.error(f"Error calculating age: {e}")
     return age_years
+
+
 def load_credentials() -> tuple[Optional[str], Optional[str]]:
     """
     Load credentials from .env file.
@@ -169,7 +172,7 @@ def main() -> None:
         users = [x["username"] for x in data if x["username"]]
 
         editcounts = api.get_global_editcounts(users)
-        recent_editcounts = {} # get_recent_editcounts(users)
+        recent_editcounts = {}  # get_recent_editcounts(users)
         home_wikis = api.get_home_wikis_and_registration(users)
 
         rows = []
