@@ -18,18 +18,21 @@ python -m src.main_app.dj.me1
 import logging
 import os
 import time
-from datetime import datetime, timedelta, timezone, UTC
 from pathlib import Path
 from typing import Optional
 
 import mwclient
 import mwclient.errors
 import requests
-import wikitextparser as wtp
 from mwclient.client import Site
 from tqdm import tqdm
 
+from .api.xtools import get_recent_editcount
+from .api.category import get_category_members_titles
+from .wtp_parse import get_section_by_heading, extract_subpage_links
+
 API_URL = "https://meta.wikimedia.org/w/api.php"
+
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"
 OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
@@ -60,140 +63,6 @@ users_redirects = {
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
-
-# Configuration
-API_ENDPOINT = "https://commons.wikimedia.org/w/api.php"
-
-
-def get_category_count(category_name: str) -> int:
-    # Ensure the title has the proper prefix
-    if not category_name.startswith("Category:"):
-        category_name = f"Category:{category_name}"
-
-    url = API_ENDPOINT
-    params = {
-        "action": "query",
-        "format": "json",
-        "prop": "categoryinfo",
-        "titles": category_name,
-        "utf8": 1,
-        "formatversion": "2",
-    }
-
-    # Always include a descriptive User-Agent header per Wikipedia API guidelines
-    headers = {"User-Agent": USER_AGENT}
-
-    try:
-        response = requests.get(
-            url,
-            params=params,
-            headers=headers,
-            timeout=10,
-        )
-        response.raise_for_status()
-        data = response.json()
-    except (requests.RequestException, ValueError) as e:
-        logger.error(f"Failed to fetch category info for {category_name}: {e}")
-        return 0
-    # { "batchcomplete": true, "query": { "pages": [ { "pageid": 718741, "ns": 14, "title": "Category:Yemen", "categoryinfo": { "size": 19, "pages": 3, "files": 0, "subcats": 16, "hidden": false } } ] } }
-    # Extract the page data dynamically since the page ID string changes
-    pages = data.get("query", {}).get("pages", [{}])
-    if not pages:
-        return 0
-
-    info = pages[0].get("categoryinfo", {})
-    # {'size': 354, 'pages': 1, 'files': 309, 'subcats': 44}
-    size = info.get("size") or 0
-    return size
-
-
-def get_category_members_titles(
-    site: Site,
-    category_name: str,
-    namespace: int | None = None,
-    total_pages: int | None = None,
-    max_items: int | None = None,
-) -> list[str]:
-    """
-    Fetch all file titles from the OWID category using MediaWiki API with pagination.
-
-    Returns:
-        List of file titles (strings).
-    """
-    delay = 0.1  # seconds
-    max_delay = 8.0
-
-    total_pages = max_items or total_pages or get_category_count(category_name)
-    logger.info(f"Starting to fetch files from {category_name}, total members: {total_pages}")
-
-    params = {
-        # "action": "query",
-        "format": "json",
-        "list": "categorymembers",
-        "cmtitle": category_name,
-        # "cmtype": "file",
-        "cmlimit": "max",
-    }
-
-    if namespace is not None:
-        if namespace == 14:
-            params["cmtype"] = "subcat"
-        elif namespace == 6:
-            params["cmtype"] = "file"
-        else:
-            params["cmnamespace"] = str(namespace)
-
-    all_files = []
-    first_request = True
-    cmcontinue = None
-
-    # Initialize tqdm with the total expected items
-    with tqdm(total=total_pages, desc="Fetching members", unit="item") as pbar:
-        while first_request or cmcontinue is not None:
-            first_request = False
-            if max_items and len(all_files) >= max_items:
-                break
-
-            if cmcontinue:
-                params["cmcontinue"] = cmcontinue
-
-            try:
-                data = site.get("query", **params)
-                members = data.get("query", {}).get("categorymembers", [])
-
-                # Extract titles
-                new_titles = [x.get("title", "") for x in members]
-                all_files.extend(new_titles)
-
-                # Update the progress bar by the number of items fetched in this batch
-                pbar.update(len(new_titles))
-
-                logger.debug(f"Fetched category members: {len(members)} page, (total: {len(all_files)}/{total_pages})")
-
-                if "continue" in data:
-                    cmcontinue = data["continue"].get("cmcontinue")
-                    time.sleep(delay)
-                else:
-                    break
-
-            except mwclient.errors.APIError as e:
-                if e.code == "invalidcategory":
-                    logger.warning(f"Invalid category: {category_name}")
-                    break
-
-            except Exception as e:
-                logger.error("API request failed %s", str(e))
-                if delay >= max_delay:
-                    break
-
-                time.sleep(delay)
-                delay = min(delay * 2, max_delay)
-                continue
-
-    logger.info(f"Finished fetching {len(all_files)} pages.")
-    return all_files
-
-
 def load_credentials() -> tuple[Optional[str], Optional[str]]:
     """
     Load credentials from .env file.
@@ -210,27 +79,6 @@ def load_credentials() -> tuple[Optional[str], Optional[str]]:
 
     return username, password
 
-
-def get_section_by_heading(wikitext, heading):
-    """Use wikitextparser to find a section by its heading text."""
-    parsed = wtp.parse(wikitext)
-    for section in parsed.get_sections(include_subsections=True):
-        if section.title and section.title.strip() == heading:
-            return section
-    raise ValueError(f"Section '{heading}' not found")
-
-
-def extract_subpage_links(section, base_page):
-    """Use wikitextparser's wikilinks to pull out 'Base/Sub' page names."""
-    prefix = base_page + "/"
-    seen = []
-    for link in section.wikilinks:
-        title = link.title.strip()
-        if title.startswith(prefix):
-            name = title[len(prefix) :]
-            if name not in seen:
-                seen.append(name)
-    return seen
 
 
 def build_wikitable(rows) -> str:
@@ -346,7 +194,7 @@ def get_global_editcounts(site, users) -> dict[str, int]:
 
     params = {
         "list": "globalusers",
-        "gusprop": "editcount",
+        "gusprop": "editcount|registration",
         "gususers": "|".join(users),
         "formatversion": 2,
         "format": "json",
@@ -379,6 +227,7 @@ def get_global_userinfo(username: str) -> dict:
         "action": "query",
         "meta": "globaluserinfo",
         "guiuser": username,
+        "guiprop": "editcount",
         "formatversion": "2",
         "format": "json",
     }
@@ -392,68 +241,6 @@ def get_global_userinfo(username: str) -> dict:
         return {}
 
     return data.get("query", {}).get("globaluserinfo", {})
-
-
-XTOOLS_GLOBALCONTRIBS_URL = "https://xtools.wmcloud.org/api/user/globalcontribs"
-
-
-def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int]:
-    """
-    Count a user's edits across all Wikimedia projects in the last `days`
-    days, using XTools' Global Contributions API
-    (GET /api/user/globalcontribs/{username}/{namespace}/{start}/{end}/{offset}),
-    which paginates via a 'continue' timestamp offset.
-
-    Returns None if the lookup fails (e.g. XTools returns an error, or the
-    user has an exceptionally high edit count and the endpoint declines to
-    serve it without authentication, per XTools' own rate-limiting rules).
-    """
-    today = datetime.now(UTC).date()
-    start = today - timedelta(days=days)
-    base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{username}/all/{start.isoformat()}/{today.isoformat()}"
-
-    headers = {"User-Agent": USER_AGENT}
-    total = 0
-    offset = None
-    delay = 0.5
-    max_delay = 8.0
-    max_pages = 50  # safety cap against runaway pagination
-
-    for _ in range(max_pages):
-        params = {"offset": offset} if offset else {}
-        try:
-            response = requests.get(base_url, params=params, headers=headers, timeout=15)
-            response.raise_for_status()
-            data = response.json()
-        except (requests.RequestException, ValueError) as e:
-            logger.error(f"XTools globalcontribs request failed for {username}: {e}")
-            if total > 0:
-                # We got partial data before the failure; treat as a lower bound.
-                return total
-            if delay >= max_delay:
-                return None
-            time.sleep(delay)
-            delay = min(delay * 2, max_delay)
-            continue
-
-        if "error" in data or "status" in data:
-            # XTools error responses follow RFC 7807 (status/title/details).
-            logger.warning(f"XTools globalcontribs error for {username}: {data}")
-            return None
-
-        contribs = data.get("globalcontribs", [])
-        total += len(contribs)
-
-        offset = data.get("continue")
-        if not offset:
-            break
-
-        time.sleep(0.3)
-    else:
-        logger.warning(f"Hit max_pages cap fetching globalcontribs for {username}")
-
-    return total
-
 
 def get_home_wikis_and_recent_editcounts(
     users: list[str],
