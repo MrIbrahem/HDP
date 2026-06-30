@@ -14,15 +14,13 @@ import os
 from pathlib import Path
 from typing import Optional
 
-
 from .api.category import get_category_members_titles
-from .wtp_parse import get_section_by_heading, extract_subpage_links
-
 from .api.mwclient_req import (
     connect_to_meta,
-    get_page_wikitext,
     get_global_editcounts,
+    get_page_wikitext,
 )
+from .wtp_parse import extract_subpage_links, get_section_by_heading
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"
@@ -48,6 +46,7 @@ users_redirects = {
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
+
 def load_credentials() -> tuple[Optional[str], Optional[str]]:
     """
     Load credentials from .env file.
@@ -63,7 +62,6 @@ def load_credentials() -> tuple[Optional[str], Optional[str]]:
         return None, None
 
     return username, password
-
 
 
 def build_wikitable(rows) -> str:
@@ -159,7 +157,6 @@ def main() -> None:
                 "full_title": full_title,
                 "user_link": user_link,
                 "editcount_str": editcount_str,
-
             }
 
             rows.append(row_data)

@@ -24,16 +24,15 @@ from typing import Optional
 from mwclient.client import Site
 from tqdm import tqdm
 
-from .api.xtools import get_recent_editcount
 from .api.category import get_category_members_titles
-from .wtp_parse import get_section_by_heading, extract_subpage_links
-
 from .api.mwclient_req import (
     connect_to_meta,
-    get_page_wikitext,
     get_global_editcounts,
     get_global_userinfo,
+    get_page_wikitext,
 )
+from .api.xtools import get_recent_editcount
+from .wtp_parse import extract_subpage_links, get_section_by_heading
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"
@@ -65,6 +64,7 @@ users_redirects = {
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
+
 def load_credentials() -> tuple[Optional[str], Optional[str]]:
     """
     Load credentials from .env file.
@@ -80,7 +80,6 @@ def load_credentials() -> tuple[Optional[str], Optional[str]]:
         return None, None
 
     return username, password
-
 
 
 def build_wikitable(rows) -> str:
@@ -115,6 +114,7 @@ def build_wikitable(rows) -> str:
 # -----------------------------------------
 # API
 # -----------------------------------------
+
 
 def get_home_wikis_and_recent_editcounts(
     site: Site,

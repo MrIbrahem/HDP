@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 import logging
 import time
@@ -11,6 +9,7 @@ from mwclient.client import Site
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
+
 
 def get_category_count(site: Site, category_name: str) -> int:
     # Ensure the title has the proper prefix
@@ -130,4 +129,3 @@ def get_category_members_titles(
 
     logger.info(f"Finished fetching {len(all_files)} pages.")
     return all_files
-

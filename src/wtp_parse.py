@@ -1,7 +1,7 @@
-"""
-"""
+""" """
 
 import logging
+
 import wikitextparser as wtp
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ def extract_subpage_links(section, base_page):
             if name not in seen:
                 seen.append(name)
     return seen
+
 
 __all__ = [
     "get_section_by_heading",

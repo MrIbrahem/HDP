@@ -1,9 +1,8 @@
-"""
-"""
+""" """
 
 import logging
 import time
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from typing import Optional
 
 import requests
@@ -17,6 +16,7 @@ USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-ca
 HEADERS = {"User-Agent": USER_AGENT}
 
 logger = logging.getLogger(__name__)
+
 
 def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int]:
     """
@@ -73,4 +73,3 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
         logger.warning(f"Hit max_pages cap fetching globalcontribs for {username}")
 
     return total
-

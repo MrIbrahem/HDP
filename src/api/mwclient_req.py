@@ -1,5 +1,4 @@
-"""
-"""
+""" """
 
 import logging
 
@@ -137,6 +136,7 @@ def get_global_editcounts(site: Site, users) -> dict[str, int]:
     logger.info(f"len of data: {len(result)}")
     return {x["name"]: x["editcount"] for x in result if x.get("editcount")}
 
+
 def get_global_userinfo(site: Site, username: str) -> dict:
     """
     Fetch CentralAuth global user info for a single user from meta.wikimedia.org.
@@ -163,6 +163,7 @@ def get_global_userinfo(site: Site, username: str) -> dict:
         return {}
 
     return data.get("query", {}).get("globaluserinfo", {})
+
 
 __all__ = [
     "connect_to_meta",
