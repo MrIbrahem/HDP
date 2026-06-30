@@ -35,8 +35,6 @@ from .api.mwclient_req import (
     get_global_editcounts,
 )
 
-API_URL = "https://meta.wikimedia.org/w/api.php"
-
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"
 OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
@@ -117,63 +115,6 @@ def build_wikitable(rows) -> str:
 # -----------------------------------------
 # API
 # -----------------------------------------
-
-
-def connect_to_meta(username: str, password: str) -> Optional[Site]:
-    """
-    Connect to Wikimedia Commons using mwclient.
-
-    Args:
-        username: Bot username
-        password: Bot password
-
-    Returns:
-        Connected Site object or None on failure
-    """
-    try:
-        logger.info("Connecting to meta.wikimedia.org...")
-        site = Site("meta.wikimedia.org", clients_useragent=USER_AGENT)
-
-        logger.info(f"Logging in as {username}...")
-        site.login(username, password)
-
-        logger.info("Successfully connected and logged in")
-        return site
-    except mwclient.errors.LoginError as e:
-        logger.error(f"Login failed: {e}")
-        return None
-    except Exception as e:
-        logger.exception(f"Failed to connect to meta.wikimedia.org: {e}")
-        return None
-
-def get_global_userinfo(username: str) -> dict:
-    """
-    Fetch CentralAuth global user info for a single user from meta.wikimedia.org.
-
-    Returns the raw 'globaluserinfo' dict, which includes:
-      - 'home': dbname of the user's home wiki (e.g. "enwiki"), may be empty
-
-    Note: meta=globaluserinfo only accepts a single username at a time
-    (no batching), so this is called once per user.
-    """
-    params = {
-        "action": "query",
-        "meta": "globaluserinfo",
-        "guiuser": username,
-        "guiprop": "editcount",
-        "formatversion": "2",
-        "format": "json",
-    }
-    headers = {"User-Agent": USER_AGENT}
-    try:
-        response = requests.get(API_URL, params=params, headers=headers, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-    except (requests.RequestException, ValueError) as e:
-        logger.error(f"Failed to fetch globaluserinfo for {username}: {e}")
-        return {}
-
-    return data.get("query", {}).get("globaluserinfo", {})
 
 def get_home_wikis_and_recent_editcounts(
     users: list[str],

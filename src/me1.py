@@ -26,16 +26,11 @@ from .api.mwclient_req import (
     get_last_edit_timestamp,
     get_global_editcounts,
 )
-
-API_URL = "https://meta.wikimedia.org/w/api.php"
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"
 OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
 
 logger = logging.getLogger(__name__)
-
-# User-Agent header (required by Wikimedia)
-USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
 
 # -----------------------------------------
 # wiki text parsers
@@ -97,35 +92,6 @@ def build_wikitable(rows):
 # -----------------------------------------
 # API
 # -----------------------------------------
-
-
-def connect_to_meta(username: str, password: str) -> Optional[Site]:
-    """
-    Connect to Wikimedia Commons using mwclient.
-
-    Args:
-        username: Bot username
-        password: Bot password
-
-    Returns:
-        Connected Site object or None on failure
-    """
-    try:
-        logger.info("Connecting to meta.wikimedia.org...")
-        site = Site("meta.wikimedia.org", clients_useragent=USER_AGENT)
-
-        logger.info(f"Logging in as {username}...")
-        site.login(username, password)
-
-        logger.info("Successfully connected and logged in")
-        return site
-    except mwclient.errors.LoginError as e:
-        logger.error(f"Login failed: {e}")
-        return None
-    except Exception as e:
-        logger.exception(f"Failed to connect to meta.wikimedia.org: {e}")
-        return None
-
 
 def main() -> None:
     # Load credentials
