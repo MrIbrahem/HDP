@@ -1,3 +1,9 @@
+"""
+
+https://meta.wikimedia.org/wiki/Category:Hardware_donation_program_open_requests
+
+"""
+
 from .api.category import get_category_members_titles
 from .wtp_parse import extract_subpage_links, get_section_by_heading
 
