@@ -214,7 +214,7 @@ class MwclientApi:
     def get_home_wikis_and_registration(
         self,
         users: list[str],
-    ) -> dict[str, str]:
+    ) -> dict[str, dict[str, str]]:
         return get_home_wikis_and_registration(self.site, users)
 
 

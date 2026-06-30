@@ -13,6 +13,7 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 """
 
+from datetime import datetime
 import logging
 import os
 from pathlib import Path
@@ -56,7 +57,15 @@ users_redirects = {
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
-
+def calculate_age(registration: str) -> int:
+    # "registration": "2008-07-24T01:18:05Z",
+    age_years = 0
+    now = datetime.datetime.now()
+    try:
+        age_years = now.year - int(registration[:4])
+    except Exception as e:
+        logger.error(f"Error calculating age: {e}")
+    return age_years
 def load_credentials() -> tuple[Optional[str], Optional[str]]:
     """
     Load credentials from .env file.
@@ -94,7 +103,7 @@ def build_wikitable(rows) -> str:
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row['editcount_str']}")
         lines.append(f"| {row['recent_editcount_str']}")
-        lines.append("| ")
+        lines.append(f"| {row['age']}")
         lines.append(f"| {row['home_wiki']}")
         lines.append("| ")
 
@@ -160,12 +169,13 @@ def main() -> None:
         users = [x["username"] for x in data if x["username"]]
 
         editcounts = api.get_global_editcounts(users)
-        recent_editcounts = get_recent_editcounts(users)
+        recent_editcounts = {} # get_recent_editcounts(users)
         home_wikis = api.get_home_wikis_and_registration(users)
 
         rows = []
         for sub in data:
             editcount_str = "unknown"
+            age = ""
             user_link = "unknown"
             home_wiki = "unknown"
             recent_editcount_str = "unknown"
@@ -173,7 +183,11 @@ def main() -> None:
             username = sub["username"]
             if username:
                 user_link = f"[[User:{username}]]"
-                home_wiki = home_wikis.get(username, "unknown")
+                z_data = home_wikis.get(username, {})
+                home_wiki = z_data.get("home", "unknown")
+                registration = z_data.get("registration", "")
+                if registration:
+                    age = calculate_age(registration)
 
                 editcount = editcounts.get(username)
                 if isinstance(editcount, int):
@@ -184,6 +198,7 @@ def main() -> None:
                     recent_editcount_str = f"{recent_editcount:,}"
 
             row_data = {
+                "age": age,
                 "full_title": sub["full_title"],
                 "user_link": user_link,
                 "editcount_str": editcount_str,
