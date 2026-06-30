@@ -27,5 +27,13 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
+SECTION_HEADINGS = [
+    # "Updated as of May 1st 2026",
+    # "Messaged to update application",
+    # "Draft requests",
+    "Current donation requests",
+    # "Approved requests not yet delivered",
+]
+
 if __name__ == "__main__":
-    main()
+    main(SECTION_HEADINGS)

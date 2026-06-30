@@ -61,7 +61,7 @@ users_redirects = {
 def calculate_age(registration: str) -> int:
     # "registration": "2008-07-24T01:18:05Z",
     age_years = 0
-    now = datetime.datetime.now()
+    now = datetime.now()
     try:
         age_years = now.year - int(registration[:4])
     except Exception as e:
@@ -115,7 +115,21 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-def main() -> None:
+def get_subpages(site, full_wikitext, section_title) -> list[str]:
+    if section_title == "Draft requests":
+        members = get_category_members_titles(
+            site,
+            "Category:Hardware donation program drafts",
+            namespace=0,
+        )
+        subpages = [x.replace("Hardware donation program/", "") for x in members]
+    else:
+        section = get_section_by_heading(full_wikitext, section_title)
+        subpages = extract_subpage_links(section, BASE_PAGE)
+    return subpages
+
+
+def main(section_headings: list[str]) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -134,25 +148,10 @@ def main() -> None:
     full_wikitext = api.get_page_wikitext(BASE_PAGE)
     full_wikitext = full_wikitext.replace("_", " ")
 
-    SECTION_HEADINGS = [
-        # "Updated as of May 1st 2026",
-        # "Messaged to update application",
-        "Current donation requests",
-        "Draft requests",
-        "Approved requests not yet delivered",
-    ]
     full_text_table = ""
 
-    for section_title in SECTION_HEADINGS:
-        section = get_section_by_heading(full_wikitext, section_title)
-        subpages = extract_subpage_links(section, BASE_PAGE)
-        if section_title == "Draft requests":
-            members = get_category_members_titles(
-                site,
-                "Category:Hardware donation program drafts",
-                namespace=0,
-            )
-            subpages = [x.replace("Hardware donation program/", "") for x in members]
+    for section_title in section_headings:
+        subpages = get_subpages(site, full_wikitext, section_title)
 
         data = []
 

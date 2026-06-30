@@ -82,12 +82,21 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-# -----------------------------------------
-# API
-# -----------------------------------------
+def get_subpages(site, full_wikitext, section_title) -> list[str]:
+    if section_title == "Draft requests":
+        members = get_category_members_titles(
+            site,
+            "Category:Hardware donation program drafts",
+            namespace=0,
+        )
+        subpages = [x.replace("Hardware donation program/", "") for x in members]
+    else:
+        section = get_section_by_heading(full_wikitext, section_title)
+        subpages = extract_subpage_links(section, BASE_PAGE)
+    return subpages
 
 
-def main() -> None:
+def main(section_headings: list[str]) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -106,23 +115,10 @@ def main() -> None:
     full_wikitext = api.get_page_wikitext(BASE_PAGE)
     full_wikitext = full_wikitext.replace("_", " ")
 
-    SECTION_HEADINGS = [
-        # "Updated as of May 1st 2026",
-        # "Messaged to update application",
-        "Draft requests",
-    ]
     full_text_table = ""
 
-    for section_title in SECTION_HEADINGS:
-        section = get_section_by_heading(full_wikitext, section_title)
-        subpages = extract_subpage_links(section, BASE_PAGE)
-        if section_title == "Draft requests":
-            members = get_category_members_titles(
-                site,
-                "Category:Hardware donation program drafts",
-                namespace=0,
-            )
-            subpages = [x.replace("Hardware donation program/", "") for x in members]
+    for section_title in section_headings:
+        subpages = get_subpages(site, full_wikitext, section_title)
 
         data = []
 
@@ -145,7 +141,6 @@ def main() -> None:
 
         rows = []
         for sub in data:
-            full_title = sub["full_title"]
             username = sub["username"]
             editcount = editcounts.get(username) if username else None
             editcount_str = f"{editcount:,}" if isinstance(editcount, int) else "unknown"
@@ -153,7 +148,7 @@ def main() -> None:
             user_link = f"[[User:{username}]]" if username else "unknown"
 
             row_data = {
-                "full_title": full_title,
+                "full_title": sub["full_title"],
                 "user_link": user_link,
                 "editcount_str": editcount_str,
             }
