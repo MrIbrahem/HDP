@@ -164,25 +164,29 @@ def get_global_userinfo(site: Site, username: str) -> dict:
         logger.error("API request failed %s", str(e))
         return {}
 
+    # { "globaluserinfo": { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
     return data.get("query", {}).get("globaluserinfo", {})
 
 
-def get_home_wikis(
+def get_home_wikis_and_registration(
     site: Site,
     users: list[str],
-) -> dict[str, str]:
+) -> dict[str, dict[str, str]]:
     """
     For each username:
       - fetch their CentralAuth home wiki via meta=globaluserinfo
 
     Returns home_wikis
     """
-    home_wikis: dict[str, str] = {}
+    home_wikis = {}
 
     for username in tqdm(users, desc="Fetching home wiki", unit="user"):
-        # info = get_global_userinfo(username)
         info = get_global_userinfo(site, username)
-        home_wikis[username] = (info.get("home") or "unknown") if info else "unknown"
+        # info = { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
+        home_wikis[username] = {
+            "home": info.get("home", ""),
+            "registration": info.get("registration", ""),
+        }
         time.sleep(0.1)
 
     return home_wikis
@@ -207,11 +211,11 @@ class MwclientApi:
     def get_global_userinfo(self, username: str) -> dict:
         return get_global_userinfo(self.site, username)
 
-    def get_home_wikis(
+    def get_home_wikis_and_registration(
         self,
         users: list[str],
     ) -> dict[str, str]:
-        return get_home_wikis(self.site, users)
+        return get_home_wikis_and_registration(self.site, users)
 
 
 __all__ = [

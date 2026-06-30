@@ -161,22 +161,30 @@ def main() -> None:
 
         editcounts = api.get_global_editcounts(users)
         recent_editcounts = get_recent_editcounts(users)
-        home_wikis = api.get_home_wikis(users)
+        home_wikis = api.get_home_wikis_and_registration(users)
 
         rows = []
         for sub in data:
-            full_title = sub["full_title"]
-            username = sub["username"]
-            editcount = editcounts.get(username) if username else None
-            editcount_str = f"{editcount:,}" if isinstance(editcount, int) else "unknown"
-            home_wiki = home_wikis.get(username, "unknown") if username else "unknown"
-            recent_editcount = recent_editcounts.get(username) if username else None
-            recent_editcount_str = f"{recent_editcount:,}" if isinstance(recent_editcount, int) else "unknown"
+            editcount_str = "unknown"
+            user_link = "unknown"
+            home_wiki = "unknown"
+            recent_editcount_str = "unknown"
 
-            user_link = f"[[User:{username}]]" if username else "unknown"
+            username = sub["username"]
+            if username:
+                user_link = f"[[User:{username}]]"
+                home_wiki = home_wikis.get(username, "unknown")
+
+                editcount = editcounts.get(username)
+                if isinstance(editcount, int):
+                    editcount_str = f"{editcount:,}"
+
+                recent_editcount = recent_editcounts.get(username)
+                if recent_editcount:
+                    recent_editcount_str = f"{recent_editcount:,}"
 
             row_data = {
-                "full_title": full_title,
+                "full_title": sub["full_title"],
                 "user_link": user_link,
                 "editcount_str": editcount_str,
                 "home_wiki": home_wiki,
