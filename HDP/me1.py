@@ -10,17 +10,17 @@ python -m src.main_app.dj.me1
 """
 
 import logging
+import os
+import time
 from pathlib import Path
 from typing import Optional
 
-import os
-import time
 import mwclient
-import requests
 import mwclient.errors
+import requests
 import wikitextparser as wtp
-from tqdm import tqdm
 from mwclient.client import Site
+from tqdm import tqdm
 
 API_URL = "https://meta.wikimedia.org/w/api.php"
 BASE_PAGE = "Hardware donation program"
@@ -199,6 +199,7 @@ def load_credentials() -> tuple[Optional[str], Optional[str]]:
         return None, None
 
     return username, password
+
 
 def get_section_by_heading(wikitext, heading):
     """Use wikitextparser to find a section by its heading text."""
@@ -395,7 +396,7 @@ def main() -> None:
                 "Category:Hardware donation program drafts",
                 namespace=0,
             )
-            subpages = [ x.replace("Hardware donation program/", "") for x in members]
+            subpages = [x.replace("Hardware donation program/", "") for x in members]
 
         lines = []
 
@@ -428,7 +429,9 @@ def main() -> None:
             editcount = editcounts.get(username) if username else None
             editcount_str = f"{editcount:,}" if isinstance(editcount, int) else "unknown"
 
-            line = f"*[[{full_title}]] (Last edited: {last_edit}, {username or 'unknown'} global edits: {editcount_str})"
+            line = (
+                f"*[[{full_title}]] (Last edited: {last_edit}, {username or 'unknown'} global edits: {editcount_str})"
+            )
             lines.append(line)
 
             page_link = f"[[{full_title}]]"

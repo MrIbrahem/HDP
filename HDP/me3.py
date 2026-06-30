@@ -16,18 +16,18 @@ python -m src.main_app.dj.me1
 """
 
 import logging
+import os
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-import os
-import time
 import mwclient
-import requests
 import mwclient.errors
+import requests
 import wikitextparser as wtp
-from tqdm import tqdm
 from mwclient.client import Site
+from tqdm import tqdm
 
 API_URL = "https://meta.wikimedia.org/w/api.php"
 BASE_PAGE = "Hardware donation program"
@@ -209,6 +209,7 @@ def load_credentials() -> tuple[Optional[str], Optional[str]]:
         return None, None
 
     return username, password
+
 
 def get_section_by_heading(wikitext, heading):
     """Use wikitextparser to find a section by its heading text."""
@@ -528,7 +529,7 @@ def main() -> None:
                 "Category:Hardware donation program drafts",
                 namespace=0,
             )
-            subpages = [ x.replace("Hardware donation program/", "") for x in members]
+            subpages = [x.replace("Hardware donation program/", "") for x in members]
 
         lines = []
 
