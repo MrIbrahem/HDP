@@ -7,7 +7,7 @@ python HDP/dj.py
 
 import logging
 
-from me1 import main
+from me3 import main
 
 logging.basicConfig(
     level=logging.INFO,
