@@ -12,12 +12,11 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from .api.category import get_category_members_titles
 from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
-from .wtp_parse import extract_subpage_links, get_section_by_heading
+from .load_subpages import get_subpages
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"
@@ -82,20 +81,6 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-def get_subpages(site, full_wikitext, section_title) -> list[str]:
-    if section_title == "Draft requests":
-        members = get_category_members_titles(
-            site,
-            "Category:Hardware donation program drafts",
-            namespace=0,
-        )
-        subpages = [x.replace("Hardware donation program/", "") for x in members]
-    else:
-        section = get_section_by_heading(full_wikitext, section_title)
-        subpages = extract_subpage_links(section, BASE_PAGE)
-    return subpages
-
-
 def main(section_headings: list[str]) -> None:
     # Load credentials
     username, password = load_credentials()
@@ -118,7 +103,7 @@ def main(section_headings: list[str]) -> None:
     full_text_table = ""
 
     for section_title in section_headings:
-        subpages = get_subpages(site, full_wikitext, section_title)
+        subpages = get_subpages(site, full_wikitext, section_title, BASE_PAGE)
 
         data = []
 
