@@ -20,12 +20,13 @@ from mwclient.client import Site
 
 from .api.category import get_category_members_titles
 from .wtp_parse import get_section_by_heading, extract_subpage_links
+
 from .api.mwclient_req import (
     get_page_wikitext,
     get_last_edit_timestamp,
-    get_page_creator,
     get_global_editcounts,
 )
+
 API_URL = "https://meta.wikimedia.org/w/api.php"
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE = Path(__file__).parent / "file.wiki"

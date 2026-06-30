@@ -32,7 +32,6 @@ from .api.category import get_category_members_titles
 from .wtp_parse import get_section_by_heading, extract_subpage_links
 from .api.mwclient_req import (
     get_page_wikitext,
-    get_page_creator,
     get_global_editcounts,
 )
 
@@ -146,77 +145,6 @@ def connect_to_meta(username: str, password: str) -> Optional[Site]:
     except Exception as e:
         logger.exception(f"Failed to connect to meta.wikimedia.org: {e}")
         return None
-
-
-def get_page_wikitext(site: Site, page_title):
-    """Fetch the full raw wikitext of a page via the API."""
-    logger.info(f"Fetching wikitext of {page_title}...")
-    params = {
-        "prop": "revisions",
-        "titles": page_title,
-        "rvslots": "main",
-        "rvprop": "content",
-        "formatversion": 2,
-        "format": "json",
-    }
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-
-    pages = data.get("query", {}).get("pages", [])
-
-    return pages[0]["revisions"][0]["slots"]["main"]["content"]
-
-def get_page_creator(site: Site, page_title):
-    """Username of the oldest revision (i.e. who created the page)."""
-    logger.info(f"Fetching page creator of {page_title}...")
-    params = {
-        "prop": "revisions",
-        "titles": page_title,
-        "rvlimit": 1,
-        "rvdir": "newer",
-        "rvprop": "user",
-        "formatversion": 2,
-        "format": "json",
-    }
-
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-        return None
-
-    pages = data.get("query", {}).get("pages", [])
-    if pages and "revisions" in pages[0]:
-        return pages[0]["revisions"][0]["user"]
-
-    return None
-
-
-def get_global_editcounts(site: Site, users) -> dict[str, int]:
-    logger.info(f"Fetching global edit count of {len(users)}...")
-
-    params = {
-        "list": "globalusers",
-        "gusprop": "editcount|registration",
-        "gususers": "|".join(users),
-        "formatversion": 2,
-        "format": "json",
-    }
-
-    try:
-        data = site.get("query", **params)
-    except Exception as e:
-        logger.error("API request failed %s", str(e))
-        data = {}
-
-    result = data.get("query", {}).get("globalusers", [])
-    # [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
-
-    logger.info(f"len of data: {len(result)}")
-    return {x["name"]: x["editcount"] for x in result if x.get("editcount")}
-
 
 def get_global_userinfo(username: str) -> dict:
     """

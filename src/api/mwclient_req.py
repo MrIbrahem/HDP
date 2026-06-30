@@ -82,7 +82,7 @@ def get_global_editcounts(site: Site, users) -> dict[str, int]:
 
     params = {
         "list": "globalusers",
-        "gusprop": "editcount",
+        "gusprop": "editcount|registration",
         "gususers": "|".join(users),
         "formatversion": 2,
         "format": "json",
