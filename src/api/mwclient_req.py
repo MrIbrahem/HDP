@@ -167,12 +167,6 @@ def get_global_userinfo(site: Site, username: str) -> dict:
     return data.get("query", {}).get("globaluserinfo", {})
 
 
-
-# -----------------------------------------
-# API
-# -----------------------------------------
-
-
 def get_home_wikis(
     site: Site,
     users: list[str],
@@ -193,12 +187,34 @@ def get_home_wikis(
 
     return home_wikis
 
+
+class MwclientApi:
+    def __init__(self, site):
+        self.site = site
+
+    def get_page_wikitext(self, page_title):
+        return get_page_wikitext(self.site, page_title)
+
+    def get_last_edit_timestamp(self, page_title):
+        return get_last_edit_timestamp(self.site, page_title)
+
+    def get_page_creator(self, page_title):
+        return get_page_creator(self.site, page_title)
+
+    def get_global_editcounts(self, users) -> dict[str, int]:
+        return get_global_editcounts(self.site, users)
+
+    def get_global_userinfo(self, username: str) -> dict:
+        return get_global_userinfo(self.site, username)
+
+    def get_home_wikis(
+        self,
+        users: list[str],
+    ) -> dict[str, str]:
+        return get_home_wikis(self.site, users)
+
+
 __all__ = [
     "connect_to_meta",
-    "get_page_wikitext",
-    "get_last_edit_timestamp",
-    "get_page_creator",
-    "get_global_editcounts",
-    "get_global_userinfo",
-    "get_home_wikis",
+    "MwclientApi",
 ]

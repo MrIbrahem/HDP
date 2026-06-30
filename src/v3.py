@@ -20,10 +20,8 @@ from typing import Optional
 
 from .api.category import get_category_members_titles
 from .api.mwclient_req import (
+    MwclientApi,
     connect_to_meta,
-    get_global_editcounts,
-    get_home_wikis,
-    get_page_wikitext,
 )
 from .api.xtools import get_recent_editcounts
 from .wtp_parse import extract_subpage_links, get_section_by_heading
@@ -119,7 +117,9 @@ def main() -> None:
         logger.error("Failed to connect to Wikimedia Commons")
         return
 
-    full_wikitext = get_page_wikitext(site, BASE_PAGE)
+    api = MwclientApi(site)
+
+    full_wikitext = api.get_page_wikitext(BASE_PAGE)
     full_wikitext = full_wikitext.replace("_", " ")
 
     SECTION_HEADINGS = [
@@ -147,7 +147,7 @@ def main() -> None:
         for sub in subpages:
             full_title = f"{BASE_PAGE}/{sub}"
             user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(site, full_title)
+            username = users_redirects.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
             # first letter upper
             username = username[0].upper() + username[1:]
             data.append(
@@ -159,9 +159,9 @@ def main() -> None:
 
         users = [x["username"] for x in data if x["username"]]
 
-        editcounts = get_global_editcounts(site, users)
+        editcounts = api.get_global_editcounts(users)
         recent_editcounts = get_recent_editcounts(users)
-        home_wikis = get_home_wikis(site, users)
+        home_wikis = api.get_home_wikis(users)
 
         rows = []
         for sub in data:

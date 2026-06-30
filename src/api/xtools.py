@@ -4,9 +4,9 @@ import logging
 import time
 from datetime import UTC, datetime, timedelta
 from typing import Optional
-from tqdm import tqdm
 
 import requests
+from tqdm import tqdm
 
 # How many days back counts as "recent" for the recent-edits column.
 RECENT_DAYS = 90
@@ -75,6 +75,7 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
 
     return total
 
+
 def get_recent_editcounts(
     users: list[str],
     recent_days: int = RECENT_DAYS,
@@ -96,6 +97,7 @@ def get_recent_editcounts(
         time.sleep(0.3)
 
     return recent_editcounts
+
 
 __all__ = [
     "get_recent_editcount",
