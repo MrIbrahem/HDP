@@ -1,0 +1,61 @@
+# Environment variables and credentials
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Output files (optional - uncomment if you don't want to track output)
+# output/
+# output/countries/
+# output/*.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+/output
+/_works_files
+/.commandcode
+src/main_app/dj/find_owid_bad_moves.py
