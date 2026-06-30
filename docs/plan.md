@@ -1,4 +1,3 @@
-
 You are modifying `me1.py`, a script that scrapes the Wikimedia Meta page "Hardware donation program" and builds a wikitable of applicants. Implement the following changes:
 
 **Checklist**
@@ -24,23 +23,27 @@ You are modifying `me1.py`, a script that scrapes the Wikimedia Meta page "Hardw
 7. Add scheduling instructions/config (cron line, or scheduled task) per requirement #8.
 8. Report back: which API was used for recent edit counts and home wiki, any rate-limit constraints discovered, and confirm the script ran cleanly.
 
-
 # Xtools:
+
 ## Global Contributions
+
 > GET /api/user/globalcontribs/{username}/{namespace}/{start}/{end}/{offset}
->> Get global edits made by a user, IP or IP range across all Wikimedia projects.
+>
+> > Get global edits made by a user, IP or IP range across all Wikimedia projects.
 
 ### Parameters
-* username (required) – Username or IP address.
-* namespace – Namespace ID or all (default) for all namespaces.
-* start – Start date in the format YYYY-MM-DD. Leave this and end blank to retrieve the most recent data.
-* end – End date in the format YYYY-MM-DD. Leave this and start blank to retrieve the most recent data.
-* offset – Shows edits created before the given timestamp. This is used for pagination. If there is more than one page of results, continue is returned, with the offset timestamp as the value.
+
+-   username (required) – Username or IP address.
+-   namespace – Namespace ID or all (default) for all namespaces.
+-   start – Start date in the format YYYY-MM-DD. Leave this and end blank to retrieve the most recent data.
+-   end – End date in the format YYYY-MM-DD. Leave this and start blank to retrieve the most recent data.
+-   offset – Shows edits created before the given timestamp. This is used for pagination. If there is more than one page of results, continue is returned, with the offset timestamp as the value.
+
 ### Examples
-* Get edits made by Jimbo Wales across all wikis:
+
+-   Get edits made by Jimbo Wales across all wikis:
 
 > https://xtools.wmcloud.org/api/user/globalcontribs/Jimbo_Wales/all/2026-01-01/2026-05-01
-
 
 ```
 {

@@ -6,8 +6,13 @@ python HDP/dj.py
 """
 
 import logging
-
+from dotenv import load_dotenv
 from me3 import main
+
+try:
+    load_dotenv("I:/TOOLFORGE_TOOLS/.env")
+except Exception:
+    pass
 
 logging.basicConfig(
     level=logging.INFO,

@@ -227,7 +227,7 @@ def build_wikitable(rows):
     """rows: list of (page_link, last_edit, user_link, editcount_str) tuples."""
     lines = [
         '{| class="wikitable sortable"',
-        "! Page !! Last edited !! User !! Global edits",
+        "! Page !! Last edited to application !! User !! Global edits",
     ]
     for page_link, last_edit, user_link, editcount_str in rows:
         lines.append("|-")
@@ -387,7 +387,6 @@ def main() -> None:
         # "Messaged to update application",
         "Draft requests",
     ]
-    full_text = ""
     full_text_table = ""
 
     for section_title in SECTION_HEADINGS:
@@ -400,8 +399,6 @@ def main() -> None:
                 namespace=0,
             )
             subpages = [x.replace("Hardware donation program/", "") for x in members]
-
-        lines = []
 
         data = []
 
@@ -432,11 +429,6 @@ def main() -> None:
             editcount = editcounts.get(username) if username else None
             editcount_str = f"{editcount:,}" if isinstance(editcount, int) else "unknown"
 
-            line = (
-                f"*[[{full_title}]] (Last edited: {last_edit}, {username or 'unknown'} global edits: {editcount_str})"
-            )
-            lines.append(line)
-
             page_link = f"[[{full_title}]]"
             user_link = f"[[User:{username}]]" if username else "unknown"
 
@@ -445,10 +437,6 @@ def main() -> None:
         table = build_wikitable(rows)
         full_text_table += f"=== {section_title} ===\n\n{table}\n"
 
-        output_text = "\n".join(lines) + "\n"
-        full_text += f"=== {section_title} ===\n\n{output_text}\n"
-
-    OUTPUT_FILE.write_text(full_text, encoding="utf-8")
     OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
 
     logger.info(f"Saved to {OUTPUT_FILE}")

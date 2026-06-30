@@ -1,6 +1,6 @@
 """
 Reads the "Current donation requests" section of
-https://meta.wikimedia.org/wiki/Hardware_donation_program
+https://meta.wikimedia.org/wiki/Hardware_donation_program#Current_donation_requests
 (covering its "Open requests", "Draft requests", and
 "Approved requests not yet delivered" subsections) and, for each linked
 subpage, prints/tabulates:
@@ -18,7 +18,7 @@ python -m src.main_app.dj.me1
 import logging
 import os
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 from pathlib import Path
 from typing import Optional
 
@@ -237,7 +237,7 @@ def build_wikitable(rows):
     """rows: list of (page_link, last_edit, user_link, home_wiki, editcount_str, recent_editcount_str) tuples."""
     lines = [
         '{| class="wikitable sortable"',
-        f"! Page !! Last edited !! User !! Home wiki !! Global edits !! Global edits (last {RECENT_DAYS} days)",
+        "! Page !! Last edited to application !! User !! Home wiki !! Global edits !! Edits in last 3 months",
     ]
     for page_link, last_edit, user_link, home_wiki, editcount_str, recent_editcount_str in rows:
         lines.append("|-")
@@ -418,7 +418,7 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
     user has an exceptionally high edit count and the endpoint declines to
     serve it without authentication, per XTools' own rate-limiting rules).
     """
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     start = today - timedelta(days=days)
     base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{username}/all/{start.isoformat()}/{today.isoformat()}"
 
@@ -513,11 +513,10 @@ def main() -> None:
     SECTION_HEADINGS = [
         # "Updated as of May 1st 2026",
         # "Messaged to update application",
-        "Open requests",
+        "Current donation requests",
         "Draft requests",
         "Approved requests not yet delivered",
     ]
-    full_text = ""
     full_text_table = ""
 
     for section_title in SECTION_HEADINGS:
@@ -530,8 +529,6 @@ def main() -> None:
                 namespace=0,
             )
             subpages = [x.replace("Hardware donation program/", "") for x in members]
-
-        lines = []
 
         data = []
 
@@ -566,13 +563,6 @@ def main() -> None:
             recent_editcount = recent_editcounts.get(username) if username else None
             recent_editcount_str = f"{recent_editcount:,}" if isinstance(recent_editcount, int) else "unknown"
 
-            line = (
-                f"*[[{full_title}]] (Last edited: {last_edit}, {username or 'unknown'} "
-                f"home wiki: {home_wiki}, global edits: {editcount_str}, "
-                f"global edits last {RECENT_DAYS} days: {recent_editcount_str})"
-            )
-            lines.append(line)
-
             page_link = f"[[{full_title}]]"
             user_link = f"[[User:{username}]]" if username else "unknown"
 
@@ -581,10 +571,6 @@ def main() -> None:
         table = build_wikitable(rows)
         full_text_table += f"=== {section_title} ===\n\n{table}\n"
 
-        output_text = "\n".join(lines) + "\n"
-        full_text += f"=== {section_title} ===\n\n{output_text}\n"
-
-    OUTPUT_FILE.write_text(full_text, encoding="utf-8")
     OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
 
     logger.info(f"Saved to {OUTPUT_FILE}")
