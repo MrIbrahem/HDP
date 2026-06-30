@@ -233,18 +233,28 @@ def extract_subpage_links(section, base_page):
     return seen
 
 
-def build_wikitable(rows):
+def build_wikitable(rows) -> str:
     """rows: list of (page_link, last_edit, user_link, home_wiki, editcount_str, recent_editcount_str) tuples."""
     lines = [
         '{| class="wikitable sortable"',
-        "! Page !! Last edited to application !! User !! Home wiki !! Global edits !! Edits in last 3 months",
+        "! Page",
+        "! Last edited to application",
+        "! User ",
+        "! Home wiki ",
+        "! Global edits ",
+        "! Edits in last 3 months",
     ]
-    for page_link, last_edit, user_link, home_wiki, editcount_str, recent_editcount_str in rows:
+    for row in rows:
         lines.append("|-")
-        lines.append(
-            f"| {page_link} || {last_edit} || {user_link} || {home_wiki} || {editcount_str} || {recent_editcount_str}"
-        )
+        lines.append(f"| {row['page_link']}")
+        lines.append(f"| {row['last_edit']}")
+        lines.append(f"| {row['user_link']}")
+        lines.append(f"| {row['home_wiki']}")
+        lines.append(f"| {row['editcount_str']}")
+        lines.append(f"| {row['recent_editcount_str']}")
+
     lines.append("|}")
+
     return "\n".join(lines)
 
 
@@ -565,8 +575,16 @@ def main() -> None:
 
             page_link = f"[[{full_title}]]"
             user_link = f"[[User:{username}]]" if username else "unknown"
+            row_data = {
+                "page_link": page_link,
+                "last_edit": last_edit,
+                "user_link": user_link,
+                "home_wiki": home_wiki,
+                "editcount_str": editcount_str,
+                "recent_editcount_str": recent_editcount_str,
 
-            rows.append((page_link, last_edit, user_link, home_wiki, editcount_str, recent_editcount_str))
+            }
+            rows.append(row_data)
 
         table = build_wikitable(rows)
         full_text_table += f"=== {section_title} ===\n\n{table}\n"
