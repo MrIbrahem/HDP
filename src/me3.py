@@ -33,7 +33,6 @@ from .api.mwclient_req import (
     get_page_wikitext,
     get_global_editcounts,
     get_global_userinfo,
-    get_global_userinfo,
 )
 
 BASE_PAGE = "Hardware donation program"
@@ -189,7 +188,7 @@ def main() -> None:
         for sub in subpages:
             full_title = f"{BASE_PAGE}/{sub}"
             user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(sitex, full_title)
+            username = users_redirects.get(user_name.lower()) or user_name  # get_page_creator(site, full_title)
             # first letter upper
             username = username[0].upper() + username[1:]
             data.append(
@@ -219,10 +218,11 @@ def main() -> None:
             row_data = {
                 "full_title": full_title,
                 "user_link": user_link,
-                "home_wiki": home_wiki,
                 "editcount_str": editcount_str,
+                "home_wiki": home_wiki,
                 "recent_editcount_str": recent_editcount_str,
             }
+
             rows.append(row_data)
 
         table = build_wikitable(rows)

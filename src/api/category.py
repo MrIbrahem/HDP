@@ -4,39 +4,21 @@
 
 import logging
 import time
-from pathlib import Path
 
 import mwclient
 import mwclient.errors
-import requests
 from mwclient.client import Site
 from tqdm import tqdm
 
-
-API_URL = "https://meta.wikimedia.org/w/api.php"
-BASE_PAGE = "Hardware donation program"
-OUTPUT_FILE = Path(__file__).parent / "file.wiki"
-OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
-
-# How many days back counts as "recent" for the recent-edits column.
-RECENT_DAYS = 90
-
 logger = logging.getLogger(__name__)
 
-# User-Agent header (required by Wikimedia)
-USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
-
-# Always include a descriptive User-Agent header per Wikipedia API guidelines
-HEADERS = {"User-Agent": USER_AGENT}
-
-def get_category_count(category_name: str) -> int:
+def get_category_count(site: Site, category_name: str) -> int:
     # Ensure the title has the proper prefix
     if not category_name.startswith("Category:"):
         category_name = f"Category:{category_name}"
 
-    url = API_URL
     params = {
-        "action": "query",
+        # "action": "query",
         "format": "json",
         "prop": "categoryinfo",
         "titles": category_name,
@@ -45,20 +27,15 @@ def get_category_count(category_name: str) -> int:
     }
 
     try:
-        response = requests.get(
-            url,
-            params=params,
-            headers=HEADERS,
-            timeout=10,
-        )
-        response.raise_for_status()
-        data = response.json()
-    except (requests.RequestException, ValueError) as e:
+        data = site.get("query", **params)
+    except Exception as e:
         logger.error(f"Failed to fetch category info for {category_name}: {e}")
         return 0
+
     # { "batchcomplete": true, "query": { "pages": [ { "pageid": 718741, "ns": 14, "title": "Category:Yemen", "categoryinfo": { "size": 19, "pages": 3, "files": 0, "subcats": 16, "hidden": false } } ] } }
+
     # Extract the page data dynamically since the page ID string changes
-    pages = data.get("query", {}).get("pages", [{}])
+    pages = data.get("query", {}).get("pages") or []
     if not pages:
         return 0
 
@@ -84,7 +61,7 @@ def get_category_members_titles(
     delay = 0.1  # seconds
     max_delay = 8.0
 
-    total_pages = max_items or total_pages or get_category_count(category_name)
+    total_pages = max_items or total_pages or get_category_count(site, category_name)
     logger.info(f"Starting to fetch files from {category_name}, total members: {total_pages}")
 
     params = {

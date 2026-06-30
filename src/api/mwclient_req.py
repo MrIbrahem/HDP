@@ -2,16 +2,12 @@
 """
 
 import logging
-import requests
 
 import mwclient.errors
 from mwclient.client import Site
 
-API_URL = "https://meta.wikimedia.org/w/api.php"
-
 # User-Agent header (required by Wikimedia)
 USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
-HEADERS = {"User-Agent": USER_AGENT}
 
 logger = logging.getLogger(__name__)
 
