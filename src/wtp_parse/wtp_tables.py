@@ -1,7 +1,7 @@
 """ """
 
-import re
 import logging
+import re
 from typing import Any
 
 import wikitextparser as wtp
@@ -9,9 +9,10 @@ from wikitextparser._cell import Cell
 
 logger = logging.getLogger(__name__)
 
+
 def _build_header_index(all_rows: list[list[Cell]]) -> dict[str, int]:
     """
-    build header index map
+    Build a mapping of header text -> column index.
     """
     header_index: dict[str, int] = {}
     for row in all_rows:
@@ -23,6 +24,7 @@ def _build_header_index(all_rows: list[list[Cell]]) -> dict[str, int]:
             header_index[cell.value.strip()] = idx
         break
     return header_index
+
 
 def update_table(
     table: wtp.Table,
@@ -54,7 +56,7 @@ def update_table(
             continue
 
         # Clean the link name to match the dictionary keys
-        match_link = match_links.group(1).split('|')[0].strip().replace("_", " ")
+        match_link = match_links.group(1).split("|")[0].strip().replace("_", " ")
 
         logger.debug(f"match_link: {match_link}")
 
@@ -76,6 +78,7 @@ def update_table(
             if not row[col_idx].value or replace_values:
                 row[col_idx].value = f" {row_data[row_key]}"
 
+
 def update_wikitable_data(
     rows: dict[str, Any],
     wikitext: str,
@@ -94,8 +97,9 @@ def update_wikitable_data(
             replace_values=replace_values,
         )
 
-    # 3. Return the updated string representation of the parsed wikitext
+    # Return the updated string representation of the parsed wikitext
     return parsed.string
+
 
 __all__ = [
     "update_wikitable_data",

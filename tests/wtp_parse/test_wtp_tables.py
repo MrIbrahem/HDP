@@ -1,10 +1,9 @@
-
-
 import pytest
 
 from src.wtp_parse.wtp_tables import (
     update_wikitable_data,
 )
+
 
 class TestUpdate:
 
@@ -21,14 +20,14 @@ class TestUpdate:
 
         self.wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237 ]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237 ]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
 
         self.table_headers_to_row_key = {
@@ -45,14 +44,14 @@ class TestUpdate:
         )
         expected_wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237 ]]\n'
-            '| 25\n'
-            '| test\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237 ]]\n"
+            "| 25\n"
+            "| test\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         assert retult.strip() == expected_wikitext
 
@@ -65,13 +64,13 @@ class TestUpdate:
         )
         expected_wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| Hardware donation program/EYo237\n'
-            '| 25\n'
-            '| test\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| Hardware donation program/EYo237\n"
+            "| 25\n"
+            "| test\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         assert retult.strip() == expected_wikitext

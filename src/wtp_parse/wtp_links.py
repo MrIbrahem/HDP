@@ -34,6 +34,7 @@ def extract_subpage_links(
                 seen.append(name)
     return seen
 
+
 __all__ = [
     "get_section_by_heading",
     "extract_subpage_links",
