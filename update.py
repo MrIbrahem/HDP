@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     update(
-        "User:Mr. Ibrahem/hdp",
-        "Mr. Ibrahem_hdp.wiki",
+        page_title="User:Mr. Ibrahem/hdp",
+        output_file_name="Mr. Ibrahem_hdp.wiki",
+        unknown_placeholder="",
+        load_recent_editcounts=False,
     )

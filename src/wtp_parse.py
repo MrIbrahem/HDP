@@ -35,8 +35,18 @@ def extract_subpage_links(
     return seen
 
 
+def update_table(
+    table: wtp.Table,
+    rows: dict[str, Any],
+    base_page: str,
+) -> None:
+    table_links: list[str] = extract_subpage_links(base_page, table)
+    table_rows = {x: v for x, v in rows.items() if x in table_links}
+    logger.info(f"found {len(table_links)} links in table, {len(table_rows)} has data in rows.")
+
+
 def update_wikitable(
-    rows,
+    rows: dict[str, Any],
     wikitext: str,
     base_page: str,
 ) -> str:
@@ -46,7 +56,7 @@ def update_wikitable(
     for table in tables:
         table_str = table.string
         if f"[[{base_page}/" in table_str:
-            table.replace(table_str, build_wikitable(rows))
+            update_table(table, rows, base_page)
 
     return parsed.string
 

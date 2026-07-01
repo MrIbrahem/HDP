@@ -135,6 +135,7 @@ def load_rows(
     api: MwclientApi,
     subpages: list[str],
     unknown_placeholder: str = "unknown",
+    load_recent_editcounts: bool = True,
 ) -> dict[str, Any]:
 
     data = []
@@ -155,7 +156,11 @@ def load_rows(
     users = [x["username"] for x in data if x["username"]]
 
     editcounts = api.get_global_editcounts(users)
-    recent_editcounts = {}  # get_recent_editcounts(users)
+
+    recent_editcounts = {}
+    if load_recent_editcounts:
+        recent_editcounts = get_recent_editcounts(users)
+
     home_wikis = api.get_home_wikis_and_registration(users)
 
     rows = {}
@@ -231,7 +236,12 @@ def main(section_headings: list[str]) -> None:
     logger.info(f"Saved to {OUTPUT_FILE_TABLE}")
 
 
-def update(page_title: str, output_file_name: str) -> None:
+def update(
+    page_title: str,
+    output_file_name: str,
+    unknown_placeholder: str = "unknown",
+    load_recent_editcounts: bool = True,
+) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -250,7 +260,12 @@ def update(page_title: str, output_file_name: str) -> None:
     full_wikitext = api.get_page_wikitext(page_title)
     subpages = get_subpages(site, full_wikitext, BASE_PAGE)
 
-    rows = load_rows(api, subpages, unknown_placeholder="")
+    rows = load_rows(
+        api,
+        subpages,
+        unknown_placeholder=unknown_placeholder,
+        load_recent_editcounts=load_recent_editcounts,
+    )
 
     full_text_table = update_wikitable(rows, full_wikitext, BASE_PAGE)
 
