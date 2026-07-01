@@ -23,8 +23,8 @@ from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
-from .api.xtools import get_recent_editcounts  # noqa: F401
-from .load_subpages import get_subpages
+from .api.xtools import get_recent_editcounts
+from .load_subpages import get_subpages, get_subpages_for_section
 from .wtp_parse import update_wikitable
 
 BASE_PAGE = "Hardware donation program"
@@ -177,9 +177,13 @@ def load_rows(
         username = sub["username"]
         if username:
             user_link = f"[[User:{username}]]"
-            z_data = home_wikis.get(username, {})
-            home_wiki = z_data.get("home", unknown_placeholder)
-            registration = z_data.get("registration", "")
+
+            home_data = home_wikis.get(username, {})
+            if not home_data:
+                logger.warning(f"Home data not found for {username}")
+
+            home_wiki = home_data.get("home", unknown_placeholder)
+            registration = home_data.get("registration", "")
             if registration:
                 age = calculate_age(registration)
 
@@ -229,7 +233,7 @@ def main(section_headings: list[str]) -> None:
 
     for section_title in section_headings:
 
-        subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
+        subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_title)
 
         rows = load_rows(api, subpages)
         table = build_wikitable(rows)
@@ -263,7 +267,7 @@ def update(
     api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(page_title)
-    subpages = get_subpages(site, full_wikitext, BASE_PAGE)
+    subpages = get_subpages(full_wikitext, BASE_PAGE)
 
     rows = load_rows(
         api,

@@ -16,7 +16,7 @@ from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
-from .load_subpages import get_subpages
+from .load_subpages import get_subpages_for_section
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
@@ -102,7 +102,7 @@ def main(section_headings: list[str]) -> None:
     full_text_table = ""
 
     for section_title in section_headings:
-        subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title)
+        subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title)
 
         data = []
 
