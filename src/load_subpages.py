@@ -35,7 +35,8 @@ def get_subpages_for_section(
             namespace=0,
             total_pages=total_pages,
         )
-        subpages = [x.replace(f"{base_page}/", "") for x in members if x.startswith(f"{base_page}/")]
+        prefix = f"{base_page}/"
+        subpages = [x[len(prefix) :] for x in members if x.startswith(prefix)]
     else:
         section = get_section_by_heading(full_wikitext, section_title)
         if section is None:
