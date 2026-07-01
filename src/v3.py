@@ -190,6 +190,8 @@ def load_rows(
             recent_editcount = recent_editcounts.get(username)
             if recent_editcount:
                 recent_editcount_str = f"{recent_editcount:,}"
+        else:
+            logger.warning(f"Username not found for {sub['full_title']}")
 
         row_data = {
             "age": age,
