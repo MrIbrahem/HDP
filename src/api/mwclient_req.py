@@ -40,7 +40,7 @@ def connect_to_meta(username: str, password: str) -> Site | None:
         return None
 
 
-def get_page_wikitext(site: Site, page_title):
+def get_page_wikitext(site: Site, page_title) -> str:
     """Fetch the full raw wikitext of a page via the API."""
     logger.info(f"Fetching wikitext of {page_title}...")
 
