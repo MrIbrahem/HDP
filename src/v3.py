@@ -25,7 +25,7 @@ from .api.mwclient_req import (
 )
 from .api.xtools import get_recent_editcounts
 from .load_subpages import get_subpages, get_subpages_for_section
-from .wtp_parse import update_wikitable
+from .wtp_parse import update_wikitable_data
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_DIR = Path(__file__).parent
@@ -280,7 +280,22 @@ def update(
         load_recent_editcounts=load_recent_editcounts,
     )
 
-    full_text_table = update_wikitable(rows, full_wikitext, BASE_PAGE)
+    table_headers_to_row_key = {
+        "Page": "page_link",
+        "Last edited to application": "last_update",
+        "User": "user_link",
+        "Global edits": "editcount_str",
+        "Edits in last 3 months": "recent_editcount_str",
+        "Age of account": "age",
+        "Home Wiki": "home_wiki",
+    }
+
+    full_text_table = update_wikitable_data(
+        rows,
+        full_wikitext,
+        table_headers_to_row_key,
+        replace_values=False,
+    )
 
     file = OUTPUT_DIR / output_file_name
 

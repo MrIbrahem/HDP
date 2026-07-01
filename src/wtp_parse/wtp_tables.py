@@ -10,7 +10,9 @@ from wikitextparser._cell import Cell
 logger = logging.getLogger(__name__)
 
 def _build_header_index(all_rows: list[list[Cell]]) -> dict[str, int]:
-    """يبني خريطة {نص_العنوان: رقم_العمود} من أول صف رؤوس يجده."""
+    """
+    build header index map
+    """
     header_index: dict[str, int] = {}
     for row in all_rows:
         if not row or row[0] is None or not row[0].is_header:
@@ -19,14 +21,19 @@ def _build_header_index(all_rows: list[list[Cell]]) -> dict[str, int]:
             if cell is None:
                 continue
             header_index[cell.value.strip()] = idx
-        break  # نفترض صف رؤوس واحد فقط
+        break
     return header_index
 
 def update_table(
     table: wtp.Table,
     rows: dict[str, Any],
     table_headers_to_row_key: dict[str, str],
+    replace_values: bool = False,
 ) -> None:
+    """
+    rows keys:
+        (page_link, last_update, user_link, editcount_str, recent_editcount_str, age, home_wiki)
+    """
     all_rows = table.cells()
     if not all_rows:
         return
@@ -34,11 +41,8 @@ def update_table(
     # 1. Map header text to its column index
     header_index = _build_header_index(all_rows)
 
-    for row in table.cells():
-        if not row:
-            continue
-
-        if row[0].is_header:
+    for row in all_rows:
+        if not row or row[0] is None or row[0].is_header:
             continue
 
         # Cell('\n| [[Hardware donation program/Ibjaja055]] ')
@@ -62,16 +66,21 @@ def update_table(
 
         # 3. Update cells based on their column index
         for header, row_key in table_headers_to_row_key.items():
-            if header in header_index:
-                col_idx = header_index[header]
-                # Ensure the row has enough cells before updating
-                if col_idx < len(row):
-                    row[col_idx].value = f" {row_data[row_key]} "
+            col_idx = header_index.get(header)
+            if col_idx is None or col_idx >= len(row) or row[col_idx] is None:
+                continue
+
+            if row_key not in row_data:
+                continue
+
+            if not row[col_idx].value or replace_values:
+                row[col_idx].value = f" {row_data[row_key]}"
 
 def update_wikitable_data(
     rows: dict[str, Any],
     wikitext: str,
     table_headers_to_row_key: dict[str, str],
+    replace_values: bool = False,
 ) -> str:
     """rows: list of rows data."""
     parsed = wtp.parse(wikitext)
@@ -82,42 +91,12 @@ def update_wikitable_data(
             table,
             rows,
             table_headers_to_row_key,
+            replace_values = replace_values,
         )
 
     # 3. Return the updated string representation of the parsed wikitext
     return parsed.string
 
-def update_wikitable(
-    rows: dict[str, Any],
-    wikitext: str,
-    base_page: str,
-) -> str:
-    """rows: list of rows data."""
-    parsed = wtp.parse(wikitext)
-    tables = parsed.get_tables(recursive=False)
-
-    table_headers_to_row_key = {
-        "Page": "page_link",
-        "Last edited to application": "last_update",
-        "User": "user_link",
-        "Global edits": "editcount_str",
-        "Edits in last 3 months": "recent_editcount_str",
-        "Age of account": "age",
-        "Home Wiki": "home_wiki",
-    }
-    for table in tables:
-        table_str = table.string
-        if f"[[{base_page}/" in table_str:
-            update_table(
-                table,
-                rows,
-                table_headers_to_row_key,
-            )
-
-    return parsed.string
-
-
 __all__ = [
-    "update_wikitable",
     "update_wikitable_data",
 ]

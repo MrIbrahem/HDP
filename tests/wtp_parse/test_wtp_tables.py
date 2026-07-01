@@ -18,64 +18,54 @@ rows = {
 
 wikitext = """
 {| class="wikitable sortable"
-! Page
-! Age of account
-! Home Wiki
-! Approved
-|-
-| [[Hardware donation program/Ibjaja055]]
-|
-|
-|
-|-
-| [[Hardware donation program/test]]
-|
-|
-|
+! Page !! Age of account !! Home Wiki !! Approved
 |-
 | [[Hardware donation program/EYo237 ]]
-| !
+|
 |
 | zz
 |-
 """
 
-expected_wikitext = """
-{| class="wikitable sortable"
-! Page
-! Age of account
-! Home Wiki
-! Approved
-|-
-| [[Hardware donation program/Ibjaja055]]
-|
-|
-|
-|-
-| [[Hardware donation program/test]]
-|
-|
-|
-|-
-| [[Hardware donation program/EYo237 ]]
-| !
-| 25
-| test
-| zz
-|-
-"""
 table_headers_to_row_key = {
     "Page": "page_link",
     "Age of account": "age",
     "Home Wiki": "home_wiki",
 }
+
 def test_update_wikitable_data() -> None:
     retult = update_wikitable_data(
         rows,
         wikitext,
         table_headers_to_row_key,
     )
-    assert retult == expected_wikitext
+    expected_wikitext = (
+        '{| class="wikitable sortable"\n'
+        '! Page !! Age of account !! Home Wiki !! Approved\n'
+        '|-\n'
+        '| [[Hardware donation program/EYo237 ]]\n'
+        '| 25\n'
+        '| test\n'
+        '| zz\n'
+        '|-'
+    )
+    assert retult.strip() == expected_wikitext
 
-if __name__ == "__main__":
-    test_update_wikitable_data()
+def test_update_wikitable_data_replace_values() -> None:
+    retult = update_wikitable_data(
+        rows,
+        wikitext,
+        table_headers_to_row_key,
+        replace_values=True,
+    )
+    expected_wikitext = (
+        '{| class="wikitable sortable"\n'
+        '! Page !! Age of account !! Home Wiki !! Approved\n'
+        '|-\n'
+        '| Hardware donation program/EYo237\n'
+        '| 25\n'
+        '| test\n'
+        '| zz\n'
+        '|-'
+    )
+    assert retult.strip() == expected_wikitext
