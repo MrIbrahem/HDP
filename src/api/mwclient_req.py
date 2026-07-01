@@ -43,26 +43,14 @@ def connect_to_meta(username: str, password: str) -> Site | None:
 def get_page_wikitext(site: Site, page_title):
     """Fetch the full raw wikitext of a page via the API."""
     logger.info(f"Fetching wikitext of {page_title}...")
-    params = {
-        "prop": "revisions",
-        "titles": page_title,
-        "rvslots": "main",
-        "rvprop": "content",
-        "formatversion": 2,
-        "format": "json",
-    }
-    data = {}
+
+    page = site.pages[page_title]
 
     try:
-        data = site.get("query", **params)
+        return page.text()
     except Exception as e:
         logger.error("API request failed %s", str(e))
-
-    pages = data.get("query", {}).get("pages", [])
-
-    if pages and "revisions" in pages[0] and pages[0]["revisions"]:
-        return pages[0]["revisions"][0]["slots"]["main"]["content"]
-    return ""
+        return ""
 
 
 def get_last_edit_timestamp(site: Site, page_title):
