@@ -64,10 +64,13 @@ def get_page_wikitext(site: Site, page_title):
     # Guard against missing pages or revisions
     if not pages or "revisions" not in pages[0] or not pages[0]["revisions"]:
         logger.warning(f"No content found for page {page_title}")
+    pages = data.get("query", {}).get("pages", [])
+    if not pages or "revisions" not in pages[0]:
         return ""
-
-    content = pages[0]["revisions"][0]["slots"]["main"]["content"]
-    return content
+    try:
+        return pages[0]["revisions"][0]["slots"]["main"]["content"]
+    except (KeyError, IndexError):
+        return ""
 
 
 def get_last_edit_timestamp(site: Site, page_title):
