@@ -18,7 +18,7 @@ except Exception:
     pass
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)-s - [%(lineno)d] - %(message)s",
     handlers=[
         logging.StreamHandler(),

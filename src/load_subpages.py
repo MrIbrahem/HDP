@@ -19,6 +19,7 @@ SECTIONS_TO_CATEGORY = {"Draft requests": "Category:Hardware donation program dr
 
 logger = logging.getLogger(__name__)
 
+
 def get_subpages_for_section(
     site: Any,
     full_wikitext: str,
