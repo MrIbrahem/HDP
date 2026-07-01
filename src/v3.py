@@ -156,12 +156,15 @@ def load_rows(
     users = [x["username"] for x in data if x["username"]]
 
     editcounts = api.get_global_editcounts(users)
+    logger.info(f"Loaded {len(editcounts)} editcounts for {len(users)} users")
 
     recent_editcounts = {}
     if load_recent_editcounts:
         recent_editcounts = get_recent_editcounts(users)
+        logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
 
     home_wikis = api.get_home_wikis_and_registration(users)
+    logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
     rows = {}
     for sub in data:
