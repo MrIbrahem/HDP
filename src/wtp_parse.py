@@ -34,33 +34,21 @@ def extract_subpage_links(
                 seen.append(name)
     return seen
 
-def update_wikitable(rows, wikitext) -> str:
+
+def update_wikitable(
+    rows,
+    wikitext: str,
+    base_page: str,
+) -> str:
     """rows: list of rows data."""
-    lines = [
-        '{| class="wikitable sortable"',
-        "! Page",
-        "! Last edited to application",
-        "! User ",
-        "! Global edits",
-        "! Edits in last 3 months",
-        "! Age of account",
-        "! Home Wiki",
-        "! Approved",
-    ]
-    for full_title, row in rows.items():
-        lines.append("|-")
-        lines.append(f"| [[{full_title}]] ")
-        lines.append(f"| {{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{full_title}}}}}}}}}")
-        lines.append(f"| {row['user_link']}")
-        lines.append(f"| {row['editcount_str']}")
-        lines.append(f"| {row['recent_editcount_str']}")
-        lines.append(f"| {row['age']}")
-        lines.append(f"| {row['home_wiki']}")
-        lines.append("| ")
+    parsed = wtp.parse(wikitext)
+    tables = parsed.get_tables(recursive=False)
+    for table in tables:
+        table_str = table.string
+        if f"[[{base_page}/" in table_str:
+            table.replace(table_str, build_wikitable(rows))
 
-    lines.append("|}")
-
-    return "\n".join(lines)
+    return parsed.string
 
 
 __all__ = [

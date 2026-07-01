@@ -252,7 +252,7 @@ def update(page_title: str, output_file_name: str) -> None:
 
     rows = load_rows(api, subpages, unknown_placeholder="")
 
-    full_text_table = update_wikitable(rows, full_wikitext)
+    full_text_table = update_wikitable(rows, full_wikitext, BASE_PAGE)
 
     file = OUTPUT_DIR / output_file_name
 

@@ -28,4 +28,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    update("User:Mr. Ibrahem/hdp", "Mr. Ibrahem_hdp.wiki")
+    update(
+        "User:Mr. Ibrahem/hdp",
+        "Mr. Ibrahem_hdp.wiki",
+    )
