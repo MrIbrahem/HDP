@@ -38,6 +38,9 @@ def get_subpages_for_section(
         subpages = [x.replace(f"{base_page}/", "") for x in members if x.startswith(f"{base_page}/")]
     else:
         section = get_section_by_heading(full_wikitext, section_title)
+        if section is None:
+            logger.warning(f"Section '{section_title}' not found, returning empty list")
+            return []
         subpages = extract_subpage_links(base_page, section)
 
     logger.debug(f"Found {len(subpages)} subpages")

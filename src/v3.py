@@ -145,8 +145,9 @@ def load_rows(
         full_title = f"{BASE_PAGE}/{sub}"
         user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
         username = users_redirects.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
-        # first letter upper
-        username = username[0].upper() + username[1:]
+        # first letter upper (guard against empty username)
+        if username:
+            username = username[0].upper() + username[1:]
         data.append(
             {
                 "full_title": full_title,
@@ -203,8 +204,8 @@ def load_rows(
 
         row_data = {
             "age": age,
-            "page_link": f"[[{full_title}]]",
-            "last_update": f"{{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{full_title}}}}}}}}}",
+            "page_link": f"[[{sub['full_title']}]]",
+            "last_update": f"{{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{sub['full_title']}}}}}}}}}",
             "full_title": sub["full_title"],
             "user_link": user_link,
             "editcount_str": editcount_str,

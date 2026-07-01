@@ -55,11 +55,11 @@ After construction, these attributes are populated from the API:
 | `namespace`        | `int`                     | Integer namespace ID; 0 = main                  |
 | `exists`           | `bool`                    | `False` if the page does not exist              |
 | `revision`         | `int`                     | Latest revision ID; 0 if new                    |
-| `pageid`           | `int`/`None`              | MediaWiki page ID; `None` if page doesn't exist |
+| `pageid`           | `int`                     | MediaWiki page ID; 0 if page doesn't exist      |
 | `protection`       | `dict`                    | Maps action string → `(level, expiry)` tuple    |
 | `redirect`         | `bool`                    | `True` if the page is a redirect                |
-| `length`           | `int`/`None`              | Page size in bytes                              |
-| `touched`          | `time.struct_time`/`None` | Timestamp of last cache invalidation            |
+| `length`           | `int`                     | Page size in bytes                              |
+| `touched`          | `str`                     | Timestamp of last cache invalidation            |
 | `contentmodel`     | `str`/`None`              | e.g. `'wikitext'`, `'json'`                     |
 | `pagelanguage`     | `str`/`None`              | Language code e.g. `'en'`                       |
 | `restrictiontypes` | `list`/`None`             | Which actions can be protected                  |

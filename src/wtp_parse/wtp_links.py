@@ -9,12 +9,16 @@ logger = logging.getLogger(__name__)
 
 
 def get_section_by_heading(wikitext, heading):
-    """Use wikitextparser to find a section by its heading text."""
+    """Use wikitextparser to find a section by its heading text.
+
+    Returns the section if found, or None if not found.
+    """
     parsed = wtp.parse(wikitext)
     for section in parsed.get_sections(include_subsections=True):
         if section.title and section.title.strip() == heading:
             return section
-    raise ValueError(f"Section '{heading}' not found")
+    logger.warning(f"Section '{heading}' not found")
+    return None
 
 
 def extract_subpage_links(

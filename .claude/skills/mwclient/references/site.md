@@ -56,7 +56,7 @@ After `site_init()` completes:
 | `host`        | `str`            | Hostname as passed to constructor           |
 | `path`        | `str`            | Script path (e.g., `/w/`)                   |
 | `scheme`      | `str`            | `'https'` or `'http'`                       |
-| `version`     | `tuple`          | MediaWiki version, e.g., `(1, 39, 5)`       |
+| `mw_version`  | `tuple`          | MediaWiki version, e.g., `(1, 39, 5)`       |
 | `namespaces`  | `dict[int, str]` | Namespace ID → name mapping                 |
 | `site`        | `dict`           | Raw `query.general` siteinfo                |
 | `username`    | `str`            | Currently authenticated user                |
