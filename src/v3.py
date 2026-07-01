@@ -191,7 +191,7 @@ def load_rows(api: MwclientApi, subpages: list[str]) -> dict[str, Any]:
     return rows
 
 
-def main(section_headings: list[str]) -> None:
+def main(section_headings: list[str] | None) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -211,14 +211,22 @@ def main(section_headings: list[str]) -> None:
 
     full_text_table = ""
 
-    for section_title in section_headings:
+    if section_headings:
+        for section_title in section_headings:
 
-        subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
+            subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
+
+            rows = load_rows(api, subpages)
+            table = build_wikitable(rows)
+
+            full_text_table += f"=== {section_title} ===\n\n{table}\n"
+    else:
+        subpages = get_subpages(site, full_wikitext, BASE_PAGE)
 
         rows = load_rows(api, subpages)
         table = build_wikitable(rows)
 
-        full_text_table += f"=== {section_title} ===\n\n{table}\n"
+        full_text_table += table
 
     OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
 
