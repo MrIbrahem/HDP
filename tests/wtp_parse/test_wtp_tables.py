@@ -76,7 +76,6 @@ class TestUpdate:
         assert retult.strip() == expected_wikitext
 
 
-
 class TestUpdateWikitableDataEdgeCases:
 
     @pytest.fixture(autouse=True)
@@ -98,26 +97,26 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237|EYo237]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237|EYo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
         expected = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237|EYo237]]\n'
-            '| 25\n'
-            '| test\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237|EYo237]]\n"
+            "| 25\n"
+            "| test\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         assert result.strip() == expected
 
@@ -132,14 +131,14 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware_donation_program/E_Yo237]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware_donation_program/E_Yo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
         assert "| 30\n" in result
@@ -156,14 +155,14 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/Unknown]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/Unknown]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
         # Nothing changed because the link is not present in `rows`
@@ -180,14 +179,14 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237]]\n'
-            '| 99\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "| 99\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
         # Age of account already has a value (99), so it should not be overwritten
@@ -206,18 +205,16 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237]]\n'
-            '| 99\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "| 99\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
-        result = update_wikitable_data(
-            rows, wikitext, self.table_headers_to_row_key, replace_values=True
-        )
+        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key, replace_values=True)
         assert "| 25\n" in result
         assert "| 99\n" not in result
 
@@ -232,14 +229,14 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
         assert "| 25\n" in result
@@ -262,19 +259,19 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/Ibjaja055]]\n'
-            '|\n'
-            '|\n'
-            '|\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/Ibjaja055]]\n"
+            "|\n"
+            "|\n"
+            "|\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
         assert "| 10\n" in result
@@ -293,24 +290,24 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}\n'
-            '\n'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}\n"
+            "\n"
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
         assert result.count("| 25\n") == 2
@@ -327,14 +324,14 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| Just plain text, no link\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| Just plain text, no link\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         # Should not raise any exception
         result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
@@ -356,14 +353,14 @@ class TestUpdateWikitableDataEdgeCases:
         }
         wikitext = (
             '{| class="wikitable sortable"\n'
-            '! Page !! Age of account !! Home Wiki !! Approved\n'
-            '|-\n'
-            '| [[Hardware donation program/EYo237]]\n'
-            '|\n'
-            '|\n'
-            '| zz\n'
-            '|-\n'
-            '|}'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
         )
         result = update_wikitable_data(rows, wikitext, headers_with_bad_entry)
         assert "should_not_appear" not in result
