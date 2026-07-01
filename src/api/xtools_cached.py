@@ -59,11 +59,10 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
         full_url = f"{base_url}?{urlencode(params)}"
         try:
             response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
+            logger.debug("status_code:%s, url:%s", response.status_code, full_url)
             response.raise_for_status()
             data = response.json()
-            logger.debug("status_code:%s, url:%s", response.status_code, full_url)
         except (requests.RequestException, ValueError) as e:
-            logger.debug("status_code:%s, url:%s", response.status_code, full_url)
             logger.error(f"XTools globalcontribs request failed for {username}: {e}")
             if total_by_day:
                 # We got partial data before the failure; treat as a lower bound.

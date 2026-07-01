@@ -117,7 +117,7 @@ def load_rows(
             user_link = f"[[User:{username}]]"
 
             home_data = home_wikis.get(username, {})
-            if not home_data:
+            if not home_data or not home_data.get("home"):
                 logger.warning(f"Home data not found for {username}")
 
             home_wiki = home_data.get("home", unknown_placeholder)
