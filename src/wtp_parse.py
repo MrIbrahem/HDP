@@ -61,6 +61,9 @@ def update_table(
     # for each row match the page_link to the row key then update the row
 
     for row in table.cells():
+        if row[0].is_header:
+            continue
+
         # Cell('\n| [[Hardware donation program/Ibjaja055]] ')
         _first_cell: Cell = row[0].value
         match_links = extract_subpage_links(base_page, row[0])
@@ -71,8 +74,8 @@ def update_table(
         match_link = f"{base_page}/{match_links[0]}"
         logger.debug(f"match_link: {match_link}")
 
-        if match_link in table_rows:
-            row_data = table_rows[match_link]
+        if match_link in rows:
+            row_data = rows[match_link]
             for header, row_key in table_headers_to_row_key.items():
                 cell = row[header]
                 cell.value = row_data[row_key]
