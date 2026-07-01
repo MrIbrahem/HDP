@@ -115,10 +115,10 @@ def build_wikitable(rows) -> str:
         "! Home Wiki",
         "! Approved",
     ]
-    for full_title, row in rows.items():
+    for _, row in rows.items():
         lines.append("|-")
-        lines.append(f"| [[{full_title}]] ")
-        lines.append(f"| {{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{full_title}}}}}}}}}")
+        lines.append(f"| {row['page_link']}")
+        lines.append(f"| {row['last_update']}")
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row['editcount_str']}")
         lines.append(f"| {row['recent_editcount_str']}")
@@ -187,6 +187,8 @@ def load_rows(
             if registration:
                 age = calculate_age(registration)
 
+            logger.debug(f"User: {username}, {age=}, {home_wiki=}")
+
             editcount = editcounts.get(username)
             if isinstance(editcount, int):
                 editcount_str = f"{editcount:,}"
@@ -199,6 +201,8 @@ def load_rows(
 
         row_data = {
             "age": age,
+            "page_link": f"[[{full_title}]]",
+            "last_update": f"{{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{full_title}}}}}}}}}",
             "full_title": sub["full_title"],
             "user_link": user_link,
             "editcount_str": editcount_str,

@@ -1,6 +1,8 @@
-import sys
 import logging
+import sys
+
 import colorlog
+
 
 def setup_logging(
     level: str | int = "WARNING",
