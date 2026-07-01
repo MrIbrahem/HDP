@@ -27,7 +27,8 @@ from .api.xtools import get_recent_editcounts  # noqa: F401
 from .load_subpages import get_subpages
 
 BASE_PAGE = "Hardware donation program"
-OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
+OUTPUT_DIR = Path(__file__).parent
+OUTPUT_FILE_TABLE = OUTPUT_DIR / "table.wiki"
 
 # How many days back counts as "recent" for the recent-edits column.
 RECENT_DAYS = 90
@@ -191,7 +192,7 @@ def load_rows(api: MwclientApi, subpages: list[str]) -> dict[str, Any]:
     return rows
 
 
-def main(section_headings: list[str] | None) -> None:
+def main(section_headings: list[str]) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -211,23 +212,50 @@ def main(section_headings: list[str] | None) -> None:
 
     full_text_table = ""
 
-    if section_headings:
-        for section_title in section_headings:
+    for section_title in section_headings:
 
-            subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
-
-            rows = load_rows(api, subpages)
-            table = build_wikitable(rows)
-
-            full_text_table += f"=== {section_title} ===\n\n{table}\n"
-    else:
-        subpages = get_subpages(site, full_wikitext, BASE_PAGE)
+        subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
 
         rows = load_rows(api, subpages)
         table = build_wikitable(rows)
 
-        full_text_table += table
+        full_text_table += f"=== {section_title} ===\n\n{table}\n"
+
 
     OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
 
     logger.info(f"Saved to {OUTPUT_FILE_TABLE}")
+
+
+def update(page_title: str, output_file_name: str) -> None:
+    # Load credentials
+    username, password = load_credentials()
+    if not username or not password:
+        logger.error("Failed to load credentials from .env file")
+        logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
+        return
+
+    # Connect to Commons
+    site = connect_to_meta(username, password)
+    if not site:
+        logger.error("Failed to connect to Wikimedia Commons")
+        return
+
+    api = MwclientApi(site)
+
+    full_wikitext = api.get_page_wikitext(page_title)
+    subpages = get_subpages(site, full_wikitext, BASE_PAGE)
+
+    rows = load_rows(api, subpages)
+    full_text_table = build_wikitable(rows)
+
+    file = OUTPUT_DIR / output_file_name
+
+    file.write_text(full_text_table, encoding="utf-8")
+
+    logger.info(f"Saved to {file}")
+
+__all__ = [
+    "main",
+    "update",
+]
