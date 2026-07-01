@@ -8,55 +8,19 @@ and, for each linked subpage, prints:
 """
 
 import logging
-import os
 from pathlib import Path
-from typing import Optional
 
 from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
 from .load_subpages import get_subpages_for_section
+from .utils import load_credentials, users_redirects
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
 
 logger = logging.getLogger(__name__)
-
-# -----------------------------------------
-# wiki text parsers
-# -----------------------------------------
-users_redirects = {
-    "vinoda mamatharai": "Vinoda mamatharai",
-    "cbrescia": "Felino Volador",
-    "abubakar a gwanki": "Gwanki",
-    "sardeeq": "Sardeeq",
-    "muralikrishna m": "Muralikrishna m",
-    "brazal.dang": "Ballardmaize",
-    "babulbaishya": "BabulB",
-    "micheal kaluba": "MichealKal",
-    "mp1999": "TypeInfo",
-    "premchand murmu thakur": "Nacharhopon",
-    "учитель": "Валентина Кодола",
-    "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
-}
-
-
-def load_credentials() -> tuple[Optional[str], Optional[str]]:
-    """
-    Load credentials from .env file.
-
-    Returns:
-        Tuple of (username, password) or (None, None) if not found
-    """
-    username = os.getenv("WIKIPEDIA_BOT_USERNAME")
-    password = os.getenv("WIKIPEDIA_BOT_PASSWORD")
-
-    if not username or not password:
-        logger.error("WIKIPEDIA_BOT_USERNAME and/or WIKIPEDIA_BOT_PASSWORD not found in .env file")
-        return None, None
-
-    return username, password
 
 
 def build_wikitable(rows) -> str:
@@ -97,7 +61,6 @@ def main(section_headings: list[str]) -> None:
     api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(BASE_PAGE)
-    full_wikitext = full_wikitext.replace("_", " ")
 
     full_text_table = ""
 
