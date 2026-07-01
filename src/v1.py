@@ -19,7 +19,6 @@ from .api.mwclient_req import (
 from .load_subpages import get_subpages
 
 BASE_PAGE = "Hardware donation program"
-OUTPUT_FILE = Path(__file__).parent / "file.wiki"
 OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
 
 logger = logging.getLogger(__name__)
@@ -145,4 +144,4 @@ def main(section_headings: list[str]) -> None:
 
     OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
 
-    logger.info(f"Saved to {OUTPUT_FILE}")
+    logger.info(f"Saved to {OUTPUT_FILE_TABLE}")
