@@ -26,7 +26,7 @@ When the user needs to work with categories (listing members, finding pages by c
 
 | Task                 | Code                                       |
 | -------------------- | ------------------------------------------ |
-| Get category         | `cat = site.categories['Category Name']`   |
+| Get category         | `cat = site.categories['Name']`            |
 | Iterate members      | `for m in cat: print(m.name)`              |
 | Members with filter  | `cat.members(namespace=0, max_items=50)`   |
 | Categories on page   | `page.categories()`                        |

@@ -214,7 +214,7 @@ Represents `{{{name|default}}}` (template parameter declaration).
 
 Wraps current default in another parameter layer:
 
-```
+```text
 {{{p|x}}}  →  append_default('q')  →  {{{p|{{{q|x}}}}}}
 ```
 

@@ -56,7 +56,7 @@ removed — read the rules carefully, because they are easy to get wrong.
 | `wl.target`   | `str`           | "title#fragment"| Replaces target           | Removes target *and* the pipe         |
 | `wl.title`    | `str`           | before `#`      | Replaces title            | Removes title and the `#`             |
 | `wl.fragment` | `str` or `None` | after `#`       | Adds `#` if absent        | Removes `#` and fragment              |
-| `wl.text`     | `str` or `None` | after `|`       | Adds `|` if absent        | Removes `|` and text                  |
+| `wl.text`     | `str` or `None` | after `&#124;`  | Adds `&#124;` if absent    | Removes `&#124;` and text              |
 | `wl.wikilinks`| `list[WikiLink]`| nested only     | —                         | —                                     |
 
 ## Step by step

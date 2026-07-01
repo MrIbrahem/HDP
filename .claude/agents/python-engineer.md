@@ -303,7 +303,7 @@ Python 3.12-3.13 specialist delivering type-safe, async-first, production-ready 
 
 ### Search Query Templates
 
-```
+```text
 # Algorithm Patterns (for complex problems)
 "Python sliding window algorithm [problem type] optimal solution 2025"
 "Python BFS binary tree level order traversal deque 2025"
@@ -406,7 +406,7 @@ Python 3.12-3.13 specialist delivering type-safe, async-first, production-ready 
 
 ### Decision Tree
 
-```
+```text
 Is this a long-lived service or multi-step process?
   YES → Use DI/SOA (testability, maintainability matter)
   NO ↓
@@ -518,6 +518,13 @@ if __name__ == "__main__":
 **Concurrent Task Execution**:
 
 ```python
+from typing import Any, Coroutine, TypeVar
+import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
+T = TypeVar("T")
+
 # Pattern 1: Gather with timeout and error handling
 async def process_concurrent_tasks(
     tasks: list[Coroutine[Any, Any, T]],
@@ -591,7 +598,7 @@ async def cancelable_task_group(
 ```python
 # Pattern 5: Async Worker Pool with Retries and Exponential Backoff
 import asyncio
-from typing import Callable, Any, Optional
+from typing import Callable, Any
 from dataclasses import dataclass
 import time
 import logging
@@ -603,7 +610,7 @@ class TaskResult:
     """Result of task execution with retry metadata."""
     success: bool
     result: Any = None
-    error: Optional[Exception] = None
+    error: Exception | None = None
     attempts: int = 0
     total_time: float = 0.0
 
@@ -655,16 +662,17 @@ class AsyncWorkerPool:
                     self.task_queue.get(),
                     timeout=0.1
                 )
-
-                # Process task with retries
-                await self._execute_with_retry(task_data)
-                self.task_queue.task_done()
-
             except asyncio.TimeoutError:
                 # No task available, continue to check shutdown
                 continue
+
+            try:
+                # Process task with retries
+                await self._execute_with_retry(task_data)
             except Exception as e:
                 logger.error(f"Worker {worker_id} error: {e}")
+            finally:
+                self.task_queue.task_done()
 
     async def _execute_with_retry(
         self,
@@ -678,7 +686,7 @@ class AsyncWorkerPool:
         task: Callable = task_data['task']
         future: asyncio.Future = task_data['future']
 
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
         start_time = time.time()
 
         for attempt in range(self.max_retries + 1):
@@ -744,7 +752,7 @@ class AsyncWorkerPool:
         # Wait for result
         return await future
 
-    async def shutdown(self, timeout: Optional[float] = None) -> None:
+    async def shutdown(self, timeout: float | None = None) -> None:
         """Gracefully shutdown worker pool.
 
         Drains queue, then cancels workers after timeout.
@@ -865,15 +873,14 @@ def length_of_longest_substring(s: str) -> int:
 ```python
 # Pattern: Binary Tree Level Order Traversal (BFS)
 from collections import deque
-from typing import Optional
 
 class TreeNode:
-    def __init__(self, val: int = 0, left: Optional['TreeNode'] = None, right: Optional['TreeNode'] = None):
+    def __init__(self, val: int = 0, left: 'TreeNode | None' = None, right: 'TreeNode | None' = None):
         self.val = val
         self.left = left
         self.right = right
 
-def level_order_traversal(root: Optional[TreeNode]) -> list[list[int]]:
+def level_order_traversal(root: TreeNode | None) -> list[list[int]]:
     """Perform BFS level-order traversal of binary tree.
 
     Returns list of lists where each inner list contains node values at that level.
@@ -1224,7 +1231,7 @@ except (ValueError, KeyError) as e:
 # ❌ WRONG
 async def fetch_user(user_id: int) -> User:
     response = requests.get(f"/api/users/{user_id}")  # Blocks!
-    return User.parse_obj(response.json())
+    return User.model_validate(response.json())
 
 # ✅ CORRECT
 async def fetch_user(user_id: int) -> User:

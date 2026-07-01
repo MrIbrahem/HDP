@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from src.v3 import main
 
 try:
-    load_dotenv("I:/TOOLFORGE_TOOLS/.env")
+    load_dotenv()
 except Exception:
     pass
 

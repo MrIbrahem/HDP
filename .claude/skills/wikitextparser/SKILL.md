@@ -46,8 +46,8 @@ runtime dependencies beyond the regex backport and `wcwidth` (auto-installed).
 | Goal                                                                | Open                                                          |
 | ------------------------------------------------------------------- | ------------------------------------------------------------- |
 | Understand `parse`, `string`, `plain_text`, `pformat`               | [`skills/01-wikitext-basics.md`](skills/01-wikitext-basics.md) |
-| Read or modify `{{template|args}}` calls                            | [`skills/02-templates.md`](skills/02-templates.md)             |
-| Work with `{{{param|default}}}` declarations (template `/doc`)      | [`skills/03-parameters.md`](skills/03-parameters.md)           |
+| Read or modify `{{template\|args}}` calls                            | [`skills/02-templates.md`](skills/02-templates.md)             |
+| Work with `{{{param\|default}}}` declarations (template `/doc`)      | [`skills/03-parameters.md`](skills/03-parameters.md)           |
 | Read or modify `[[wikilinks]]`                                      | [`skills/04-wikilinks.md`](skills/04-wikilinks.md)             |
 | Extract or add `[[Category:...]]`, `[[File:...]]`, `<gallery>`      | [`skills/05-categories-files.md`](skills/05-categories-files.md) |
 | Read tables, get cell data, export to CSV                           | [`skills/06-tables.md`](skills/06-tables.md)                   |

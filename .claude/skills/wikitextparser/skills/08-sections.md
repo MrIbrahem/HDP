@@ -233,7 +233,9 @@ def add_subsection(wikitext, parent_title, new_subtitle, new_body):
     parsed = wtp.parse(wikitext)
     for s in parsed.sections:
         if s.title and s.title.strip() == parent_title:
-            new = f"\n=== {new_subtitle} ===\n{new_body}\n"
+            level = s.level + 1
+            hashes = '=' * level
+            new = f"\n{hashes} {new_subtitle} {hashes}\n{new_body}\n"
             s.contents = (s.contents.rstrip() + new + '\n')
             return str(parsed)
     return wikitext

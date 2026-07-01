@@ -59,4 +59,4 @@ temp/
 /_works_files
 /.commandcode
 src/main_app/dj/find_owid_bad_moves.py
-src/test.wiki
+src/*.wiki

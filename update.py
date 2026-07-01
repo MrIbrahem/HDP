@@ -17,7 +17,7 @@ from src.v3 import update
 setup_logging(level=logging.DEBUG)
 
 try:
-    load_dotenv("I:/TOOLFORGE_TOOLS/.env")
+    load_dotenv()
 except Exception:
     pass
 

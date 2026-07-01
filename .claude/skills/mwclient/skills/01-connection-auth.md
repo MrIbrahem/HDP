@@ -26,7 +26,7 @@ When the user needs to connect to a MediaWiki site, authenticate, configure sess
 | Task              | Code                                                              |
 | ----------------- | ----------------------------------------------------------------- |
 | Public wiki       | `site = mwclient.Site('en.wikipedia.org')`                        |
-| Bot password      | `site = mwclient.Site('wiki.org'); site.login('Bot', 'pass')`     |
+| Bot password      | `site = mwclient.Site('wiki.org'); site.login('User@Bot', 'pass')`|
 | OAuth 1           | `mwclient.Site('wiki.org', consumer_token=..., access_token=...)` |
 | Client login      | `site.clientlogin(username='u', password='p')`                    |
 | Private wiki      | `mwclient.Site('wiki.org', do_init=False); site.login(...)`       |

@@ -14,18 +14,18 @@ Run this every few months (e.g. via cron) to keep the table current.
 """
 
 import logging
-import os
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
+
 # from .api.xtools import get_recent_editcounts
 from .api.xtools_cached import get_recent_editcounts_cached
 from .load_subpages import get_subpages, get_subpages_for_section
+from .utils import calculate_age, load_credentials, users_redirects
 from .wtp_parse import update_wikitable_data
 
 BASE_PAGE = "Hardware donation program"
@@ -36,71 +36,6 @@ OUTPUT_FILE_TABLE = OUTPUT_DIR / "table.wiki"
 RECENT_DAYS = 90
 
 logger = logging.getLogger(__name__)
-
-# User-Agent header (required by Wikimedia)
-USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
-
-# -----------------------------------------
-# wiki text parsers
-# -----------------------------------------
-users_redirects = {
-    "vinoda mamatharai": "Vinoda mamatharai",
-    "cbrescia": "Felino Volador",
-    "abubakar a gwanki": "Gwanki",
-    "sardeeq": "Sardeeq",
-    "muralikrishna m": "Muralikrishna m",
-    "brazal.dang": "Ballardmaize",
-    "babulbaishya": "BabulB",
-    "micheal kaluba": "MichealKal",
-    "mp1999": "TypeInfo",
-    "premchand murmu thakur": "Nacharhopon",
-    "учитель": "Валентина Кодола",
-    "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
-}
-
-
-def calculate_age(registration: str) -> str:
-    """
-    Input example:
-        registration: "2008-07-24T01:18:05Z"
-    Returns example:
-        {{age in years and months |2008|07|24}}
-    """
-    try:
-        # Parse the ISO 8601 string into a datetime object
-        # Replacing 'Z' with '+00:00' to ensure compatibility with fromisoformat
-        reg_date = datetime.fromisoformat(registration.replace("Z", "+00:00"))
-
-        # Extract year, month, and day with zero-padding for month and day
-        year = reg_date.year
-        month = f"{reg_date.month:02d}"
-        day = f"{reg_date.day:02d}"
-
-        # Return the formatted template string
-        return f"{{{{age in years and months|{year}|{month}|{day}}}}}"
-
-    except Exception as e:
-        logger.error(f"Error formatting age template: {e}")
-
-        # Fallback template format in case of an error
-        return registration
-
-
-def load_credentials() -> tuple[Optional[str], Optional[str]]:
-    """
-    Load credentials from .env file.
-
-    Returns:
-        Tuple of (username, password) or (None, None) if not found
-    """
-    username = os.getenv("WIKIPEDIA_BOT_USERNAME")
-    password = os.getenv("WIKIPEDIA_BOT_PASSWORD")
-
-    if not username or not password:
-        logger.error("WIKIPEDIA_BOT_USERNAME and/or WIKIPEDIA_BOT_PASSWORD not found in .env file")
-        return None, None
-
-    return username, password
 
 
 def build_wikitable(rows) -> str:
@@ -182,7 +117,7 @@ def load_rows(
             user_link = f"[[User:{username}]]"
 
             home_data = home_wikis.get(username, {})
-            if not home_data:
+            if not home_data or not home_data.get("home"):
                 logger.warning(f"Home data not found for {username}")
 
             home_wiki = home_data.get("home", unknown_placeholder)

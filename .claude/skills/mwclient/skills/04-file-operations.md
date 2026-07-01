@@ -26,7 +26,7 @@ Files on MediaWiki are pages in namespace 6 (File:). The `Image` class extends `
 
 | Task              | Code                                                  |
 | ----------------- | ----------------------------------------------------- |
-| Get image handle  | `image = site.images['File:Name.jpg']`                |
+| Get image handle  | `image = site.images['Name.jpg']`                     |
 | Upload local file | `site.upload(open('f.jpg','rb'), 'Name.jpg')`         |
 | Upload from URL   | `site.upload(url='https://...', filename='Name.jpg')` |
 | Upload, overwrite | `site.upload(f, 'Name.jpg', ignore=True)`             |

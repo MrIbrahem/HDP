@@ -6,16 +6,16 @@ import os
 import time
 from datetime import UTC, date, datetime, timedelta
 from typing import Optional
+from urllib.parse import quote, urlencode
 
 import requests
-from urllib.parse import urlencode
 from tqdm import tqdm
+
+from ..utils import USER_AGENT
 
 # How many days back counts as "recent" for the recent-edits column.
 RECENT_DAYS = 90
 XTOOLS_GLOBALCONTRIBS_URL = "https://xtools.wmcloud.org/api/user/globalcontribs"
-
-USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
 
 HEADERS = {"User-Agent": USER_AGENT}
 
@@ -41,7 +41,8 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
     user has an exceptionally high edit count and the endpoint declines to
     serve it without authentication, per XTools' own rate-limiting rules).
     """
-    base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{username}/all/{start}/{end}"
+    encoded_username = quote(username)
+    base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{encoded_username}/all/{start}/{end}"
 
     total_by_day = {}
     offset = None
@@ -59,11 +60,10 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
         full_url = f"{base_url}?{urlencode(params)}"
         try:
             response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
+            logger.debug("status_code:%s, url:%s", response.status_code, full_url)
             response.raise_for_status()
             data = response.json()
-            logger.debug("status_code:%s, url:%s", response.status_code, full_url)
         except (requests.RequestException, ValueError) as e:
-            logger.debug("status_code:%s, url:%s", response.status_code, full_url)
             logger.error(f"XTools globalcontribs request failed for {username}: {e}")
             if total_by_day:
                 # We got partial data before the failure; treat as a lower bound.
@@ -97,42 +97,6 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
         logger.warning(f"Hit max_pages cap fetching globalcontribs for {username}")
 
     return total_by_day
-
-def get_recent_editcount(username: str, start: str, end: str) -> Optional[int]:
-    """
-    """
-    total_by_day = _get_recent_editcount(username, start, end)
-
-    if not total_by_day:
-        return None
-    return sum(total_by_day.values())
-
-
-def get_recent_editcounts(
-    users: list[str],
-    recent_days: int = RECENT_DAYS,
-) -> dict[str, int]:
-    """
-    For each username:
-      - fetch their last-`recent_days`-day global edit count via XTools'
-        Global Contributions API
-
-    Returns recent_editcounts
-    """
-    recent_editcounts: dict[str, int] = {}
-
-    today = datetime.now(UTC).date()
-    start = today - timedelta(days=recent_days)
-
-    for username in tqdm(users, desc="Fetching recent edits", unit="user"):
-
-        recent_count = get_recent_editcount(username, start=start.isoformat(), end=today.isoformat())
-        if recent_count is not None:
-            recent_editcounts[username] = recent_count
-        time.sleep(0.3)
-
-    return recent_editcounts
-
 
 # --------------------------------------------------------------------------
 # Caching layer
@@ -319,10 +283,6 @@ def get_recent_editcounts_cached(
 
 
 __all__ = [
-    "get_recent_editcount",
-    "get_recent_editcounts",
     "get_recent_editcount_cached",
     "get_recent_editcounts_cached",
-    "load_cache",
-    "save_cache",
 ]
