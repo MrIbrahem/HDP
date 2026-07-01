@@ -79,7 +79,7 @@ def load_rows(
         full_title = f"{BASE_PAGE}/{sub}"
         user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
         username = users_redirects.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
-        # first letter upper
+        # first letter upper (guard against empty username)
         if username:
             username = username[0].upper() + username[1:]
         data.append(

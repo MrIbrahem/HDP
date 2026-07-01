@@ -60,7 +60,7 @@ def get_page_wikitext(site: Site, page_title):
 
     pages = data.get("query", {}).get("pages", [])
 
-    if pages and "revisions" in pages[0]:
+    if pages and "revisions" in pages[0] and pages[0]["revisions"]:
         return pages[0]["revisions"][0]["slots"]["main"]["content"]
     return ""
 
