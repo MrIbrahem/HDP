@@ -7,8 +7,7 @@ import mwclient.errors
 from mwclient.client import Site
 from tqdm import tqdm
 
-# User-Agent header (required by Wikimedia)
-USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
+from src.utils import USER_AGENT
 
 logger = logging.getLogger(__name__)
 
@@ -61,16 +60,9 @@ def get_page_wikitext(site: Site, page_title):
 
     pages = data.get("query", {}).get("pages", [])
 
-    # Guard against missing pages or revisions
-    if not pages or "revisions" not in pages[0] or not pages[0]["revisions"]:
-        logger.warning(f"No content found for page {page_title}")
-    pages = data.get("query", {}).get("pages", [])
-    if not pages or "revisions" not in pages[0]:
-        return ""
-    try:
+    if pages and "revisions" in pages[0] and pages[0]["revisions"]:
         return pages[0]["revisions"][0]["slots"]["main"]["content"]
-    except (KeyError, IndexError):
-        return ""
+    return ""
 
 
 def get_last_edit_timestamp(site: Site, page_title):
@@ -145,7 +137,7 @@ def get_global_editcounts(site: Site, users) -> dict[str, int]:
     # [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
 
     logger.info(f"len of data: {len(result)}")
-    return {x["name"]: x["editcount"] for x in result if x.get("editcount")}
+    return {x["name"]: x.get("editcount", 0) for x in result}
 
 
 def get_global_userinfo(site: Site, username: str) -> dict:
