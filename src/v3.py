@@ -130,7 +130,11 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-def load_rows(api: MwclientApi, subpages: list[str]) -> dict[str, Any]:
+def load_rows(
+    api: MwclientApi,
+    subpages: list[str],
+    unknown_placeholder: str = "unknown",
+) -> dict[str, Any]:
 
     data = []
 
@@ -155,17 +159,17 @@ def load_rows(api: MwclientApi, subpages: list[str]) -> dict[str, Any]:
 
     rows = {}
     for sub in data:
-        editcount_str = "unknown"
+        editcount_str = unknown_placeholder
         age = ""
-        user_link = "unknown"
-        home_wiki = "unknown"
-        recent_editcount_str = "unknown"
+        user_link = unknown_placeholder
+        home_wiki = unknown_placeholder
+        recent_editcount_str = unknown_placeholder
 
         username = sub["username"]
         if username:
             user_link = f"[[User:{username}]]"
             z_data = home_wikis.get(username, {})
-            home_wiki = z_data.get("home", "unknown")
+            home_wiki = z_data.get("home", unknown_placeholder)
             registration = z_data.get("registration", "")
             if registration:
                 age = calculate_age(registration)
@@ -221,7 +225,6 @@ def main(section_headings: list[str]) -> None:
 
         full_text_table += f"=== {section_title} ===\n\n{table}\n"
 
-
     OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
 
     logger.info(f"Saved to {OUTPUT_FILE_TABLE}")
@@ -246,7 +249,7 @@ def update(page_title: str, output_file_name: str) -> None:
     full_wikitext = api.get_page_wikitext(page_title)
     subpages = get_subpages(site, full_wikitext, BASE_PAGE)
 
-    rows = load_rows(api, subpages)
+    rows = load_rows(api, subpages, unknown_placeholder="")
     full_text_table = build_wikitable(rows)
 
     file = OUTPUT_DIR / output_file_name
@@ -254,6 +257,7 @@ def update(page_title: str, output_file_name: str) -> None:
     file.write_text(full_text_table, encoding="utf-8")
 
     logger.info(f"Saved to {file}")
+
 
 __all__ = [
     "main",
