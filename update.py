@@ -10,13 +10,17 @@ import logging
 
 from dotenv import load_dotenv
 
+from src import setup_logging
 from src.v3 import update
+
+setup_logging(level=logging.DEBUG)
 
 try:
     load_dotenv("I:/TOOLFORGE_TOOLS/.env")
 except Exception:
     pass
 
+"""
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)-s - [%(lineno)d] - %(message)s",
@@ -24,6 +28,7 @@ logging.basicConfig(
         logging.StreamHandler(),
     ],
 )
+"""
 
 logger = logging.getLogger(__name__)
 
