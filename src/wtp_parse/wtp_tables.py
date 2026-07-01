@@ -75,7 +75,7 @@ def update_table(
             if row_key not in row_data:
                 continue
 
-            if not row[col_idx].value or replace_values:
+            if not row[col_idx].value.strip() or replace_values:
                 row[col_idx].value = f" {row_data[row_key]}"
 
 
