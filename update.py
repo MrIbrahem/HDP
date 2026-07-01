@@ -7,6 +7,7 @@ update `User:Mr. Ibrahem/hdp` page
 """
 
 import logging
+import sys
 
 from dotenv import load_dotenv
 
@@ -35,8 +36,9 @@ logger = logging.getLogger(__name__)
 page_title = "User:Mr. Ibrahem/hdp"
 output_file_name = "Mr. Ibrahem_hdp.wiki"
 
-page_title = "User:Mr. Ibrahem/test"
-output_file_name = "test.wiki"
+if "test" in sys.argv:
+    page_title = "User:Mr. Ibrahem/test"
+    output_file_name = "test.wiki"
 
 if __name__ == "__main__":
     update(
