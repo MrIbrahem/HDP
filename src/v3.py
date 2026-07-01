@@ -25,6 +25,7 @@ from .api.mwclient_req import (
 )
 from .api.xtools import get_recent_editcounts  # noqa: F401
 from .load_subpages import get_subpages
+from .wtp_parse import update_wikitable
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_DIR = Path(__file__).parent
@@ -250,7 +251,8 @@ def update(page_title: str, output_file_name: str) -> None:
     subpages = get_subpages(site, full_wikitext, BASE_PAGE)
 
     rows = load_rows(api, subpages, unknown_placeholder="")
-    full_text_table = build_wikitable(rows)
+
+    full_text_table = update_wikitable(rows, full_wikitext)
 
     file = OUTPUT_DIR / output_file_name
 
