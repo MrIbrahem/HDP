@@ -279,7 +279,7 @@ def get_recent_editcounts_cached(
     users: list[str],
     recent_days: int = RECENT_DAYS,
     cache_path: str = DEFAULT_CACHE_PATH,
-    save_every: int = 20,
+    save_every: int = 5,
 ) -> dict[str, int]:
     """
     Cached, JSON-file-backed version of get_recent_editcounts.
