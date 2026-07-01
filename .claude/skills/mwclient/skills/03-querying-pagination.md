@@ -113,7 +113,7 @@ Types: `'delete'`, `'move'`, `'protect'`, `'upload'`, `'block'`, `'patrol'`, etc
 
 ```python
 for cat in site.allcategories(prefix='Prog', max_items=50):
-    print(cat['*'])  # Category name
+    print(cat.name)  # Category name
 ```
 
 ### allusers — List users

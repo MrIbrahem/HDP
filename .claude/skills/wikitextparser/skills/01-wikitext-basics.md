@@ -131,8 +131,7 @@ remove_markup("Hello '''world''' [[Earth]]")
 # → 'Hello world Earth'
 ```
 
-`remove_markup(s, **kwargs)` is exactly equivalent to
-`wtp.parse(s).plain_text(**kwargs, _is_root_node=True)`.
+`remove_markup(s, **kwargs)` produces the same output as `wtp.parse(s).plain_text(**kwargs)`.
 
 ### 4. Pretty-print templates
 
