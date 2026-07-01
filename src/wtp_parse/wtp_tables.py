@@ -91,7 +91,7 @@ def update_wikitable_data(
             table,
             rows,
             table_headers_to_row_key,
-            replace_values = replace_values,
+            replace_values=replace_values,
         )
 
     # 3. Return the updated string representation of the parsed wikitext
