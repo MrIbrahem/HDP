@@ -103,7 +103,7 @@ def main(section_headings: list[str]) -> None:
     full_text_table = ""
 
     for section_title in section_headings:
-        subpages = get_subpages(site, full_wikitext, section_title, BASE_PAGE)
+        subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title)
 
         data = []
 

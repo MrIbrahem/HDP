@@ -15,9 +15,9 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 import logging
 import os
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from .api.category import get_category_members_titles
 from .api.mwclient_req import (
@@ -56,6 +56,7 @@ users_redirects = {
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
+
 def calculate_age(registration: str) -> str:
     """
     Input example:
@@ -81,7 +82,6 @@ def calculate_age(registration: str) -> str:
 
         # Fallback template format in case of an error
         return registration
-
 
 
 def load_credentials() -> tuple[Optional[str], Optional[str]]:
@@ -130,6 +130,73 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
+
+def load_rows(
+    site,
+    api: MwclientApi,
+    full_wikitext: str,
+    section_title: str | None = None,
+) -> list[Any]:
+    subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
+
+    data = []
+
+    for sub in subpages:
+        full_title = f"{BASE_PAGE}/{sub}"
+        user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
+        username = users_redirects.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
+        # first letter upper
+        username = username[0].upper() + username[1:]
+        data.append(
+            {
+                "full_title": full_title,
+                "username": username,
+            }
+        )
+
+    users = [x["username"] for x in data if x["username"]]
+
+    editcounts = api.get_global_editcounts(users)
+    recent_editcounts = {}  # get_recent_editcounts(users)
+    home_wikis = api.get_home_wikis_and_registration(users)
+
+    rows = []
+    for sub in data:
+        editcount_str = "unknown"
+        age = ""
+        user_link = "unknown"
+        home_wiki = "unknown"
+        recent_editcount_str = "unknown"
+
+        username = sub["username"]
+        if username:
+            user_link = f"[[User:{username}]]"
+            z_data = home_wikis.get(username, {})
+            home_wiki = z_data.get("home", "unknown")
+            registration = z_data.get("registration", "")
+            if registration:
+                age = calculate_age(registration)
+
+            editcount = editcounts.get(username)
+            if isinstance(editcount, int):
+                editcount_str = f"{editcount:,}"
+
+            recent_editcount = recent_editcounts.get(username)
+            if recent_editcount:
+                recent_editcount_str = f"{recent_editcount:,}"
+
+        row_data = {
+            "age": age,
+            "full_title": sub["full_title"],
+            "user_link": user_link,
+            "editcount_str": editcount_str,
+            "home_wiki": home_wiki,
+            "recent_editcount_str": recent_editcount_str,
+        }
+
+        rows.append(row_data)
+    return rows
+
 def main(section_headings: list[str]) -> None:
     # Load credentials
     username, password = load_credentials()
@@ -152,64 +219,8 @@ def main(section_headings: list[str]) -> None:
     full_text_table = ""
 
     for section_title in section_headings:
-        subpages = get_subpages(site, full_wikitext, section_title, BASE_PAGE)
 
-        data = []
-
-        for sub in subpages:
-            full_title = f"{BASE_PAGE}/{sub}"
-            user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = users_redirects.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
-            # first letter upper
-            username = username[0].upper() + username[1:]
-            data.append(
-                {
-                    "full_title": full_title,
-                    "username": username,
-                }
-            )
-
-        users = [x["username"] for x in data if x["username"]]
-
-        editcounts = api.get_global_editcounts(users)
-        recent_editcounts = {}  # get_recent_editcounts(users)
-        home_wikis = api.get_home_wikis_and_registration(users)
-
-        rows = []
-        for sub in data:
-            editcount_str = "unknown"
-            age = ""
-            user_link = "unknown"
-            home_wiki = "unknown"
-            recent_editcount_str = "unknown"
-
-            username = sub["username"]
-            if username:
-                user_link = f"[[User:{username}]]"
-                z_data = home_wikis.get(username, {})
-                home_wiki = z_data.get("home", "unknown")
-                registration = z_data.get("registration", "")
-                if registration:
-                    age = calculate_age(registration)
-
-                editcount = editcounts.get(username)
-                if isinstance(editcount, int):
-                    editcount_str = f"{editcount:,}"
-
-                recent_editcount = recent_editcounts.get(username)
-                if recent_editcount:
-                    recent_editcount_str = f"{recent_editcount:,}"
-
-            row_data = {
-                "age": age,
-                "full_title": sub["full_title"],
-                "user_link": user_link,
-                "editcount_str": editcount_str,
-                "home_wiki": home_wiki,
-                "recent_editcount_str": recent_editcount_str,
-            }
-
-            rows.append(row_data)
+        rows = load_rows(site, api, full_wikitext, section_title)
 
         table = build_wikitable(rows)
         full_text_table += f"=== {section_title} ===\n\n{table}\n"

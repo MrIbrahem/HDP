@@ -1,6 +1,7 @@
 """ """
 
 import logging
+from typing import Any
 
 import wikitextparser as wtp
 
@@ -16,7 +17,10 @@ def get_section_by_heading(wikitext, heading):
     raise ValueError(f"Section '{heading}' not found")
 
 
-def extract_subpage_links(section, base_page):
+def extract_subpage_links(
+    base_page: str,
+    section: Any,
+) -> list[str]:
     """Use wikitextparser's wikilinks to pull out 'Base/Sub' page names."""
     prefix = base_page + "/"
     seen = []
