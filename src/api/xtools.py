@@ -20,7 +20,7 @@ HEADERS = {"User-Agent": USER_AGENT}
 logger = logging.getLogger(__name__)
 
 
-def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int]:
+def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]:
     """
     Count a user's edits across all Wikimedia projects in the last `days`
     days, using XTools' Global Contributions API
@@ -31,11 +31,9 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
     user has an exceptionally high edit count and the endpoint declines to
     serve it without authentication, per XTools' own rate-limiting rules).
     """
-    today = datetime.now(UTC).date()
-    start = today - timedelta(days=days)
-    base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{username}/all/{start.isoformat()}/{today.isoformat()}"
+    base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{username}/all/{start}/{end}"
 
-    total = 0
+    total_by_day = {}
     offset = None
     delay = 0.5
     max_delay = 8.0
@@ -57,11 +55,13 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
         except (requests.RequestException, ValueError) as e:
             logger.debug("status_code:%s, url:%s", response.status_code, full_url)
             logger.error(f"XTools globalcontribs request failed for {username}: {e}")
-            if total > 0:
+            if total_by_day:
                 # We got partial data before the failure; treat as a lower bound.
-                return total
+                return total_by_day
+
             if delay >= max_delay:
-                return None
+                return total_by_day
+
             time.sleep(delay)
             delay = min(delay * 2, max_delay)
             continue
@@ -69,10 +69,14 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
         if "error" in data or "status" in data:
             # XTools error responses follow RFC 7807 (status/title/details).
             logger.warning(f"XTools globalcontribs error for {username}: {data}")
-            return None
+            return total_by_day
 
         contribs = data.get("globalcontribs", [])
-        total += len(contribs)
+        for contrib in contribs:
+            # "timestamp": "2026-04-21T09:58:49Z",
+            timestamp = contrib["timestamp"].split("T")[0]
+            total_by_day.setdefault(timestamp, 0)
+            total_by_day[timestamp] += 1
 
         offset = data.get("continue")
         if not offset:
@@ -82,7 +86,16 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
     else:
         logger.warning(f"Hit max_pages cap fetching globalcontribs for {username}")
 
-    return total
+    return total_by_day
+
+def get_recent_editcount(username: str, start: str, end: str) -> Optional[int]:
+    """
+    """
+    total_by_day = _get_recent_editcount(username, start, end)
+
+    if not total_by_day:
+        return None
+    return sum(total_by_day.values())
 
 
 def get_recent_editcounts(
@@ -98,9 +111,12 @@ def get_recent_editcounts(
     """
     recent_editcounts: dict[str, int] = {}
 
+    today = datetime.now(UTC).date()
+    start = today - timedelta(days=recent_days)
+
     for username in tqdm(users, desc="Fetching recent edits", unit="user"):
 
-        recent_count = get_recent_editcount(username, days=recent_days)
+        recent_count = get_recent_editcount(username, start=start.isoformat(), end=today.isoformat())
         if recent_count is not None:
             recent_editcounts[username] = recent_count
         time.sleep(0.3)
