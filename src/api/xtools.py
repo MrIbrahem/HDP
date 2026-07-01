@@ -42,6 +42,7 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
 
     for _ in range(max_pages):
         params = {"offset": offset} if offset else {}
+        logger.debug(f"XTools globalcontribs request for {username}: {params}, round: {_}")
         try:
             response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
             response.raise_for_status()
