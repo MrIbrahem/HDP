@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Optional
 
 import requests
+from urllib.parse import urlencode
 from tqdm import tqdm
 
 # How many days back counts as "recent" for the recent-edits column.
@@ -47,11 +48,14 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
             params["offset"] = offset
 
         logger.debug(f"XTools globalcontribs request for {username}, round: {_}")
+        full_url = f"{base_url}?{urlencode(params)}"
         try:
             response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
             response.raise_for_status()
             data = response.json()
+            logger.debug(response.status_code, full_url)
         except (requests.RequestException, ValueError) as e:
+            logger.debug(response.status_code, full_url)
             logger.error(f"XTools globalcontribs request failed for {username}: {e}")
             if total > 0:
                 # We got partial data before the failure; treat as a lower bound.
