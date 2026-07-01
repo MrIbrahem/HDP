@@ -74,7 +74,7 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
         if not offset:
             break
 
-        time.sleep(0.3)
+        # time.sleep(0.3)
     else:
         logger.warning(f"Hit max_pages cap fetching globalcontribs for {username}")
 
