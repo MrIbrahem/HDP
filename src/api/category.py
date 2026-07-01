@@ -57,7 +57,8 @@ def get_category_members_titles(
     Returns:
         List of file titles (strings).
     """
-    delay = 0.1  # seconds
+    baseline_delay = 0.1  # seconds
+    delay = baseline_delay
     max_delay = 8.0
 
     total_pages = max_items or total_pages
@@ -96,6 +97,7 @@ def get_category_members_titles(
 
             try:
                 data = site.get("query", **params)
+                delay = baseline_delay
                 members = data.get("query", {}).get("categorymembers", [])
 
                 # Extract titles
@@ -123,6 +125,7 @@ def get_category_members_titles(
                     if delay >= max_delay:
                         logger.error("Max delay reached, stopping retries")
                         break
+
                     time.sleep(delay)
                     delay = min(delay * 2, max_delay)
                     continue
