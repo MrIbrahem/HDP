@@ -61,6 +61,11 @@ def get_page_wikitext(site: Site, page_title):
 
     pages = data.get("query", {}).get("pages", [])
 
+    # Guard against missing pages or revisions
+    if not pages or "revisions" not in pages[0] or not pages[0]["revisions"]:
+        logger.warning(f"No content found for page {page_title}")
+        return ""
+
     content = pages[0]["revisions"][0]["slots"]["main"]["content"]
     return content
 

@@ -1059,13 +1059,13 @@ class UserService:
         # Check cache, then repository, handle errors
         cached = await self.cache.get(f"user:{user_id}")
         if cached:
-            return User.parse_obj(cached)
+            return User.model_validate(cached)
 
         user = await self.repository.get_by_id(user_id)
         if not user:
             raise UserNotFoundError(user_id)
 
-        await self.cache.set(f"user:{user_id}", user.dict())
+        await self.cache.set(f"user:{user_id}", user.model_dump())
         return user
 ```
 
@@ -1231,7 +1231,7 @@ async def fetch_user(user_id: int) -> User:
     async with aiohttp.ClientSession() as session:
         async with session.get(f"/api/users/{user_id}") as resp:
             data = await resp.json()
-            return User.parse_obj(data)
+            return User.model_validate(data)
 ```
 
 ### 4. Using Any Type

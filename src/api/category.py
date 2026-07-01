@@ -117,6 +117,15 @@ def get_category_members_titles(
                 if e.code == "invalidcategory":
                     logger.warning(f"Invalid category: {category_name}")
                     break
+                else:
+                    # Non-invalidcategory API errors: log and retry with backoff
+                    logger.error(f"API error (code={e.code}): {e}")
+                    if delay >= max_delay:
+                        logger.error("Max delay reached, stopping retries")
+                        break
+                    time.sleep(delay)
+                    delay = min(delay * 2, max_delay)
+                    continue
 
             except Exception as e:
                 logger.error("API request failed %s", str(e))
