@@ -1,17 +1,17 @@
 ---
 name: wikitextparser-tables
 description: >
-  Extract data from MediaWiki tables ({| |}) and modify them. Covers
-  Table.data() with row/column/span/strip arguments, Table.cells() returning
-  Cell objects with HTML attributes, table caption and per-row attributes,
-  recursive table discovery, and exporting to CSV or list-of-dicts.
+    Extract data from MediaWiki tables ({| |}) and modify them. Covers
+    Table.data() with row/column/span/strip arguments, Table.cells() returning
+    Cell objects with HTML attributes, table caption and per-row attributes,
+    recursive table discovery, and exporting to CSV or list-of-dicts.
 applies_to:
-  - "Table"
-  - "Cell"
-  - "{| ... |}"
-  - "wikitable"
-  - "data()"
-  - "cells()"
+    - "Table"
+    - "Cell"
+    - "{| ... |}"
+    - "wikitable"
+    - "data()"
+    - "cells()"
 ---
 
 # 06 — Tables
@@ -24,10 +24,10 @@ applies_to:
 
 Use this file for:
 
-- Converting wiki tables to CSV / list-of-lists / list-of-dicts.
-- Reading or modifying cell HTML attributes (`colspan`, `rowspan`, `style`).
-- Working with nested tables.
-- Setting captions or row-level attributes.
+-   Converting wiki tables to CSV / list-of-lists / list-of-dicts.
+-   Reading or modifying cell HTML attributes (`colspan`, `rowspan`, `style`).
+-   Working with nested tables.
+-   Setting captions or row-level attributes.
 
 ## Mental model
 
@@ -47,7 +47,7 @@ A `Table` is bounded by `{|` ... `|}` and contains:
 The library provides two ways to read cell content:
 
 1. **`table.data()`** — returns nested lists of strings. Fast and convenient,
-   but values are stripped, and templates inside cells are *not* expanded —
+   but values are stripped, and templates inside cells are _not_ expanded —
    they are returned verbatim as the cell text. **Good for plain tables.**
 2. **`table.cells()`** — returns nested lists of `Cell` objects. Each cell
    exposes `.value`, `.attrs`, `.is_header`, and the full `WikiText` API.
@@ -60,28 +60,28 @@ Spans (`colspan`, `rowspan`) are honoured by default and produce a
 
 ### Table
 
-| Attribute / method                                         | Description                                      |
-| ---------------------------------------------------------- | ------------------------------------------------ |
-| `parsed.tables`                                            | All tables, recursive                            |
-| `parsed.get_tables(recursive=False)`                       | Only top-level tables                            |
-| `t.data(row=None, column=None, span=True, strip=True)`     | Cell **strings** (2D list)                       |
-| `t.cells(row=None, column=None, span=True)`                | Cell **objects** (2D list)                       |
-| `t.caption`                                                | Caption text (`None` if missing). Get/set        |
-| `t.caption_attrs`                                          | Caption attribute string. Get/set                |
-| `t.attrs`                                                  | Table-level HTML attributes                      |
-| `t.row_attrs`                                              | List of attribute dicts per row. Get/set         |
-| `t.nesting_level`                                          | 0 = top-level; +1 per enclosing table            |
-| `t.get_attr/set_attr/has_attr/del_attr`                    | Modify table-level attributes                    |
+| Attribute / method                                     | Description                               |
+| ------------------------------------------------------ | ----------------------------------------- |
+| `parsed.tables`                                        | All tables, recursive                     |
+| `parsed.get_tables(recursive=False)`                   | Only top-level tables                     |
+| `t.data(row=None, column=None, span=True, strip=True)` | Cell **strings** (2D list)                |
+| `t.cells(row=None, column=None, span=True)`            | Cell **objects** (2D list)                |
+| `t.caption`                                            | Caption text (`None` if missing). Get/set |
+| `t.caption_attrs`                                      | Caption attribute string. Get/set         |
+| `t.attrs`                                              | Table-level HTML attributes               |
+| `t.row_attrs`                                          | List of attribute dicts per row. Get/set  |
+| `t.nesting_level`                                      | 0 = top-level; +1 per enclosing table     |
+| `t.get_attr/set_attr/has_attr/del_attr`                | Modify table-level attributes             |
 
 ### Cell
 
-| Attribute / method                                         | Description                                      |
-| ---------------------------------------------------------- | ------------------------------------------------ |
-| `cell.value`                                               | Cell content. Get/set                            |
-| `cell.attrs`                                               | Dict of HTML attributes                          |
-| `cell.is_header`                                           | True if the cell is `!` (header)                 |
-| `cell.set_attr(name, value)` / `set('name', 'val')`        | Add or update a cell attribute                   |
-| `cell.get_attr(name)` / `has_attr(name)` / `del_attr(name)`| Read / check / delete                            |
+| Attribute / method                                          | Description                      |
+| ----------------------------------------------------------- | -------------------------------- |
+| `cell.value`                                                | Cell content. Get/set            |
+| `cell.attrs`                                                | Dict of HTML attributes          |
+| `cell.is_header`                                            | True if the cell is `!` (header) |
+| `cell.set_attr(name, value)` / `set('name', 'val')`         | Add or update a cell attribute   |
+| `cell.get_attr(name)` / `has_attr(name)` / `del_attr(name)` | Read / check / delete            |
 
 ## Step by step
 
@@ -240,31 +240,31 @@ nesting = [t.nesting_level for t in all_t]    # 0, 1, 1, 2, ...
 
 ## Edge cases & gotchas
 
-- **`data()` does not look inside templates.** A cell containing
-  `{{convert|10|km}}` returns the literal text `{{convert|10|km}}`, not
-  `10 km`. To extract structured data from such cells, parse the cell value:
+-   **`data()` does not look inside templates.** A cell containing
+    `{{convert|10|km}}` returns the literal text `{{convert|10|km}}`, not
+    `10 km`. To extract structured data from such cells, parse the cell value:
 
-  ```python
-  raw = t.data(row=1, column=0)         # '{{convert|10|km}}'
-  inner = wtp.parse(raw)                # treat as new wikitext
-  ```
+    ```python
+    raw = t.data(row=1, column=0)         # '{{convert|10|km}}'
+    inner = wtp.parse(raw)                # treat as new wikitext
+    ```
 
-- **`!!` in header rows** is treated as a cell separator inside a header row,
-  matching the MediaWiki parser's behaviour. Don't rely on it elsewhere.
-- **Empty cells** appear as `''` in `data()`. Use `if v` to filter.
-- **`row_attrs`** for the very first row (the one before any `|-`) is
-  represented separately — it is the row containing the table's first cells
-  immediately after `{|`. Inspect the result before assuming a length.
-- **`t.nesting_level`** is 0 for top-level tables. A table inside a table
-  is 1, and so on.
-- **Captions vs `|+` lines mid-table** — only the *first* `|+` after `{|`
-  and before the first row is recognised as the caption.
-- **Tables inside parsable extension tags** (e.g. `<onlyinclude>`) are
-  found by `get_tables(recursive=True)` because the library re-parses
-  inside such tags.
-- **`data()` with `strip=True` (the default)** removes leading and trailing
-  whitespace (spaces, tabs, and newlines) from raw cell strings. Pass
-  `strip=False` to preserve the original raw cell content unchanged.
+-   **`!!` in header rows** is treated as a cell separator inside a header row,
+    matching the MediaWiki parser's behaviour. Don't rely on it elsewhere.
+-   **Empty cells** appear as `''` in `data()`. Use `if v` to filter.
+-   **`row_attrs`** for the very first row (the one before any `|-`) is
+    represented separately — it is the row containing the table's first cells
+    immediately after `{|`. Inspect the result before assuming a length.
+-   **`t.nesting_level`** is 0 for top-level tables. A table inside a table
+    is 1, and so on.
+-   **Captions vs `|+` lines mid-table** — only the _first_ `|+` after `{|`
+    and before the first row is recognised as the caption.
+-   **Tables inside parsable extension tags** (e.g. `<onlyinclude>`) are
+    found by `get_tables(recursive=True)` because the library re-parses
+    inside such tags.
+-   **`data()` with `strip=True` (the default)** removes leading and trailing
+    whitespace (spaces, tabs, and newlines) from raw cell strings. Pass
+    `strip=False` to preserve the original raw cell content unchanged.
 
 ## Recipes
 
@@ -352,7 +352,7 @@ def cell_kinds(t) -> Counter:
 
 ## See also
 
-- `01-wikitext-basics.md` — `plain_text(replace_tables=...)` for cleanup
-- `10-tags-comments.md` — `<table>` HTML-style tags (different syntax)
-- `12-tree-navigation.md` — find a cell's parent table
-- `references/reference.md` — full Table/Cell API
+-   `01-wikitext-basics.md` — `plain_text(replace_tables=...)` for cleanup
+-   `10-tags-comments.md` — `<table>` HTML-style tags (different syntax)
+-   `12-tree-navigation.md` — find a cell's parent table
+-   `references/reference.md` — full Table/Cell API
