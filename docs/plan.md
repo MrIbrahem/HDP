@@ -1,4 +1,4 @@
-You are modifying `me1.py`, a script that scrapes the Wikimedia Meta page "Hardware donation program" and builds a wikitable of applicants. Implement the following changes:
+You are modifying `v1.py`, a script that scrapes the Wikimedia Meta page "Hardware donation program" and builds a wikitable of applicants. Implement the following changes:
 
 **Checklist**
 
@@ -14,7 +14,7 @@ You are modifying `me1.py`, a script that scrapes the Wikimedia Meta page "Hardw
 
 **Execution steps**
 
-1. Read the existing `me1.py` fully to preserve its conventions (error handling, logging, `site.get` usage pattern).
+1. Read the existing `v1.py` fully to preserve its conventions (error handling, logging, `site.get` usage pattern).
 2. Investigate which MediaWiki/XTools API endpoint reliably returns edit counts limited to a 90-day window across all Wikimedia projects (global), and which one returns "home wiki." Test both against 2-3 known usernames before wiring them into the script.
 3. Write `get_recent_editcounts()` and `get_home_wikis()`, batching requests for all users in a section rather than looping one-by-one.
 4. Update `SECTION_HEADINGS` and the section-processing logic in `main()` to cover "Open requests" and "Approved requests not yet delivered" in addition to "Draft requests."
