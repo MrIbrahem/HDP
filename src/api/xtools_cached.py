@@ -6,9 +6,9 @@ import os
 import time
 from datetime import UTC, date, datetime, timedelta
 from typing import Optional
+from urllib.parse import urlencode
 
 import requests
-from urllib.parse import urlencode
 from tqdm import tqdm
 
 # How many days back counts as "recent" for the recent-edits column.
@@ -98,9 +98,9 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
 
     return total_by_day
 
+
 def get_recent_editcount(username: str, start: str, end: str) -> Optional[int]:
-    """
-    """
+    """ """
     total_by_day = _get_recent_editcount(username, start, end)
 
     if not total_by_day:

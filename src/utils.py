@@ -43,6 +43,7 @@ def load_credentials() -> tuple[Optional[str], Optional[str]]:
 
     return username, password
 
+
 def calculate_age(registration: str) -> str:
     """
     Input example:
@@ -68,4 +69,3 @@ def calculate_age(registration: str) -> str:
 
         # Fallback template format in case of an error
         return registration
-

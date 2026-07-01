@@ -21,6 +21,7 @@ from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
+
 # from .api.xtools import get_recent_editcounts
 from .api.xtools_cached import get_recent_editcounts_cached
 from .load_subpages import get_subpages, get_subpages_for_section
