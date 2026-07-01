@@ -60,7 +60,7 @@ def get_category_members_titles(
     delay = 0.1  # seconds
     max_delay = 8.0
 
-    total_pages = max_items or total_pages or get_category_count(site, category_name)
+    total_pages = max_items or total_pages
     logger.info(f"Starting to fetch files from {category_name}, total members: {total_pages}")
 
     params = {

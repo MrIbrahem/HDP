@@ -19,11 +19,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from .api.category import get_category_members_titles
 from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
+from .api.xtools import get_recent_editcounts  # noqa: F401
 from .load_subpages import get_subpages
 
 BASE_PAGE = "Hardware donation program"
@@ -114,10 +114,10 @@ def build_wikitable(rows) -> str:
         "! Home Wiki",
         "! Approved",
     ]
-    for row in rows:
+    for full_title, row in rows.items():
         lines.append("|-")
-        lines.append(f"| [[{row['full_title']}]] ")
-        lines.append(f"| {{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}")
+        lines.append(f"| [[{full_title}]] ")
+        lines.append(f"| {{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{full_title}}}}}}}}}")
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row['editcount_str']}")
         lines.append(f"| {row['recent_editcount_str']}")
@@ -130,14 +130,7 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-
-def load_rows(
-    site,
-    api: MwclientApi,
-    full_wikitext: str,
-    section_title: str | None = None,
-) -> list[Any]:
-    subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
+def load_rows(api: MwclientApi, subpages: list[str]) -> dict[str, Any]:
 
     data = []
 
@@ -160,7 +153,7 @@ def load_rows(
     recent_editcounts = {}  # get_recent_editcounts(users)
     home_wikis = api.get_home_wikis_and_registration(users)
 
-    rows = []
+    rows = {}
     for sub in data:
         editcount_str = "unknown"
         age = ""
@@ -194,8 +187,10 @@ def load_rows(
             "recent_editcount_str": recent_editcount_str,
         }
 
-        rows.append(row_data)
+        rows[sub["full_title"]] = row_data
+
     return rows
+
 
 def main(section_headings: list[str]) -> None:
     # Load credentials
@@ -214,15 +209,16 @@ def main(section_headings: list[str]) -> None:
     api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(BASE_PAGE)
-    full_wikitext = full_wikitext.replace("_", " ")
 
     full_text_table = ""
 
     for section_title in section_headings:
 
-        rows = load_rows(site, api, full_wikitext, section_title)
+        subpages = get_subpages(site, full_wikitext, BASE_PAGE, section_title=section_title)
 
+        rows = load_rows(api, subpages)
         table = build_wikitable(rows)
+
         full_text_table += f"=== {section_title} ===\n\n{table}\n"
 
     OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")

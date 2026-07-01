@@ -61,7 +61,8 @@ def get_page_wikitext(site: Site, page_title):
 
     pages = data.get("query", {}).get("pages", [])
 
-    return pages[0]["revisions"][0]["slots"]["main"]["content"]
+    content = pages[0]["revisions"][0]["slots"]["main"]["content"]
+    return content
 
 
 def get_last_edit_timestamp(site: Site, page_title):

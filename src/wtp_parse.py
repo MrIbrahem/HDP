@@ -26,6 +26,8 @@ def extract_subpage_links(
     seen = []
     for link in section.wikilinks:
         title = link.title.strip()
+        title = title.replace("_", " ")
+
         if title.startswith(prefix):
             name = title[len(prefix) :]
             if name not in seen:
