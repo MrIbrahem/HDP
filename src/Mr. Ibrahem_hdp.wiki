@@ -1,0 +1,670 @@
+{{VEFriendly}}
+== List as of Jun 21st 2026 ==
+
+{| class="wikitable sortable"
+! Page
+! Last edited to application
+! User
+! Global edits
+! Edits in last 3 months
+! Age of account
+! Home Wiki
+! Approved
+|-
+| [[Hardware donation program/Ibjaja055]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Ibjaja055}}}}
+| [[User:Ibjaja055]]
+| 29,779
+| 1,100
+| {{age in years and months|2021|12|04}}
+| enwiki
+|
+|-
+| [[Hardware donation program/EYo237]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/EYo237}}}}
+| [[User:EYo237]]
+| 5,957
+| 829
+| {{age in years and months|2020|12|10}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Pharouqenr]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Pharouqenr}}}}
+| [[User:Pharouqenr]]
+| 63,241
+| 6,826
+| {{age in years and months|2023|11|25}}
+| hawiki
+|
+|-
+| [[Hardware donation program/Nnamadee]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Nnamadee}}}}
+| [[User:Nnamadee]]
+| 20,212
+| 4,038
+| {{age in years and months|2024|09|08}}
+| hawiki
+|
+|-
+| [[Hardware donation program/BnHamid]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/BnHamid}}}}
+| [[User:BnHamid]]
+| 79,742
+| 4,879
+| {{age in years and months|2021|01|11}}
+| enwiki
+|
+|-
+| [[Hardware donation program/ᱯᱨᱚᱯᱷᱮᱥᱥᱚᱨ]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/ᱯᱨᱚᱯᱷᱮᱥᱥᱚᱨ}}}}
+| [[User:ᱯᱨᱚᱯᱷᱮᱥᱥᱚᱨ]]
+| 2,955
+| 593
+| {{age in years and months|2019|02|19}}
+| enwiki
+|
+|-
+| [[Hardware donation program/sardeeq]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/sardeeq}}}}
+| [[User:Sardeeq]]
+| 30,231
+| 9,377
+| {{age in years and months|2025|11|06}}
+| hawiki
+|
+|-
+| [[Hardware donation program/Dolphyb]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Dolphyb}}}}
+| [[User:Dolphyb]]
+| 2,378,585
+| 25,000
+| {{age in years and months|2020|06|21}}
+| enwiki
+|Yes
+|-
+| [[Hardware donation program/Yendifa]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Yendifa}}}}
+| [[User:Yendifa]]
+| 7,607
+| 1,067
+| {{age in years and months|2024|03|16}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Shahidul Hasan Roman]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Shahidul Hasan Roman}}}}
+| [[User:Shahidul Hasan Roman]]
+| 16,890
+| 20
+| {{age in years and months|2016|04|14}}
+| bnwiki
+|
+|-
+| [[Hardware donation program/Brazal.dang]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Brazal.dang}}}}
+| [[User:Ballardmaize]]
+| 41,851
+| 11,762
+| {{age in years and months|2014|07|26}}
+| incubatorwiki
+|Yes
+|-
+| [[Hardware donation program/Mercyuniverse]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Mercyuniverse}}}}
+| [[User:Mercyuniverse]]
+| 1,417
+| 333
+| {{age in years and months|2023|04|22}}
+| metawiki
+|
+|-
+| [[Hardware donation program/Nguini Désiré]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Nguini Désiré}}}}
+| [[User:Nguini Désiré]]
+| 2,002
+| 221
+| {{age in years and months|2023|03|18}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Agbalagba]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Agbalagba}}}}
+| [[User:Agbalagba]]
+| 10,837
+| 166
+| {{age in years and months|2017|04|25}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Chinemeremprince]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Chinemeremprince}}}}
+| [[User:Chinemeremprince]]
+| 16,616
+| 3,513
+| {{age in years and months|2022|03|05}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Ola.mahadi]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Ola.mahadi}}}}
+| [[User:Ola.mahadi]]
+| 11,098
+| 247
+| {{age in years and months|2018|11|25}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Hamed Gamaoun]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Hamed Gamaoun}}}}
+| [[User:Hamed Gamaoun]]
+| unknown
+|
+|
+|
+|
+|-
+| [[Hardware donation program/Jwale2]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Jwale2}}}}
+| [[User:Jwale2]]
+| 26,085
+| 53
+| {{age in years and months|2015|01|20}}
+| enwiki
+|Yes
+|-
+| [[Hardware donation program/Tmamatha]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Tmamatha}}}}
+| [[User:Tmamatha]]
+| 7,502
+| 94
+| {{age in years and months|2021|02|22}}
+| commonswiki
+|
+|-
+| [[Hardware donation program/V Bhavya]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/V Bhavya}}}}
+| [[User:V Bhavya]]
+| 94,099
+| 113
+| {{age in years and months|2022|07|16}}
+| tewiki
+|
+|-
+| [[Hardware donation program/रोहित साव27]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/रोहित साव27}}}}
+| [[User:रोहित साव27]]
+| 104,201
+| 75
+| {{age in years and months|2019|01|25}}
+| enwikisource
+|Hi
+|-
+| [[Hardware donation program/muralikrishna m]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/muralikrishna m}}}}
+| [[User:Muralikrishna m]]
+| 47,892
+| 2,071
+| {{age in years and months|2021|05|23}}
+| tewiki
+|
+|-
+| [[Hardware donation program/Nicole mwenge]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Nicole mwenge}}}}
+| [[User:Nicole mwenge]]
+| 8,001
+| 7
+| {{age in years and months|2023|08|28}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Albetudu]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Albetudu}}}}
+| [[User:Albetudu]]
+| 3,018
+| 34
+| {{age in years and months|2019|02|18}}
+| satwiki
+|
+|-
+| [[Hardware donation program/Aminwa 21]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Aminwa 21}}}}
+| [[User:Aminwa 21]]
+| 3,720
+| 79
+| {{age in years and months|2021|06|30}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Joy Agyepong (2nd Application)]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Joy Agyepong (2nd Application)}}}}
+| [[User:Joy Agyepong]]
+| 5,457
+| 8
+| {{age in years and months|2016|08|27}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Leeturtle]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Leeturtle}}}}
+| [[User:Leeturtle]]
+| 4,796
+|
+| {{age in years and months|2010|10|07}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Mbaidoo]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Mbaidoo}}}}
+| [[User:Mbaidoo]]
+| 2,681
+| 132
+| {{age in years and months|2021|03|15}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Pragathi. BH]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Pragathi. BH}}}}
+| [[User:Pragathi. BH]]
+| 18,117
+| 10,377
+| {{age in years and months|2024|05|08}}
+| commonswiki
+|
+|-
+| [[Hardware donation program/Obangmoy]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Obangmoy}}}}
+| [[User:Obangmoy]]
+| 8,650
+| 2
+| {{age in years and months|2015|01|09}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Santhosh Notagar]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Santhosh Notagar}}}}
+| [[User:Santhosh Notagar]]
+| 5,872
+|
+| {{age in years and months|2019|02|10}}
+| knwiki
+|
+|-
+| [[Hardware donation program/Thirumalgoud]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Thirumalgoud}}}}
+| [[User:Thirumalgoud]]
+| 4,920
+|
+| {{age in years and months|2021|02|15}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Thiyagu Ganesh]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Thiyagu Ganesh}}}}
+| [[User:Thiyagu Ganesh]]
+| 5,922
+| 1
+| {{age in years and months|2015|11|17}}
+| tawiki
+|
+|-
+| [[Hardware donation program/Таңһылыу]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Таңһылыу}}}}
+| [[User:Таңһылыу]]
+| 31,299
+| 1,415
+| {{age in years and months|2016|05|14}}
+| bawiki
+|
+|-
+| [[Hardware donation program/Һәҙиә]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Һәҙиә}}}}
+| [[User:Һәҙиә]]
+| 9,916
+| 31
+| {{age in years and months|2015|11|11}}
+| bawiki
+|
+|-
+| [[Hardware donation program/Cbrescia]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Cbrescia}}}}
+| [[User:Felino Volador]]
+| 126,759
+| 3,097
+| {{age in years and months|2013|04|29}}
+| eswiki
+|
+|-
+| [[Hardware donation program/Dezedien]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Dezedien}}}}
+| [[User:Dezedien]]
+| 64,196
+| 1,217
+| {{age in years and months|2012|05|10}}
+| arwiki
+|Yes
+|-
+| [[Hardware donation program/Vinoda mamatharai]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Vinoda mamatharai}}}}
+| [[User:Vinoda mamatharai]]
+| 8,672
+| 230
+| {{age in years and months|2016|06|10}}
+| incubatorwiki
+|
+|-
+| [[Hardware donation program/Senator Choko]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Senator Choko}}}}
+| [[User:Senator Choko]]
+| 7,998
+| 735
+| {{age in years and months|2022|02|24}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Africany]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Africany}}}}
+| [[User:Africany]]
+| 17,047
+| 2,906
+| {{age in years and months|2023|07|03}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Amikeco]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Amikeco}}}}
+| [[User:Amikeco]]
+| 37,035
+| 16
+| {{age in years and months|2008|04|09}}
+| oswiki
+|
+|-
+| [[Hardware donation program/Asamoah Daniel Kwame Oware]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Asamoah Daniel Kwame Oware}}}}
+| [[User:Asamoah Daniel Kwame Oware]]
+| 4,045
+| 7
+| {{age in years and months|2023|03|11}}
+| twwiki
+|
+|-
+| [[Hardware donation program/Bamjos]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Bamjos}}}}
+| [[User:Bamjos]]
+| 18,684
+| 1,697
+| {{age in years and months|2024|01|08}}
+| enwikivoyage
+|
+|-
+| [[Hardware donation program/CalebTokula6]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/CalebTokula6}}}}
+| [[User:CalebTokula6]]
+| 953
+| 51
+| {{age in years and months|2024|03|02}}
+| wikifunctionswiki
+|
+|-
+| [[Hardware donation program/Charles Kalanzi]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Charles Kalanzi}}}}
+| [[User:Charles Kalanzi]]
+| 5,992
+| 3,474
+| {{age in years and months|2025|03|20}}
+| enwiki
+|
+|-
+| [[Hardware donation program/ChéRatou]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/ChéRatou}}}}
+| [[User:ChéRatou]]
+| 4,685
+| 254
+| {{age in years and months|2024|10|09}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Dev ammar]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Dev ammar}}}}
+| [[User:Dev ammar]]
+| 5,897
+| 272
+| {{age in years and months|2022|01|28}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Emmanuel Anin]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Emmanuel Anin}}}}
+| [[User:Emmanuel Anin]]
+| 7,733
+| 3,720
+| {{age in years and months|2024|06|08}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Ennydavids]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Ennydavids}}}}
+| [[User:Ennydavids]]
+| 4,281
+| 287
+| {{age in years and months|2022|05|16}}
+| igwiki
+|
+|-
+| [[Hardware donation program/Eunice Ameh]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Eunice Ameh}}}}
+| [[User:Eunice Ameh]]
+| 2,439
+| 231
+| {{age in years and months|2024|02|27}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Ibrahim abusufyan]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Ibrahim abusufyan}}}}
+| [[User:Ibrahim abusufyan]]
+| 39,678
+| 3,607
+| {{age in years and months|2022|10|05}}
+| hawiki
+|
+|-
+| [[Hardware donation program/justwiki]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/justwiki}}}}
+| [[User:Justwiki]]
+| 103,596
+| 3,141
+| {{age in years and months|2008|10|12}}
+| arwiki
+|Yes Ar
+|-
+| [[Hardware donation program/Kalakpagh]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Kalakpagh}}}}
+| [[User:Kalakpagh]]
+| 41,218
+| 3,816
+| {{age in years and months|2023|01|05}}
+| wikidatawiki
+|Yes
+|-
+| [[Hardware donation program/Kikanakana]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Kikanakana}}}}
+| [[User:Kikanakana]]
+| 2,210
+| 1,208
+| {{age in years and months|2023|09|29}}
+| commonswiki
+|
+|-
+| [[Hardware donation program/Knowledge and philosophy]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Knowledge and philosophy}}}}
+| [[User:Knowledge and philosophy]]
+| 3,399
+| 395
+| {{age in years and months|2021|07|31}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Mahuta]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Mahuta}}}}
+| [[User:Mahuta]]
+| 40,267
+| 580
+| {{age in years and months|2020|06|26}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Manamarthe]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Manamarthe}}}}
+| [[User:Manamarthe]]
+| 5,505
+| 3,199
+| {{age in years and months|2025|07|20}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Maryleine]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Maryleine}}}}
+| [[User:Maryleine]]
+| 3,328
+| 15
+| {{age in years and months|2023|11|28}}
+| frwiki
+|
+|-
+| [[Hardware donation program/Merci Kahubangwa]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Merci Kahubangwa}}}}
+| [[User:Merci Kahubangwa]]
+| 1,201
+| 54
+| {{age in years and months|2024|08|22}}
+| metawiki
+|
+|-
+| [[Hardware donation program/Micheal Kaluba]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Micheal Kaluba}}}}
+| [[User:MichealKal]]
+| 16,119
+| 465
+| {{age in years and months|2020|03|30}}
+| commonswiki
+|
+|-
+| [[Hardware donation program/MP1999]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/MP1999}}}}
+| [[User:TypeInfo]]
+| 10,831
+| 278
+| {{age in years and months|2022|07|25}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Mr. Snatch]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Mr. Snatch}}}}
+| [[User:Mr. Snatch]]
+| 15,757
+| 212
+| {{age in years and months|2022|03|17}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Muhdavdullahi]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Muhdavdullahi}}}}
+| [[User:Muhdavdullahi]]
+| 25,204
+| 4,539
+| {{age in years and months|2024|12|09}}
+| hawiki
+|
+|-
+| [[Hardware donation program/Mwintirew]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Mwintirew}}}}
+| [[User:Mwintirew]]
+| 5,616
+| 117
+| {{age in years and months|2016|04|09}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Noooote]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Noooote}}}}
+| [[User:Noooote]]
+| 1,852
+| 509
+| {{age in years and months|2023|12|05}}
+| cbk_zamwiki
+|
+|-
+| [[Hardware donation program/Obedmakolo]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Obedmakolo}}}}
+| [[User:Obedmakolo]]
+| 8,206
+| 235
+| {{age in years and months|2022|05|19}}
+| wikidatawiki
+|
+|-
+| [[Hardware donation program/Ogundele1]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Ogundele1}}}}
+| [[User:Ogundele1]]
+| 2,778
+| 45
+| {{age in years and months|2018|07|21}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Orokbest1]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Orokbest1}}}}
+| [[User:Orokbest1]]
+| 22,297
+| 12,048
+| {{age in years and months|2024|07|08}}
+| enwiki
+|Yes
+|-
+| [[Hardware donation program/Premchand murmu thakur]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Premchand murmu thakur}}}}
+| [[User:Nacharhopon]]
+| 1,620
+| 2
+| {{age in years and months|2019|12|19}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Sir Amugi]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Sir Amugi}}}}
+| [[User:Sir Amugi]]
+| 61,597
+| 1,386
+| {{age in years and months|2021|01|29}}
+| enwiki
+|
+|-
+| [[Hardware donation program/Tenaciuos Ntaawa]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Tenaciuos Ntaawa}}}}
+| [[User:Tenaciuos Ntaawa]]
+| 9,207
+| 862
+| {{age in years and months|2024|08|13}}
+| dagwiki
+|
+|-
+| [[Hardware donation program/Vision L1]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Vision L1}}}}
+| [[User:Vision L1]]
+| 24,397
+| 1,657
+| {{age in years and months|2023|03|25}}
+| incubatorwiki
+|
+|-
+| [[Hardware donation program/নৰুনা বৰুৱা]]
+| {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/নৰুনা বৰুৱা}}}}
+| [[User:নৰুনা বৰুৱা]]
+| 15,940
+| 6,296
+| {{age in years and months|2025|03|27}}
+| aswiki
+|
+|}
