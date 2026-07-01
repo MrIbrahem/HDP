@@ -16,6 +16,11 @@ def setup_logging(
     project_logger.setLevel(numeric_level)
     project_logger.propagate = False
 
+    # Prevent duplicate handlers
+    if any(isinstance(h, logging.StreamHandler) for h in project_logger.handlers):
+        project_logger.debug("Logging already configured for '%s'", name)
+        return
+
     console_formatter = colorlog.ColoredFormatter(
         fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(lineno)d] - %(message)s",
         datefmt="%H:%M:%S",

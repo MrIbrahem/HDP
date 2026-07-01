@@ -9,9 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_section_by_heading(wikitext, heading):
-    """Use wikitextparser to find a section by its heading text.
-
-    Returns the section if found, or None if not found.
+    """
+    Use wikitextparser to find a section by its heading text.
     """
     parsed = wtp.parse(wikitext)
     for section in parsed.get_sections(include_subsections=True):
