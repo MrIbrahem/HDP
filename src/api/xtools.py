@@ -6,14 +6,14 @@ from datetime import UTC, datetime, timedelta
 from typing import Optional
 
 import requests
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from tqdm import tqdm
+
+from src. import USER_AGENT
 
 # How many days back counts as "recent" for the recent-edits column.
 RECENT_DAYS = 90
 XTOOLS_GLOBALCONTRIBS_URL = "https://xtools.wmcloud.org/api/user/globalcontribs"
-
-USER_AGENT = "OWID-Commons-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
 
 HEADERS = {"User-Agent": USER_AGENT}
 
@@ -31,7 +31,8 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
     user has an exceptionally high edit count and the endpoint declines to
     serve it without authentication, per XTools' own rate-limiting rules).
     """
-    base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{username}/all/{start}/{end}"
+    encoded_username = quote(username)
+    base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{encoded_username}/all/{start}/{end}"
 
     total_by_day = {}
     offset = None
