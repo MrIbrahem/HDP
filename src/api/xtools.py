@@ -41,7 +41,11 @@ def get_recent_editcount(username: str, days: int = RECENT_DAYS) -> Optional[int
     max_pages = 50  # safety cap against runaway pagination
 
     for _ in range(max_pages):
-        params = {"offset": offset} if offset else {}
+        params = {"limit": 500}
+
+        if offset:
+            params["offset"] = offset
+
         logger.debug(f"XTools globalcontribs request for {username}, round: {_}")
         try:
             response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
