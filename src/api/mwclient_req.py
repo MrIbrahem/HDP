@@ -40,7 +40,7 @@ def connect_to_meta(username: str, password: str) -> Site | None:
         return None
 
 
-def get_page_wikitext(site: Site, page_title) -> str:
+def get_page_wikitext(site: Site, page_title: str) -> str:
     """Fetch the full raw wikitext of a page via the API."""
     logger.info(f"Fetching wikitext of {page_title}...")
 
@@ -53,7 +53,7 @@ def get_page_wikitext(site: Site, page_title) -> str:
         return ""
 
 
-def get_last_edit_timestamp(site: Site, page_title):
+def get_last_edit_timestamp(site: Site, page_title: str):
     logger.info(f"Fetching last edit timestamp of {page_title}...")
     params = {
         "prop": "revisions",
@@ -77,7 +77,7 @@ def get_last_edit_timestamp(site: Site, page_title):
     return None
 
 
-def get_page_creator(site: Site, page_title):
+def get_page_creator(site: Site, page_title: str) -> None | str:
     """Username of the oldest revision (i.e. who created the page)."""
     logger.info(f"Fetching page creator of {page_title}...")
     params = {
@@ -103,7 +103,7 @@ def get_page_creator(site: Site, page_title):
     return None
 
 
-def get_global_editcounts(site: Site, users) -> dict[str, int]:
+def get_global_editcounts(site: Site, users: list[str]) -> dict[str, int]:
     logger.info(f"Fetching global edit count of {len(users)}...")
 
     params = {
@@ -127,6 +127,49 @@ def get_global_editcounts(site: Site, users) -> dict[str, int]:
     logger.info(f"len of data: {len(result)}")
     return {x["name"]: x.get("editcount", 0) for x in result}
 
+
+
+def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
+    logger.info(f"Fetching global edit count of {len(pages)}...")
+
+    params = {
+        # "action": "query",
+        "format": "json",
+        "prop": "redirects",
+        "titles": "|".join(pages),
+        "redirects": 1,
+        "formatversion": "2",
+        "rdprop": "title",
+        "rdlimit": "max"
+    }
+
+    result = {}
+
+    for i in range(0, len(pages), 50):
+        params["titles"] = "|".join(pages[i:i+50])
+        try:
+            data = site.get("query", **params)
+        except Exception as e:
+            logger.error("API request failed %s", str(e))
+
+        pages = data.get("query", {}).get("pages", [])
+        for x in pages:
+            # x example: { "ns": 2, "title": "User:The Living love" }
+            if not isinstance(x, dict):
+                continue
+
+            non_redirect_title = x["title"]
+            redirects = x.get("redirects", [])
+
+            if not redirects:
+                continue
+
+            for redirect in redirects:
+                result[redirect["title"]] = non_redirect_title
+
+    logger.info(f"len of data: {len(result)}")
+
+    return result
 
 def get_global_userinfo(site: Site, username: str) -> dict:
     """
@@ -185,17 +228,20 @@ class MwclientApi:
     def __init__(self, site):
         self.site = site
 
-    def get_page_wikitext(self, page_title):
+    def get_page_wikitext(self, page_title: str) -> str:
         return get_page_wikitext(self.site, page_title)
 
-    def get_last_edit_timestamp(self, page_title):
+    def get_last_edit_timestamp(self, page_title: str):
         return get_last_edit_timestamp(self.site, page_title)
 
-    def get_page_creator(self, page_title):
+    def get_page_creator(self, page_title: str) -> None | str:
         return get_page_creator(self.site, page_title)
 
-    def get_global_editcounts(self, users) -> dict[str, int]:
+    def get_global_editcounts(self, users: list[str]) -> dict[str, int]:
         return get_global_editcounts(self.site, users)
+
+    def solve_pages_redirects(self, pages: list[str]) -> dict[str, str]:
+        return solve_pages_redirects(self.site, pages)
 
     def get_global_userinfo(self, username: str) -> dict:
         return get_global_userinfo(self.site, username)

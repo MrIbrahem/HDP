@@ -84,9 +84,20 @@ def load_rows(
         data.append(
             {
                 "full_title": full_title,
+                "sub": sub,
                 "username": username,
             }
         )
+
+    users_redirects_api = solve_pages_redirects(api, [f"User:{x['username']}" for x in data if x["username"]])
+
+    data = [
+        {
+            "full_title": x["full_title"],
+            "username": users_redirects_api.get(x["username"]) or x["username"],
+        }
+        for x in data
+    ]
 
     users = [x["username"] for x in data if x["username"]]
 
@@ -114,6 +125,7 @@ def load_rows(
         recent_editcount_str = unknown_placeholder
 
         username = sub["username"]
+
         if username:
             user_link = f"[[User:{username}]]"
 
