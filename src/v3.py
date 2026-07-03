@@ -21,7 +21,7 @@ from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
-from .api.xtools_cached import get_recent_editcounts_cached
+from .api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from .load_subpages import get_subpages, get_subpages_for_section
 from .utils import calculate_age, load_credentials, users_redirects
 from .wtp_parse import update_wikitable_data
@@ -93,8 +93,14 @@ def load_rows(
     editcounts = api.get_global_editcounts(users)
     logger.info(f"Loaded {len(editcounts)} editcounts for {len(users)} users")
 
-    recent_editcounts = get_recent_editcounts_cached(users, load_new=load_recent_editcounts)
-    logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
+    recent_editcounts = {}
+
+    if not load_recent_editcounts:
+        recent_editcounts = get_recent_editcounts_offline(users)
+        logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
+    else:
+        recent_editcounts = get_recent_editcounts_cached(users)
+        logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
 
     home_wikis = api.get_home_wikis_and_registration(users)
     logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
