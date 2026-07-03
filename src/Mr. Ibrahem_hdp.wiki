@@ -707,7 +707,7 @@
 |-
 | [[Hardware donation program/Aelita14]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Aelita14}}}}|| [[User:Aelita14]]|| 38,005|| || {{age in years and months|2012|08|18}}|| arwiki||
 |-
-| [[Hardware donation program/Alina Vozna]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Alina Vozna}}}}|| [[User:Alina Vozna]]|| 0|| || || ||
+| [[Hardware donation program/Alina Vozna]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Alina Vozna}}}}|| [[User:User:Alina Voznaya]]|| || || {{age in years and months|2014|06|13}}|| ukwiki||
 |-
 | [[Hardware donation program/Anasskoko]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Anasskoko}}}}|| [[User:Anasskoko]]|| 22,953|| || {{age in years and months|2019|05|29}}|| enwiki||
 |-
@@ -781,7 +781,7 @@
 |-
 | [[Hardware donation program/JerryAkpan5001]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/JerryAkpan5001}}}}|| [[User:JerryAkpan5001]]|| 3,637|| || {{age in years and months|2025|08|08}}|| enwiki||
 |-
-| [[Hardware donation program/Johnjoy12]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Johnjoy12}}}}|| [[User:Johnjoy12]]|| 0|| || || ||
+| [[Hardware donation program/Johnjoy12]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Johnjoy12}}}}|| [[User:User:Ogundele1]]|| || || {{age in years and months|2018|07|21}}|| enwiki||
 |-
 | [[Hardware donation program/Joy Agyepong (2nd Application)]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Joy Agyepong (2nd Application)}}}}|| [[User:Joy Agyepong]]|| 5,462|| 8|| {{age in years and months|2016|08|27}}|| enwiki||
 |-
@@ -795,7 +795,7 @@
 |-
 | [[Hardware donation program/Kizule]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Kizule}}}}|| [[User:Kizule]]|| 75,148|| || {{age in years and months|2016|02|27}}|| srwiki||
 |-
-| [[Hardware donation program/Kızıltoprak]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Kızıltoprak}}}}|| [[User:Kızıltoprak]]|| 0|| || || ||
+| [[Hardware donation program/Kızıltoprak]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Kızıltoprak}}}}|| [[User:User:Gökhan Can]]|| || || {{age in years and months|2022|06|24}}|| trwiki||
 |-
 | [[Hardware donation program/M Bash Ne]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/M Bash Ne}}}}|| [[User:M Bash Ne]]|| 14,903|| || {{age in years and months|2020|12|12}}|| enwiki||
 |-
@@ -821,7 +821,7 @@
 |-
 | [[Hardware donation program/neha kotary]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/neha kotary}}}}|| [[User:Neha kotary]]|| 61|| || {{age in years and months|2022|12|05}}|| enwiki||
 |-
-| [[Hardware donation program/Neima Paz]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Neima Paz}}}}|| [[User:Neima Paz]]|| 1,374|| || {{age in years and months|2018|07|31}}|| eswiki||
+| [[Hardware donation program/Neima Paz]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Neima Paz}}}}|| [[User:User:NLuzPaz76]]|| || || || ||
 |-
 | [[Hardware donation program/nickispeaki]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/nickispeaki}}}}|| [[User:Nickispeaki]]|| 176,949|| || {{age in years and months|2011|07|25}}|| ukwiki||
 |-
@@ -875,7 +875,7 @@
 |-
 | [[Hardware donation program/Sylvaline39]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Sylvaline39}}}}|| [[User:Sylvaline39]]|| 5,030|| || {{age in years and months|2022|12|31}}|| enwiki||
 |-
-| [[Hardware donation program/T.Bednarz]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/T.Bednarz}}}}|| [[User:T.Bednarz]]|| 0|| || || ||
+| [[Hardware donation program/T.Bednarz]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/T.Bednarz}}}}|| [[User:User:Plánovací kalendář]]|| || || {{age in years and months|2016|06|16}}|| cswiki||
 |-
 | [[Hardware donation program/The Living love]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/The Living love}}}}|| [[User:Em-mustapha]]|| 36,460|| || {{age in years and months|2017|09|22}}|| enwiki||
 |-
