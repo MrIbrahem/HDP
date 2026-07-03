@@ -80,7 +80,7 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
         if users_redirects_api.get(user_str):
             x["username"] = users_redirects_api[user_str].removeprefix("User:")
 
-            if username == "User:Johnjoy12":
+            if user_str == "User:Johnjoy12":
                 logger.info(f"Johnjoy12 is a redirect to {x["username"]}")
 
         new_data.append(x)
