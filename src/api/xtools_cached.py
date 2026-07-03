@@ -29,6 +29,7 @@ META_KEY = "_meta"
 
 logger = logging.getLogger(__name__)
 
+
 def load_dates(recent_days) -> tuple[str, str]:
     today = datetime.now(UTC).date()
     start = today - timedelta(days=recent_days)
@@ -285,6 +286,7 @@ def get_recent_editcounts_cached(
 
     save_cache(cache, cache_path)
     return recent_editcounts
+
 
 def get_recent_editcounts_offline(
     users: list[str],

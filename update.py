@@ -36,5 +36,5 @@ if __name__ == "__main__":
         output_file_name=output_file_name,
         unknown_placeholder="",
         load_recent_editcounts=False,
-        section_name="Category:Hardware donation program open requests"
+        section_name="Category:Hardware donation program open requests",
     )

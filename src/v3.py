@@ -66,16 +66,19 @@ def build_wikitable(rows) -> str:
 
 
 def solve_users_redirects(api, data) -> list[dict[str, str]]:
-    users_redirects_api = api.solve_pages_redirects([f"User:{x['username']}" for x in data if x["username"]])
+    users = []
+    for x in data:
+        user_str = f"User:{x['username']}".replace("_", " ")
+        users.append(user_str)
 
-    new_data = [
-        {
-            "full_title": x["full_title"],
-            "username": users_redirects_api.get(f"User:{x['username']}") or x["username"],
-        }
-        for x in data
-    ]
+    users_redirects_api = api.solve_pages_redirects(users)
 
+    new_data = []
+    for x in data:
+        username = x["username"]
+        x["username"] = users_redirects_api.get(f"User:{username}") or username
+
+        new_data.append(x)
     return new_data
 
 
@@ -170,6 +173,7 @@ def load_rows(
         rows[sub["full_title"]] = row_data
 
     return rows
+
 
 def main(
     section_headings: list[str],

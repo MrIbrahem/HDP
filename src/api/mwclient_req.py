@@ -206,13 +206,13 @@ def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
         "redirects": 1,
         "formatversion": "2",
         "rdprop": "title",
-        "rdlimit": "max"
+        "rdlimit": "max",
     }
 
     result = {}
 
     for i in range(0, len(pages), 50):
-        params["titles"] = "|".join(pages[i:i+50])
+        params["titles"] = "|".join(pages[i : i + 50])
         try:
             data = site.get("query", **params)
         except Exception as e:
@@ -236,6 +236,7 @@ def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
     logger.info(f"len of data: {len(result)}")
 
     return result
+
 
 def get_global_userinfo(site: Site, username: str) -> dict:
     """

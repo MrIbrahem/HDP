@@ -775,7 +775,7 @@
 |-
 | [[Hardware donation program/Jagmit Singh Brar]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Jagmit Singh Brar}}}}|| [[User:Jagmit Singh Brar]]|| 52,463|| || {{age in years and months|2017|05|07}}|| pawiki||
 |-
-| [[Hardware donation program/Jaluj I]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Jaluj I}}}}|| [[User:Jaluj I]]|| 0|| || || ||
+| [[Hardware donation program/Jaluj I]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Jaluj I}}}}|| [[User:Jaluj]]|| 128,114|| || {{age in years and months|2011|06|04}}|| eswiki||
 |-
 | [[Hardware donation program/Jbuket]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Jbuket}}}}|| [[User:Jbuket]]|| 40,906|| || {{age in years and months|2011|03|31}}|| ukwiki||
 |-
@@ -813,7 +813,7 @@
 |-
 | [[Hardware donation program/Mompati]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Mompati}}}}|| [[User:Mompati]]|| 2|| || {{age in years and months|2013|04|15}}|| enwiki||
 |-
-| [[Hardware donation program/Muddyb 2]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Muddyb 2}}}}|| [[User:Muddyb 2]]|| 0|| || || ||
+| [[Hardware donation program/Muddyb 2]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Muddyb 2}}}}|| [[User:Muddyb]]|| 59,981|| || {{age in years and months|2008|03|26}}|| swwiki||
 |-
 | [[Hardware donation program/MYADAM ABHILASH]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/MYADAM ABHILASH}}}}|| [[User:MYADAM ABHILASH]]|| 8,865|| || {{age in years and months|2021|01|22}}|| tewiki||
 |-
@@ -877,7 +877,7 @@
 |-
 | [[Hardware donation program/T.Bednarz]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/T.Bednarz}}}}|| [[User:T.Bednarz]]|| 0|| || || ||
 |-
-| [[Hardware donation program/The Living love]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/The Living love}}}}|| [[User:The Living love]]|| 0|| || || ||
+| [[Hardware donation program/The Living love]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/The Living love}}}}|| [[User:Em-mustapha]]|| 36,460|| || {{age in years and months|2017|09|22}}|| enwiki||
 |-
 | [[Hardware donation program/Timmylegend]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Timmylegend}}}}|| [[User:Timmylegend]]|| 6,449|| || {{age in years and months|2018|03|10}}|| enwiki||
 |-
@@ -895,7 +895,7 @@
 |-
 | [[Hardware donation program/Vjsuseela]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Vjsuseela}}}}|| [[User:Vjsuseela]]|| 20,220|| || {{age in years and months|2014|04|16}}|| enwiki||
 |-
-| [[Hardware donation program/Wiki Ruhan]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Wiki Ruhan}}}}|| [[User:Wiki Ruhan]]|| 0|| || || ||
+| [[Hardware donation program/Wiki Ruhan]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Wiki Ruhan}}}}|| [[User:Ruhan]]|| 14,283|| || {{age in years and months|2018|08|17}}|| enwiktionary||
 |-
 | [[Hardware donation program/xibitgh]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/xibitgh}}}}|| [[User:Xibitgh]]|| 4,119|| || {{age in years and months|2018|09|16}}|| simplewiki||
 |-
