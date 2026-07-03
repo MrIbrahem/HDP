@@ -65,7 +65,7 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-def solve_users_redirects(api, data) -> list[dict[str, str]]:
+def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
     users = []
     for x in data:
         user_str = f"User:{x['username']}".replace("_", " ")

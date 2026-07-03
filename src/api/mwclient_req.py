@@ -211,8 +211,8 @@ def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
 
     result = {}
 
-    for i in range(0, len(pages), 50):
-        params["titles"] = "|".join(pages[i : i + 50])
+    for i in range(0, len(pages), 30):
+        params["titles"] = "|".join(pages[i : i + 30])
         try:
             data = site.get("query", **params)
         except Exception as e:
