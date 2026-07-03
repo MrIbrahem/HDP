@@ -218,14 +218,14 @@ def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
         except Exception as e:
             logger.error("API request failed %s", str(e))
 
-        pages = data.get("query", {}).get("pages", [])
-        for x in pages:
-            # x example: { "ns": 2, "title": "User:The Living love" }
-            if not isinstance(x, dict):
+        fetched_pages = data.get("query", {}).get("pages", [])
+        for page in fetched_pages:
+            # page example: { "ns": 2, "title": "User:The Living love" }
+            if not isinstance(page, dict):
                 continue
 
-            non_redirect_title = x["title"]
-            redirects = x.get("redirects", [])
+            non_redirect_title = page["title"]
+            redirects = page.get("redirects", [])
 
             if not redirects:
                 continue
