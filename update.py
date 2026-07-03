@@ -21,16 +21,6 @@ try:
 except Exception:
     pass
 
-"""
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)-s - [%(lineno)d] - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
-"""
-
 logger = logging.getLogger(__name__)
 
 page_title = "User:Mr. Ibrahem/hdp"
@@ -46,4 +36,5 @@ if __name__ == "__main__":
         output_file_name=output_file_name,
         unknown_placeholder="",
         load_recent_editcounts=True,
+        section_name="Category:Hardware donation program open requests"
     )

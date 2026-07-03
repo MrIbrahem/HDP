@@ -205,6 +205,7 @@ def update(
     output_file_name: str,
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
+    section_name: str | None = None,
 ) -> None:
     # Load credentials
     username, password = load_credentials()
@@ -222,7 +223,10 @@ def update(
     api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(page_title)
-    subpages = get_subpages(full_wikitext, BASE_PAGE)
+    if section_name:
+        subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_name)
+    else:
+        subpages = get_subpages(full_wikitext, BASE_PAGE)
 
     rows = load_rows(
         api,

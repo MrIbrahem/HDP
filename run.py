@@ -10,20 +10,15 @@ import logging
 
 from dotenv import load_dotenv
 
+from src import setup_logging
 from src.v3 import main
+
+setup_logging(level=logging.DEBUG)
 
 try:
     load_dotenv()
 except Exception:
     pass
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)-s - [%(lineno)d] - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
 
 logger = logging.getLogger(__name__)
 
