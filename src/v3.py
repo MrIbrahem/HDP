@@ -89,7 +89,7 @@ def load_rows(
             }
         )
 
-    users_redirects_api = solve_pages_redirects(api, [f"User:{x['username']}" for x in data if x["username"]])
+    users_redirects_api = api.solve_pages_redirects([f"User:{x['username']}" for x in data if x["username"]])
 
     data = [
         {

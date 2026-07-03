@@ -41,7 +41,16 @@ def connect_to_meta(username: str, password: str) -> Site | None:
 
 
 def get_page_wikitext(site: Site, page_title: str) -> str:
-    """Fetch the full raw wikitext of a page via the API."""
+    """Fetch the full raw wikitext of a page via the API.
+
+    Args:
+        site (Site): The Site object representing the MediaWiki site to query.
+        page_title (str): The title of the page to fetch the wikitext from.
+
+    Returns:
+        str: The raw wikitext of the page as a string. Returns an empty
+        string if an exception occurs during the API request.
+    """
     logger.info(f"Fetching wikitext of {page_title}...")
 
     page = site.pages[page_title]
@@ -54,6 +63,21 @@ def get_page_wikitext(site: Site, page_title: str) -> str:
 
 
 def get_last_edit_timestamp(site: Site, page_title: str):
+    """
+    Fetches the timestamp of the last edit for a given page on a site.
+
+    This function queries the site's API for the most recent revision of the
+    specified page and extracts its timestamp. If the API request fails or
+    the page does not have any revisions, it returns None.
+
+    Args:
+        site (Site): The site object used to make the API request.
+        page_title (str): The title of the page to fetch the last edit timestamp for.
+
+    Returns:
+        str: The timestamp of the last edit as a string, or None if the request
+             fails, the page is missing, or there are no revisions.
+    """
     logger.info(f"Fetching last edit timestamp of {page_title}...")
     params = {
         "prop": "revisions",
@@ -78,7 +102,20 @@ def get_last_edit_timestamp(site: Site, page_title: str):
 
 
 def get_page_creator(site: Site, page_title: str) -> None | str:
-    """Username of the oldest revision (i.e. who created the page)."""
+    """Retrieve the username of the user who created the page.
+
+    This function queries the site's API to fetch the oldest revision
+    (i.e., the first revision) of the specified page and returns the
+    username associated with that revision.
+
+    Args:
+        site (Site): The site object used to make the API request.
+        page_title (str): The title of the page to query.
+
+    Returns:
+        None | str: The username of the page creator if successful,
+        otherwise None if the API request fails or no revisions are found.
+    """
     logger.info(f"Fetching page creator of {page_title}...")
     params = {
         "prop": "revisions",
@@ -104,6 +141,21 @@ def get_page_creator(site: Site, page_title: str) -> None | str:
 
 
 def get_global_editcounts(site: Site, users: list[str]) -> dict[str, int]:
+    """Fetches the global edit counts for a list of users from a MediaWiki site.
+
+    Args:
+        site (Site): A Site object representing the MediaWiki site to query.
+        users (list[str]): A list of usernames to fetch the global edit counts for.
+
+    Returns:
+        dict[str, int]: A dictionary mapping usernames to their global edit counts.
+            If the API request fails or a user's edit count is unavailable,
+            it defaults to 0 for that user.
+
+    Raises:
+        Exception: Catches and logs any exceptions that occur during the API request,
+            but does not re-raise them.
+    """
     logger.info(f"Fetching global edit count of {len(users)}...")
 
     params = {
@@ -130,6 +182,21 @@ def get_global_editcounts(site: Site, users: list[str]) -> dict[str, int]:
 
 
 def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
+    """
+    Fetches and resolves redirect information for a given list of pages from a site.
+
+    This function queries the site's API in batches of 50 pages to determine which
+    pages are redirects. It returns a dictionary mapping the titles of redirect pages
+    to their corresponding non-redirect (target) page titles.
+
+    Args:
+        site (Site): The site object used to interact with the API.
+        pages (list[str]): A list of page title strings to check for redirects.
+
+    Returns:
+        dict[str, str]: A dictionary where keys are redirect page titles and values
+        are the corresponding non-redirect (target) page titles.
+    """
     logger.info(f"Fetching global edit count of {len(pages)}...")
 
     params = {
