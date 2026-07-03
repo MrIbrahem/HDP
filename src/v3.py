@@ -74,7 +74,7 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
     users_redirects_api = api.solve_pages_redirects(users)
 
     new_data = []
-    for x in data:
+    for x in data[:]:
         username = x["username"]
         user_str = f"User:{username}"
         if users_redirects_api.get(user_str):
@@ -115,9 +115,9 @@ def load_rows(
             }
         )
 
-    data = solve_users_redirects(api, data)
+    new_data = solve_users_redirects(api, data)
 
-    users = [x["username"] for x in data if x["username"]]
+    users = [x["username"] for x in new_data if x["username"]]
 
     editcounts = api.get_global_editcounts(users)
     logger.info(f"Loaded {len(editcounts)} editcounts for {len(users)} users")
@@ -135,7 +135,7 @@ def load_rows(
     logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
     rows = {}
-    for sub in data:
+    for sub in new_data:
         editcount_str = unknown_placeholder
         age = ""
         user_link = unknown_placeholder
