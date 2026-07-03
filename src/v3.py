@@ -68,7 +68,7 @@ def build_wikitable(rows) -> str:
 def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
     users = []
     for x in data:
-        user_str = f"User:{x['username']}".replace("_", " ")
+        user_str = f"User:{x['username']}"
         users.append(user_str)
 
     users_redirects_api = api.solve_pages_redirects(users)
@@ -76,9 +76,10 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
     new_data = []
     for x in data:
         username = x["username"]
-        x["username"] = users_redirects_api.get(f"User:{username}") or username
-
+        user_str = f"User:{username}"
+        x["username"] = users_redirects_api.get(user_str) or username
         new_data.append(x)
+
     return new_data
 
 
@@ -92,6 +93,7 @@ def load_rows(
     data = []
 
     for sub in subpages:
+        sub = sub.replace("_", " ")
         full_title = f"{BASE_PAGE}/{sub}"
         user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
         username = users_redirects.get(user_name.lower()) or user_name
@@ -99,6 +101,7 @@ def load_rows(
         # first letter upper (guard against empty username)
         if username:
             username = username[0].upper() + username[1:]
+
         data.append(
             {
                 "full_title": full_title,
