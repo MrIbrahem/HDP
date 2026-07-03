@@ -164,7 +164,6 @@ def get_recent_editcount_cached(
     start: str,
     end: str,
     cache: dict,
-    load_new: bool = True,
 ) -> Optional[int]:
     """
     Cached version of get_recent_editcount.
@@ -246,7 +245,6 @@ def get_recent_editcounts_cached(
     recent_days: int = RECENT_DAYS,
     cache_path: str = DEFAULT_CACHE_PATH,
     save_every: int = 5,
-    load_new: bool = True,
 ) -> dict[str, int]:
     """
     Cached, JSON-file-backed version of get_recent_editcounts.
@@ -270,7 +268,7 @@ def get_recent_editcounts_cached(
     for i, username in enumerate(tqdm(users, desc="Fetching recent edits", unit="user"), start=1):
         was_cached = username in cache.get(META_KEY, {})
 
-        recent_count = get_recent_editcount_cached(username, start=start_s, end=end_s, cache=cache, load_new=load_new)
+        recent_count = get_recent_editcount_cached(username, start=start_s, end=end_s, cache=cache)
         if recent_count is not None:
             recent_editcounts[username] = recent_count
 
