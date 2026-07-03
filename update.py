@@ -2,6 +2,7 @@
 """
 
 python -m update
+python -m update test
 
 update `User:Mr. Ibrahem/hdp` page
 """
