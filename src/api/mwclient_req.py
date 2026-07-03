@@ -32,11 +32,11 @@ def connect_to_meta(username: str, password: str) -> Site | None:
 
         logger.info("Successfully connected and logged in")
         return site
-    except mwclient.errors.LoginError as e:
-        logger.error(f"Login failed: {e}")
+    except mwclient.errors.LoginError as err:
+        logger.error(f"Login failed: {err}")
         return None
-    except Exception as e:
-        logger.exception(f"Failed to connect to meta.wikimedia.org: {e}")
+    except Exception as err:
+        logger.exception(f"Failed to connect to meta.wikimedia.org: {err}")
         return None
 
 
@@ -178,7 +178,6 @@ def get_global_editcounts(site: Site, users: list[str]) -> dict[str, int]:
 
     logger.info(f"len of data: {len(result)}")
     return {x["name"]: x.get("editcount", 0) for x in result}
-
 
 
 def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
