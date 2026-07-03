@@ -743,7 +743,7 @@
 |-
 | [[Hardware donation program/Daphpb]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Daphpb}}}}|| [[User:Daphpb]]|| 18,364|| || {{age in years and months|2022|03|30}}|| bclwiki||
 |-
-| [[Hardware donation program/DaSupremo]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/DaSupremo}}}}|| [[User:DaSupremo]]|| 476,229|| || {{age in years and months|2014|05|15}}|| enwiki||
+| [[Hardware donation program/DaSupremo]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/DaSupremo}}}}|| [[User:DaSupremo]]|| 476,230|| || {{age in years and months|2014|05|15}}|| enwiki||
 |-
 | [[Hardware donation program/Divya4232]] || {{#time:H:i, j F Y|{{REVISIONTIMESTAMP:Hardware donation program/Divya4232}}}}|| [[User:Divya4232]]|| 36,245|| || {{age in years and months|2021|02|17}}|| enwiki||
 |-
