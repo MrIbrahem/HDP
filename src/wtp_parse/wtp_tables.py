@@ -58,7 +58,7 @@ def update_table(
         # Clean the link name to match the dictionary keys
         match_link = match_links.group(1).split("|")[0].strip().replace("_", " ")
 
-        logger.debug(f"match_link: {match_link}")
+        # logger.debug(f"match_link: {match_link}")
 
         if match_link not in rows:
             continue

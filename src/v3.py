@@ -82,6 +82,8 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
 
             if user_str == "User:Johnjoy12":
                 logger.info(f"Johnjoy12 is a redirect to {x["username"]}")
+                logger.info(x)
+
 
         new_data.append(x)
 
@@ -156,7 +158,7 @@ def load_rows(
             if registration:
                 age = calculate_age(registration)
 
-            logger.debug(f"User: {username}, {age=}, {home_wiki=}")
+            # logger.debug(f"User: {username}, {age=}, {home_wiki=}")
 
             editcount = editcounts.get(username)
             if isinstance(editcount, int):
