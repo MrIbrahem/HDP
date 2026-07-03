@@ -153,7 +153,12 @@ def load_rows(
     return rows
 
 
-def main(section_headings: list[str]) -> None:
+def main(
+    section_headings: list[str],
+    output_file_name: str = "table.wiki",
+    unknown_placeholder: str = "unknown",
+    load_recent_editcounts: bool = True,
+) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -177,14 +182,21 @@ def main(section_headings: list[str]) -> None:
 
         subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_title)
 
-        rows = load_rows(api, subpages)
+        rows = load_rows(
+            api,
+            subpages,
+            unknown_placeholder=unknown_placeholder,
+            load_recent_editcounts=load_recent_editcounts,
+        )
         table = build_wikitable(rows)
 
         full_text_table += f"=== {section_title} ===\n\n{table}\n"
 
-    OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
+    file = OUTPUT_DIR / output_file_name
 
-    logger.info(f"Saved to {OUTPUT_FILE_TABLE}")
+    file.write_text(full_text_table, encoding="utf-8")
+
+    logger.info(f"Saved to {file}")
 
 
 def update(

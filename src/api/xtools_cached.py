@@ -98,6 +98,7 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
 
     return total_by_day
 
+
 # --------------------------------------------------------------------------
 # Caching layer
 # --------------------------------------------------------------------------

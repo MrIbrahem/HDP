@@ -36,4 +36,9 @@ SECTION_HEADINGS = [
 ]
 
 if __name__ == "__main__":
-    main(SECTION_HEADINGS)
+    main(
+        SECTION_HEADINGS,
+        output_file_name="table.wiki",
+        unknown_placeholder="unknown",
+        load_recent_editcounts=False,
+    )
