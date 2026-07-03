@@ -212,14 +212,18 @@ def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
     result = {}
 
     for i in range(0, len(pages), 30):
+        group = pages[i : i + 30]
         logger.info(f"Fetching {i} - {i + 30}...")
-        params["titles"] = "|".join(pages[i : i + 30])
+        params["titles"] = "|".join(group)
         try:
             data = site.get("query", **params)
         except Exception as e:
             logger.error("API request failed %s", str(e))
+            continue
 
         fetched_pages = data.get("query", {}).get("pages", [])
+        logger.debug(f"len of group: {len(group)}, fetched_pages: {len(fetched_pages)}")
+
         for page in fetched_pages:
             # page example: { "ns": 2, "title": "User:The Living love" }
             if not isinstance(page, dict):
