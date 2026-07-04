@@ -32,8 +32,9 @@ logger = logging.getLogger(__name__)
 
 def load_dates(recent_days) -> tuple[str, str]:
     today = datetime.now(UTC).date()
-    start = today - timedelta(days=recent_days)
-    start_s, end_s = start.isoformat(), today.isoformat()
+    yesterday = today - timedelta(days=1)
+    start = yesterday - timedelta(days=recent_days)
+    start_s, end_s = start.isoformat(), yesterday.isoformat()
     return start_s, end_s
 
 
