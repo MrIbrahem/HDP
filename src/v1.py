@@ -18,7 +18,7 @@ from .load_subpages import get_subpages_for_section
 from .utils import load_credentials, users_redirects
 
 BASE_PAGE = "Hardware donation program"
-OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
+OUTPUT_FILE_TABLE = Path(__file__).parent.parent / "data/table.wiki"
 
 logger = logging.getLogger(__name__)
 

@@ -21,7 +21,7 @@ HEADERS = {"User-Agent": USER_AGENT}
 
 # Default location for the on-disk cache. Override via the `cache_path`
 # argument on the public functions if you want it somewhere else.
-DEFAULT_CACHE_PATH = "edit_counts_cache.json"
+DEFAULT_CACHE_PATH = "data/edit_counts_cache.json"
 
 # Reserved top-level key used to store per-user "what range have we already
 # fetched" bookkeeping. Not a valid Wikimedia username, so no collision risk.

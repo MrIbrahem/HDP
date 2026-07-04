@@ -27,7 +27,7 @@ from .utils import calculate_age, load_credentials, users_redirects
 from .wtp_parse import update_wikitable_data
 
 BASE_PAGE = "Hardware donation program"
-OUTPUT_DIR = Path(__file__).parent
+OUTPUT_DIR = Path(__file__).parent.parent / "data"
 OUTPUT_FILE_TABLE = OUTPUT_DIR / "table.wiki"
 
 # How many days back counts as "recent" for the recent-edits column.
