@@ -28,6 +28,8 @@ from .wtp_parse import update_wikitable_data
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_DIR = Path(__file__).parent.parent / "data"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
 OUTPUT_FILE_TABLE = OUTPUT_DIR / "table.wiki"
 
 # How many days back counts as "recent" for the recent-edits column.
@@ -68,6 +70,8 @@ def build_wikitable(rows) -> str:
 def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
     users = []
     for x in data:
+        if not x["username"]:
+            continue
         user_str = f"User:{x['username']}"
         users.append(user_str)
 
@@ -239,14 +243,33 @@ def update(
     load_recent_editcounts: bool = True,
     section_name: str | None = None,
 ) -> None:
-    # Load credentials
+    """Updates and saves the wikitable data for a specified Wikipedia page or its subpages.
+
+    This function authenticates with Meta Wiki using credentials loaded from a .env file,
+    retrieves the wikitext of the specified page, and determines the relevant subpages
+    either by a specific section name or by default parsing. It then loads the tabular
+    data from these subpages, updates the wikitable within the page's wikitext, and
+    saves the resulting text to a local output file.
+
+    Args:
+        page_title (str): The title of the Wikipedia page to update.
+        output_file_name (str): The name of the output file where the updated wikitext will be saved.
+        unknown_placeholder (str, optional): The placeholder string to use for unknown values.
+            Defaults to "unknown".
+        load_recent_editcounts (bool, optional): Whether to load recent edit counts for the rows.
+            Defaults to True.
+        section_name (str | None, optional): The specific section name to filter subpages by.
+            If None, subpages are determined by default parsing. Defaults to None.
+    Returns:
+        None
+    """
     username, password = load_credentials()
     if not username or not password:
         logger.error("Failed to load credentials from .env file")
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
         return
 
-    # Connect to Meta Wiki
+    # Load credentials from .env file
     site = connect_to_meta(username, password)
     if not site:
         logger.error("Failed to connect to Meta Wiki")
@@ -255,10 +278,11 @@ def update(
     api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(page_title)
+    subpages = []
     if section_name:
         subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_name)
 
-
+    # Fallback to default subpage parsing
     if not subpages:
         subpages = get_subpages(full_wikitext, BASE_PAGE)
 

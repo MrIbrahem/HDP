@@ -196,13 +196,13 @@ def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
         dict[str, str]: A dictionary where keys are redirect page titles and values
         are the corresponding non-redirect (target) page titles.
     """
-    logger.info(f"Fetching global edit count of {len(pages)}...")
+    logger.info(f"Fetching redirects for {len(pages)} pages...")
 
     params = {
         # "action": "query",
         "format": "json",
         "prop": "redirects",
-        "titles": "|".join(pages),
+        "titles": "",
         "redirects": 1,
         "formatversion": "2",
         "rdprop": "title",
@@ -210,10 +210,11 @@ def solve_pages_redirects(site: Site, pages: list[str]) -> dict[str, str]:
     }
 
     result = {}
+    batch_size = 50
 
-    for i in range(0, len(pages), 30):
-        group = pages[i : i + 30]
-        logger.info(f"Fetching {i} - {i + 30}...")
+    for i in range(0, len(pages), batch_size):
+        group = pages[i : i + batch_size]
+        logger.info(f"Fetching pages {i} - {min(i + batch_size, len(pages))}...")
         params["titles"] = "|".join(group)
         try:
             data = site.get("query", **params)
