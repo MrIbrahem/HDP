@@ -173,7 +173,7 @@ def load_rows(
         row_data = {
             "age": age,
             "page_link": f"[[{sub['full_title']}]]",
-            "last_update": f"{{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{sub['full_title']}}}}}}}}}",
+            "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{sub['full_title']}}}}}}}}}",
             "full_title": sub["full_title"],
             "user_link": user_link,
             "editcount_str": editcount_str,

@@ -35,7 +35,7 @@ def build_wikitable(rows) -> str:
     for row in rows:
         lines.append("|-")
         lines.append(f"| [[{row['full_title']}]] ")
-        lines.append(f"| {{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}")
+        lines.append(f"| {{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}")
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row['editcount_str']}")
 
