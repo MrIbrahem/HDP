@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def connect_to_meta(username: str, password: str) -> Site | None:
     """
-    Connect to Wikimedia Commons using mwclient.
+    Connect to Meta Wiki using mwclient.
 
     Args:
         username: Bot username

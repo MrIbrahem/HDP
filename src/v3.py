@@ -199,10 +199,10 @@ def main(
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
         return
 
-    # Connect to Commons
+    # Connect to Meta Wiki
     site = connect_to_meta(username, password)
     if not site:
-        logger.error("Failed to connect to Wikimedia Commons")
+        logger.error("Failed to connect to Meta Wiki")
         return
 
     api = MwclientApi(site)
@@ -246,10 +246,10 @@ def update(
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
         return
 
-    # Connect to Commons
+    # Connect to Meta Wiki
     site = connect_to_meta(username, password)
     if not site:
-        logger.error("Failed to connect to Wikimedia Commons")
+        logger.error("Failed to connect to Meta Wiki")
         return
 
     api = MwclientApi(site)
@@ -257,7 +257,9 @@ def update(
     full_wikitext = api.get_page_wikitext(page_title)
     if section_name:
         subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_name)
-    else:
+
+
+    if not subpages:
         subpages = get_subpages(full_wikitext, BASE_PAGE)
 
     rows = load_rows(

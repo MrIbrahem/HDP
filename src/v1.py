@@ -52,10 +52,10 @@ def main(section_headings: list[str]) -> None:
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
         return
 
-    # Connect to Commons
+    # Connect to Meta Wiki
     site = connect_to_meta(username, password)
     if not site:
-        logger.error("Failed to connect to Wikimedia Commons")
+        logger.error("Failed to connect to Meta Wiki")
         return
 
     api = MwclientApi(site)
