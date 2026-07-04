@@ -18,7 +18,7 @@ from .load_subpages import get_subpages_for_section
 from .utils import load_credentials, users_redirects
 
 BASE_PAGE = "Hardware donation program"
-OUTPUT_FILE_TABLE = Path(__file__).parent / "table.wiki"
+OUTPUT_FILE_TABLE = Path(__file__).parent.parent / "data/table.wiki"
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def build_wikitable(rows) -> str:
     for row in rows:
         lines.append("|-")
         lines.append(f"| [[{row['full_title']}]] ")
-        lines.append(f"| {{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}")
+        lines.append(f"| {{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}")
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row['editcount_str']}")
 
@@ -52,10 +52,10 @@ def main(section_headings: list[str]) -> None:
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
         return
 
-    # Connect to Commons
+    # Connect to Meta Wiki
     site = connect_to_meta(username, password)
     if not site:
-        logger.error("Failed to connect to Wikimedia Commons")
+        logger.error("Failed to connect to Meta Wiki")
         return
 
     api = MwclientApi(site)

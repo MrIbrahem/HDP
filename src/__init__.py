@@ -22,9 +22,10 @@ def setup_logging(
         return
 
     console_formatter = colorlog.ColoredFormatter(
-        fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(lineno)d] - %(message)s",
+        fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(funcName)s:%(lineno)d] - %(message)s",
         datefmt="%H:%M:%S",
     )
+
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(console_formatter)
     console_handler.setLevel(numeric_level)

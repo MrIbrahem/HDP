@@ -21,13 +21,21 @@ HEADERS = {"User-Agent": USER_AGENT}
 
 # Default location for the on-disk cache. Override via the `cache_path`
 # argument on the public functions if you want it somewhere else.
-DEFAULT_CACHE_PATH = "edit_counts_cache.json"
+DEFAULT_CACHE_PATH = "data/edit_counts_cache.json"
 
 # Reserved top-level key used to store per-user "what range have we already
 # fetched" bookkeeping. Not a valid Wikimedia username, so no collision risk.
 META_KEY = "_meta"
 
 logger = logging.getLogger(__name__)
+
+
+def load_dates(recent_days) -> tuple[str, str]:
+    today = datetime.now(UTC).date()
+    yesterday = today - timedelta(days=1)
+    start = yesterday - timedelta(days=recent_days)
+    start_s, end_s = start.isoformat(), yesterday.isoformat()
+    return start_s, end_s
 
 
 def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]:
@@ -97,6 +105,7 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
         logger.warning(f"Hit max_pages cap fetching globalcontribs for {username}")
 
     return total_by_day
+
 
 # --------------------------------------------------------------------------
 # Caching layer
@@ -260,9 +269,7 @@ def get_recent_editcounts_cached(
 
     recent_editcounts: dict[str, int] = {}
 
-    today = datetime.now(UTC).date()
-    start = today - timedelta(days=recent_days)
-    start_s, end_s = start.isoformat(), today.isoformat()
+    start_s, end_s = load_dates(recent_days)
 
     for i, username in enumerate(tqdm(users, desc="Fetching recent edits", unit="user"), start=1):
         was_cached = username in cache.get(META_KEY, {})
@@ -282,7 +289,30 @@ def get_recent_editcounts_cached(
     return recent_editcounts
 
 
+def get_recent_editcounts_offline(
+    users: list[str],
+    recent_days: int = RECENT_DAYS,
+    cache_path: str = DEFAULT_CACHE_PATH,
+) -> dict[str, int]:
+    """Return cached-only edit counts for each user. Never hits the API."""
+    cache = load_cache(cache_path)
+
+    recent_editcounts: dict[str, int] = {}
+
+    start_s, end_s = load_dates(recent_days)
+
+    for username in tqdm(users, desc="Reading cached edits", unit="user"):
+        user_counts = cache.get(username)
+        if not user_counts:
+            continue
+        count = _sum_in_range(user_counts, start_s, end_s)
+        if count is not None:
+            recent_editcounts[username] = count
+
+    return recent_editcounts
+
+
 __all__ = [
-    "get_recent_editcount_cached",
     "get_recent_editcounts_cached",
+    "get_recent_editcounts_offline",
 ]

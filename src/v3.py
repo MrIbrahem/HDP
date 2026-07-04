@@ -21,15 +21,15 @@ from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
-
-# from .api.xtools import get_recent_editcounts
-from .api.xtools_cached import get_recent_editcounts_cached
+from .api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from .load_subpages import get_subpages, get_subpages_for_section
 from .utils import calculate_age, load_credentials, users_redirects
 from .wtp_parse import update_wikitable_data
 
 BASE_PAGE = "Hardware donation program"
-OUTPUT_DIR = Path(__file__).parent
+OUTPUT_DIR = Path(__file__).parent.parent / "data"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
 OUTPUT_FILE_TABLE = OUTPUT_DIR / "table.wiki"
 
 # How many days back counts as "recent" for the recent-edits column.
@@ -67,6 +67,33 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
+def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
+    users = []
+    for x in data:
+        if not x["username"]:
+            continue
+        user_str = f"User:{x['username']}"
+        users.append(user_str)
+
+    users_redirects_api = api.solve_pages_redirects(users)
+
+    new_data = []
+    for x in data[:]:
+        username = x["username"]
+        user_str = f"User:{username}"
+        if users_redirects_api.get(user_str):
+            x["username"] = users_redirects_api[user_str].removeprefix("User:")
+
+            if user_str == "User:Johnjoy12":
+                logger.info(f"Johnjoy12 is a redirect to {x["username"]}")
+                logger.info(x)
+
+
+        new_data.append(x)
+
+    return new_data
+
+
 def load_rows(
     api: MwclientApi,
     subpages: list[str],
@@ -77,27 +104,36 @@ def load_rows(
     data = []
 
     for sub in subpages:
+        sub = sub.replace("_", " ")
         full_title = f"{BASE_PAGE}/{sub}"
         user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-        username = users_redirects.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
+        username = users_redirects.get(user_name.lower()) or user_name
+
         # first letter upper (guard against empty username)
         if username:
             username = username[0].upper() + username[1:]
+
         data.append(
             {
                 "full_title": full_title,
+                "sub": sub,
                 "username": username,
             }
         )
 
-    users = [x["username"] for x in data if x["username"]]
+    new_data = solve_users_redirects(api, data)
+
+    users = [x["username"] for x in new_data if x["username"]]
 
     editcounts = api.get_global_editcounts(users)
     logger.info(f"Loaded {len(editcounts)} editcounts for {len(users)} users")
 
     recent_editcounts = {}
-    if load_recent_editcounts:
-        # recent_editcounts = get_recent_editcounts(users)
+
+    if not load_recent_editcounts:
+        recent_editcounts = get_recent_editcounts_offline(users)
+        logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
+    else:
         recent_editcounts = get_recent_editcounts_cached(users)
         logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
 
@@ -105,7 +141,7 @@ def load_rows(
     logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
     rows = {}
-    for sub in data:
+    for sub in new_data:
         editcount_str = unknown_placeholder
         age = ""
         user_link = unknown_placeholder
@@ -113,6 +149,7 @@ def load_rows(
         recent_editcount_str = unknown_placeholder
 
         username = sub["username"]
+
         if username:
             user_link = f"[[User:{username}]]"
 
@@ -125,7 +162,7 @@ def load_rows(
             if registration:
                 age = calculate_age(registration)
 
-            logger.debug(f"User: {username}, {age=}, {home_wiki=}")
+            # logger.debug(f"User: {username}, {age=}, {home_wiki=}")
 
             editcount = editcounts.get(username)
             if isinstance(editcount, int):
@@ -140,7 +177,7 @@ def load_rows(
         row_data = {
             "age": age,
             "page_link": f"[[{sub['full_title']}]]",
-            "last_update": f"{{{{#time:H:i, j F Y|{{{{REVISIONTIMESTAMP:{sub['full_title']}}}}}}}}}",
+            "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{sub['full_title']}}}}}}}}}",
             "full_title": sub["full_title"],
             "user_link": user_link,
             "editcount_str": editcount_str,
@@ -153,7 +190,12 @@ def load_rows(
     return rows
 
 
-def main(section_headings: list[str]) -> None:
+def main(
+    section_headings: list[str],
+    output_file_name: str = "table.wiki",
+    unknown_placeholder: str = "unknown",
+    load_recent_editcounts: bool = True,
+) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -161,10 +203,10 @@ def main(section_headings: list[str]) -> None:
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
         return
 
-    # Connect to Commons
+    # Connect to Meta Wiki
     site = connect_to_meta(username, password)
     if not site:
-        logger.error("Failed to connect to Wikimedia Commons")
+        logger.error("Failed to connect to Meta Wiki")
         return
 
     api = MwclientApi(site)
@@ -177,14 +219,21 @@ def main(section_headings: list[str]) -> None:
 
         subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_title)
 
-        rows = load_rows(api, subpages)
+        rows = load_rows(
+            api,
+            subpages,
+            unknown_placeholder=unknown_placeholder,
+            load_recent_editcounts=load_recent_editcounts,
+        )
         table = build_wikitable(rows)
 
         full_text_table += f"=== {section_title} ===\n\n{table}\n"
 
-    OUTPUT_FILE_TABLE.write_text(full_text_table, encoding="utf-8")
+    file = OUTPUT_DIR / output_file_name
 
-    logger.info(f"Saved to {OUTPUT_FILE_TABLE}")
+    file.write_text(full_text_table, encoding="utf-8")
+
+    logger.info(f"Saved to {file}")
 
 
 def update(
@@ -192,24 +241,50 @@ def update(
     output_file_name: str,
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
+    section_name: str | None = None,
 ) -> None:
-    # Load credentials
+    """Updates and saves the wikitable data for a specified Wikipedia page or its subpages.
+
+    This function authenticates with Meta Wiki using credentials loaded from a .env file,
+    retrieves the wikitext of the specified page, and determines the relevant subpages
+    either by a specific section name or by default parsing. It then loads the tabular
+    data from these subpages, updates the wikitable within the page's wikitext, and
+    saves the resulting text to a local output file.
+
+    Args:
+        page_title (str): The title of the Wikipedia page to update.
+        output_file_name (str): The name of the output file where the updated wikitext will be saved.
+        unknown_placeholder (str, optional): The placeholder string to use for unknown values.
+            Defaults to "unknown".
+        load_recent_editcounts (bool, optional): Whether to load recent edit counts for the rows.
+            Defaults to True.
+        section_name (str | None, optional): The specific section name to filter subpages by.
+            If None, subpages are determined by default parsing. Defaults to None.
+    Returns:
+        None
+    """
     username, password = load_credentials()
     if not username or not password:
         logger.error("Failed to load credentials from .env file")
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
         return
 
-    # Connect to Commons
+    # Load credentials from .env file
     site = connect_to_meta(username, password)
     if not site:
-        logger.error("Failed to connect to Wikimedia Commons")
+        logger.error("Failed to connect to Meta Wiki")
         return
 
     api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(page_title)
-    subpages = get_subpages(full_wikitext, BASE_PAGE)
+    subpages = []
+    if section_name:
+        subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_name)
+
+    # Fallback to default subpage parsing
+    if not subpages:
+        subpages = get_subpages(full_wikitext, BASE_PAGE)
 
     rows = load_rows(
         api,
