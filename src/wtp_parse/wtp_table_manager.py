@@ -136,6 +136,26 @@ class WikiTableColumnManager:
             default_value=default_value,
         )
 
+    def ensure_columns_exists(
+        self,
+        *,
+        table: wtp.Table,
+        cols_name: list[str],
+        position: str = "after_first",
+        default_value: str = "",
+    ) -> None:
+        """Verifies column presence and injects its structure if missing."""
+        for col_name in reversed(cols_name):
+            if not self.has_column(table, col_name):
+                table = self.add_column(
+                    table,
+                    col_name=col_name,
+                    position=position,
+                    default_value=default_value,
+                )
+
+        return
+
 
 __all__ = [
     "WikiTableColumnManager",

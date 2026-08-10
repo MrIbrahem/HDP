@@ -362,6 +362,45 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, headers_with_bad_entry)
+        result = update_wikitable_data(
+            rows,
+            wikitext,
+            headers_with_bad_entry,
+            add_missing_headers=False,
+        )
         assert "should_not_appear" not in result
+        assert "| 25\n" in result
+
+    def test_add_missing_headers(self) -> None:
+        rows = {
+            "Hardware donation program/EYo237": {
+                "page_link": "Hardware donation program/EYo237",
+                "age": "25",
+                "home_wiki": "test",
+                "new_field": "should_not_appear",
+            }
+        }
+        headers_with_bad_entry = {
+            **self.table_headers_to_row_key,
+            "New Header": "new_field",
+        }
+        wikitext = (
+            '{| class="wikitable sortable"\n'
+            "! Page !! Age of account !! Home Wiki !! Approved\n"
+            "|-\n"
+            "| [[Hardware donation program/EYo237]]\n"
+            "|\n"
+            "|\n"
+            "| zz\n"
+            "|-\n"
+            "|}"
+        )
+        result = update_wikitable_data(
+            rows,
+            wikitext,
+            headers_with_bad_entry,
+            add_missing_headers=True,
+        )
+        assert "should_not_appear" in result
+        assert "New Header" in result
         assert "| 25\n" in result

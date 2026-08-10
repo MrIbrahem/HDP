@@ -7,6 +7,8 @@ from typing import Any
 import wikitextparser as wtp
 from wikitextparser._cell import Cell
 
+from .wtp_table_manager import WikiTableColumnManager
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,12 +88,22 @@ def update_wikitable_data(
     wikitext: str,
     table_headers_to_row_key: dict[str, str],
     replace_values: bool = False,
+    add_missing_headers: bool = True,
 ) -> str:
     """rows: list of rows data."""
+    manager = WikiTableColumnManager()
     parsed = wtp.parse(wikitext)
     tables = parsed.get_tables(recursive=False)
 
     for table in tables:
+        if add_missing_headers:
+            manager.ensure_columns_exists(
+                table=table,
+                cols_name=list(table_headers_to_row_key.keys()),
+                position="after_first",
+                default_value="",
+            )
+
         update_table(
             table,
             rows,
