@@ -11,23 +11,6 @@ from .wtp_table_manager import WikiTableColumnManager
 
 logger = logging.getLogger(__name__)
 
-
-def _build_header_index(all_rows: list[list[Cell]]) -> dict[str, int]:
-    """
-    Build a mapping of header text -> column index.
-    """
-    header_index: dict[str, int] = {}
-    for row in all_rows:
-        if not row or row[0] is None or not row[0].is_header:
-            continue
-        for idx, cell in enumerate(row):
-            if cell is None:
-                continue
-            header_index[cell.value.strip()] = idx
-        break
-    return header_index
-
-
 def update_table(
     table: wtp.Table,
     rows: dict[str, Any],
@@ -43,7 +26,8 @@ def update_table(
         return
 
     # 1. Map header text to its column index
-    header_index = _build_header_index(all_rows)
+    manager = WikiTableColumnManager()
+    header_index = manager.get_header_index(table)
 
     for row in all_rows:
         if not row or row[0] is None or row[0].is_header:
@@ -70,7 +54,7 @@ def update_table(
 
         # 3. Update cells based on their column index
         for header, row_key in table_headers_to_row_key.items():
-            col_idx = header_index.get(header)
+            col_idx = header_index.get(header.strip().lower())
             if col_idx is None or col_idx >= len(row) or row[col_idx] is None:
                 continue
 
