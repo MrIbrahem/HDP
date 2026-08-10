@@ -3,7 +3,6 @@
 import logging
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 from urllib.parse import quote, urlencode
 
 import requests
@@ -89,7 +88,7 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
     return total_by_day
 
 
-def get_recent_editcount(username: str, start: str, end: str) -> Optional[int]:
+def get_recent_editcount(username: str, start: str, end: str) -> int | None:
     """ """
     total_by_day = _get_recent_editcount(username, start, end)
 

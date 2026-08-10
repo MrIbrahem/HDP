@@ -5,7 +5,6 @@ import logging
 import os
 import time
 from datetime import UTC, date, datetime, timedelta
-from typing import Optional
 from urllib.parse import quote, urlencode
 
 import requests
@@ -172,7 +171,7 @@ def get_recent_editcount_cached(
     start: str,
     end: str,
     cache: dict,
-) -> Optional[int]:
+) -> int | None:
     """
     Cached version of get_recent_editcount.
 

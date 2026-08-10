@@ -1,7 +1,6 @@
 import logging
 import os
 from datetime import datetime
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 # User-Agent header (required by Wikimedia)
@@ -31,7 +30,7 @@ users_redirects = {
 }
 
 
-def load_credentials() -> tuple[Optional[str], Optional[str]]:
+def load_credentials() -> tuple[str | None, str | None]:
     """
     Load credentials from .env file.
 
