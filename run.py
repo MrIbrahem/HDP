@@ -38,5 +38,5 @@ if __name__ == "__main__":
         SECTION_HEADINGS,
         output_file_name="table.wiki",
         unknown_placeholder="unknown",
-        load_recent_editcounts=False,
+        load_recent_editcounts=True,
     )
