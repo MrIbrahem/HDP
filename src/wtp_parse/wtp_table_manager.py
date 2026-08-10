@@ -28,6 +28,34 @@ class WikiTableColumnManager:
             logger.error(f"Error getting table cells: {exc}")
             return None
 
+    def get_header_index(self, table: wtp.Table) -> dict[str, int]:
+        """
+        return dict which maps column name (lowercase) to its index (0-based).
+        Direct alternative to _build_header_index of yours.
+        """
+        if not table:
+            logger.info("no table found")
+            return {}
+
+        all_cells: list[list[Cell]] | None = self.load_table_cells(table)
+
+        if not all_cells:
+            return {}
+
+        index_map: dict[str, int] = {}
+        for row in all_cells:
+            # Skip empty rows or non-header rows
+            if not row or row[0] is None or not row[0].is_header:
+                continue
+
+            # Inspect header names in the header row
+            for idx, cell in enumerate(row):
+                if cell:
+                    index_map[cell.value.strip().lower()] = idx
+            break  # Only inspect the first header row found
+
+        return index_map
+
     def has_column(self, table: wtp.Table, col_name: str) -> bool:
         """
         Check if a column named `col_name` exists in the table header.
@@ -36,24 +64,8 @@ class WikiTableColumnManager:
             logger.info("no table found")
             return False
 
-        all_cells: list[list[Cell]] | None = self.load_table_cells(table)
-
-        if not all_cells:
-            return False
-
-        for row in all_cells:
-            # Skip empty rows or non-header rows
-            if not row or row[0] is None or not row[0].is_header:
-                continue
-
-            # Inspect header names in the header row
-            for numb, cell in enumerate(row, start=1):
-                if cell and cell.value.strip().lower() == col_name.strip().lower():
-                    logger.info(f"header has {col_name}: in column {numb}")
-                    return True
-            break  # Only inspect the first header row found
-
-        return False
+        index_map: dict[str, int] = self.get_header_index(table)
+        return col_name.strip().lower() in index_map
 
     def add_column(
         self,
@@ -145,8 +157,10 @@ class WikiTableColumnManager:
         default_value: str = "",
     ) -> None:
         """Verifies column presence and injects its structure if missing."""
+        index_map: dict[str, int] = self.get_header_index(table)
+
         for col_name in reversed(cols_name):
-            if not self.has_column(table, col_name):
+            if col_name.strip().lower() not in index_map:
                 self.add_column(
                     table=table,
                     col_name=col_name,
