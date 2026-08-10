@@ -18,11 +18,11 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .api.home_wiki_cached import get_home_wikis_cached
 from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
-from .api.home_wiki_cached import get_home_wikis_cached
 from .api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from .load_subpages import get_subpages, get_subpages_for_section
 from .utils import calculate_age, load_credentials, users_redirects
@@ -111,7 +111,6 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
             if user_str == "User:Johnjoy12":
                 logger.info(f"Johnjoy12 is a redirect to {x["username"]}")
                 logger.info(x)
-
 
         new_data.append(x)
 

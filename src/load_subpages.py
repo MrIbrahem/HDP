@@ -68,6 +68,7 @@ def get_subpages_for_section(
     logger.debug(f"Found {len(subpages)} subpages")
     return subpages
 
+
 def get_subpages(
     full_wikitext: str,
     base_page: str,

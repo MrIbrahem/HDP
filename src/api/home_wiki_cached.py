@@ -102,9 +102,7 @@ def get_home_wikis_cached(
     if new_count:
         save_cache(cache, cache_path)
 
-    logger.info(
-        f"Home wiki cache: {len(users) - new_count} cached, {new_count} fetched"
-    )
+    logger.info(f"Home wiki cache: {len(users) - new_count} cached, {new_count} fetched")
     return result
 
 
