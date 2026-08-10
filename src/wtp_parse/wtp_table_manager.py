@@ -31,7 +31,6 @@ class WikiTableColumnManager:
     def get_header_index(self, table: wtp.Table) -> dict[str, int]:
         """
         return dict which maps column name (lowercase) to its index (0-based).
-        Direct alternative to _build_header_index of yours.
         """
         if not table:
             logger.info("no table found")
