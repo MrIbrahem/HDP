@@ -26,8 +26,11 @@ SECTION_HEADINGS = [
     # "Updated as of May 1st 2026",
     # "Messaged to update application",
     # "Draft requests",
-    "Current donation requests",
+    # "Current donation requests",
     # "Approved requests not yet delivered",
+    "Category:Hardware donation program open requests",
+    "Category:Hardware donation program approved requests",
+    "Category:Hardware donation program drafts",
 ]
 
 if __name__ == "__main__":
