@@ -42,6 +42,7 @@ Entrypoints (`run.py`, `update.py`) -> `src.v3.main` / `src.v3.update` -> `load_
     -   `get_recent_editcounts_cached(users, load_new=True)` — merges fetched days into cache, throttles 0.3s per network hit, `save_every=5` flushes.
     -   `get_recent_editcounts_offline(users)` — cached-only, never hits API (used when `load_recent_editcounts=False`).
     -   `save_cache` writes atomically (temp + `os.replace`).
+-   `api/home_wiki_cached.py` — cached home-wiki + registration pipeline backed by `data/home_wiki_cache.json` (committed to the repo, same conventions as `edit_counts_cache.json`). Cache shape: `{username: {"home": ..., "registration": ...}}`. Home wiki and registration are immutable per user, so cached entries are never re-fetched. `get_home_wikis_cached(api, users)` is the main entry point; throttles 0.1 s per uncached user, `save_every=5` flushes.
 -   `api/category.py` — `get_category_members_titles`, `get_category_count`.
 -   `load_subpages.py` — section/heading -> subpage link extraction. `SECTIONS_TO_CATEGORY` maps `"Draft requests"` -> the drafts category; other sections are parsed by heading + subpage-link extraction.
 -   `wtp_parse/wtp_links.py`, `wtp_parse/wtp_tables.py` — pure wikitext parsing utilities (use the `wikitextparser` library). `update_wikitable_data` does in-place row updates on existing wikitext tables keyed by page link (preserve existing cell values when `replace_values=False`).
@@ -57,7 +58,7 @@ Entrypoints (`run.py`, `update.py`) -> `src.v3.main` / `src.v3.update` -> `load_
 -   Logging is configured per-project-namespace (`name="src"`); modules do `logger = logging.getLogger(__name__)` and propagate stays False. Don't add `basicConfig` or root handlers — use `src.setup_logging`.
 -   Throttle 0.3s after each _uncached_ network fetch in the editcounts loop; do not throttle on cache hits. `was_cached` already gates this — preserve it if you refactor the loop.
 -   `users_redirects` in `utils.py` is the source of truth for known rename redirects; `solve_users_redirects` then queries the API to catch the rest. The `Johnjoy12` debug log block in `solve_users_redirects` is intentional (left as a watchpoint) — don't remove without asking.
--   `edit_counts_cache.json` is committed and shows up modified after any run that fetches new data. Don't "clean up" these modifications unless asked; they're the cache state. `save_cache` is the only writer — don't hand-edit it.
+-   `edit_counts_cache.json` and `data/home_wiki_cache.json` are committed and show up modified after any run that fetches new data. Don't "clean up" these modifications unless asked; they're the cache state. Their respective `save_cache` functions are the only writers — don't hand-edit them.
 -   When adding a column to the wikitable: update (a) `build_wikitable` header + row append, (b) `row_data` dict in `load_rows`, (c) `table_headers_to_row_key` in `update`, in that order, or the in-place update path silently drops the column.
 -   No `opencode.json` exists yet. Existing skill files under `.claude/skills/` and `.claude/` are not repo-config; ignore them when reasoning about the codebase.
 -   `docs/plan.md` is a stale planning doc for an older version of the feature; treat as history, not spec.
