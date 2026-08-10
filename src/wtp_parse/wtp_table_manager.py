@@ -147,8 +147,8 @@ class WikiTableColumnManager:
         """Verifies column presence and injects its structure if missing."""
         for col_name in reversed(cols_name):
             if not self.has_column(table, col_name):
-                table = self.add_column(
-                    table,
+                self.add_column(
+                    table=table,
                     col_name=col_name,
                     position=position,
                     default_value=default_value,
