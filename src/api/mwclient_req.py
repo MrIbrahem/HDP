@@ -297,12 +297,56 @@ def get_home_wikis_and_registration(
     return home_wikis
 
 
+def get_pages_wikitext(site: Site, titles: list[str]) -> dict[str, str]:
+    """Fetch wikitext for multiple pages in batches of up to 50.
+
+    Returns a dict mapping page title -> wikitext content.
+    Pages that don't exist or have no revisions are omitted.
+    """
+    result: dict[str, str] = {}
+    batch_size = 50
+
+    for i in range(0, len(titles), batch_size):
+        batch = titles[i : i + batch_size]
+        logger.info(f"Fetching wikitext for batch {i // batch_size + 1} ({len(batch)} pages)...")
+        params = {
+            "format": "json",
+            "prop": "revisions",
+            "titles": "|".join(batch),
+            "rvprop": "content",
+            "rvslots": "main",
+            "formatversion": "2",
+        }
+        try:
+            data = site.get("query", **params)
+        except Exception as e:
+            logger.error(f"API request failed: {e}")
+            continue
+
+        pages = data.get("query", {}).get("pages", [])
+        for page in pages:
+            title = page.get("title", "")
+            if "missing" in page:
+                continue
+            revisions = page.get("revisions", [])
+            if revisions:
+                content = revisions[0].get("slots", {}).get("main", {}).get("content", "")
+                result[title] = content
+
+        time.sleep(0.1)
+
+    return result
+
+
 class MwclientApi:
     def __init__(self, site):
         self.site = site
 
     def get_page_wikitext(self, page_title: str) -> str:
         return get_page_wikitext(self.site, page_title)
+
+    def get_pages_wikitext(self, titles: list[str]) -> dict[str, str]:
+        return get_pages_wikitext(self.site, titles)
 
     def get_last_edit_timestamp(self, page_title: str):
         return get_last_edit_timestamp(self.site, page_title)
@@ -328,5 +372,6 @@ class MwclientApi:
 
 __all__ = [
     "connect_to_meta",
+    "get_pages_wikitext",
     "MwclientApi",
 ]

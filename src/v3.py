@@ -14,6 +14,7 @@ Run this every few months (e.g. via cron) to keep the table current.
 """
 
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,26 @@ RECENT_DAYS = 90
 logger = logging.getLogger(__name__)
 
 
+def extract_country(wikitext: str) -> str:
+    """Extract the 'country your from' value from an application's wikitext.
+
+    Handles patterns like:
+        ; country your from:Rwanda
+        ;country your from: Rwanda
+        ; Country your from: Germany
+    """
+    pattern = r";\s*country\s+your\s+from\s*:\s*(.+)"
+    match = re.search(pattern, wikitext, re.IGNORECASE)
+    if match:
+        country = match.group(1).strip()
+        # Take only the first line (strip trailing wikitext artifacts)
+        country = country.split("\n")[0].strip()
+        # Remove trailing carriage return if present
+        country = country.rstrip("\r").strip()
+        return country
+    return ""
+
+
 def build_wikitable(rows) -> str:
     """rows: list of rows data."""
     lines = [
@@ -45,6 +66,7 @@ def build_wikitable(rows) -> str:
         "! Page",
         "! Last edited to application",
         "! User ",
+        "! Country",
         "! Global edits",
         "! Edits in last 3 months",
         "! Age of account",
@@ -56,6 +78,7 @@ def build_wikitable(rows) -> str:
         lines.append(f"| {row['page_link']}")
         lines.append(f"| {row['last_update']}")
         lines.append(f"| {row['user_link']}")
+        lines.append(f"| {row.get('country', '')}")
         lines.append(f"| {row['editcount_str']}")
         lines.append(f"| {row['recent_editcount_str']}")
         lines.append(f"| {row['age']}")
@@ -125,6 +148,11 @@ def load_rows(
 
     users = [x["username"] for x in new_data if x["username"]]
 
+    # Batch-fetch application page wikitexts to extract country
+    application_titles = [x["full_title"] for x in new_data]
+    application_wikitexts = api.get_pages_wikitext(application_titles)
+    logger.info(f"Fetched wikitext for {len(application_wikitexts)} application pages")
+
     editcounts = api.get_global_editcounts(users)
     logger.info(f"Loaded {len(editcounts)} editcounts for {len(users)} users")
 
@@ -174,12 +202,17 @@ def load_rows(
         else:
             logger.warning(f"Username not found for {sub['full_title']}")
 
+        # Extract country from application page wikitext
+        app_wikitext = application_wikitexts.get(sub["full_title"], "")
+        country = extract_country(app_wikitext) if app_wikitext else ""
+
         row_data = {
             "age": age,
             "page_link": f"[[{sub['full_title']}]]",
             "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{sub['full_title']}}}}}}}}}",
             "full_title": sub["full_title"],
             "user_link": user_link,
+            "country": country,
             "editcount_str": editcount_str,
             "home_wiki": home_wiki,
             "recent_editcount_str": recent_editcount_str,
@@ -241,15 +274,15 @@ def update(
     output_file_name: str,
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
-    section_name: str | None = None,
+    section_names: list[str] | None = None,
 ) -> None:
     """Updates and saves the wikitable data for a specified Wikipedia page or its subpages.
 
     This function authenticates with Meta Wiki using credentials loaded from a .env file,
     retrieves the wikitext of the specified page, and determines the relevant subpages
-    either by a specific section name or by default parsing. It then loads the tabular
-    data from these subpages, updates the wikitable within the page's wikitext, and
-    saves the resulting text to a local output file.
+    either by specific section/category names or by default parsing. It then loads the
+    tabular data from these subpages, updates the wikitable within the page's wikitext,
+    and saves the resulting text to a local output file.
 
     Args:
         page_title (str): The title of the Wikipedia page to update.
@@ -258,8 +291,9 @@ def update(
             Defaults to "unknown".
         load_recent_editcounts (bool, optional): Whether to load recent edit counts for the rows.
             Defaults to True.
-        section_name (str | None, optional): The specific section name to filter subpages by.
-            If None, subpages are determined by default parsing. Defaults to None.
+        section_names (list[str] | None, optional): Section headings or "Category:..." names
+            to collect subpages from. If None, subpages are determined by default parsing.
+            Defaults to None.
     Returns:
         None
     """
@@ -278,13 +312,21 @@ def update(
     api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(page_title)
-    subpages = []
-    if section_name:
-        subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_name)
+    subpages: list[str] = []
+
+    if section_names:
+        seen: set[str] = set()
+        for name in section_names:
+            for sp in get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=name):
+                if sp not in seen:
+                    seen.add(sp)
+                    subpages.append(sp)
 
     # Fallback to default subpage parsing
     if not subpages:
         subpages = get_subpages(full_wikitext, BASE_PAGE)
+
+    logger.info(f"Total subpages collected: {len(subpages)}")
 
     rows = load_rows(
         api,
@@ -297,6 +339,7 @@ def update(
         "Page": "page_link",
         "Last edited to application": "last_update",
         "User": "user_link",
+        "Country": "country",
         "Global edits": "editcount_str",
         "Edits in last 3 months": "recent_editcount_str",
         "Age of account": "age",

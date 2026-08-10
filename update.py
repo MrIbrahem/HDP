@@ -31,11 +31,17 @@ if "test" in sys.argv:
     page_title = "User:Mr. Ibrahem/test"
     output_file_name = "test.wiki"
 
+SECTION_NAMES = [
+    "Category:Hardware donation program open requests",
+    "Category:Hardware donation program approved requests",
+    "Category:Hardware donation program drafts",
+]
+
 if __name__ == "__main__":
     update(
         page_title=page_title,
         output_file_name=output_file_name,
         unknown_placeholder="",
-        load_recent_editcounts=True,
-        section_name="Category:Hardware donation program open requests",
+        load_recent_editcounts=False,
+        section_names=SECTION_NAMES,
     )
