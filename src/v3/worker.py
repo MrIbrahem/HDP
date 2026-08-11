@@ -39,12 +39,12 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
 
     return new_data
 
-
 def load_rows(
     api: MwclientApi,
     subpages: set[str],
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
+    load_last_edits: bool = False,
     base_page: str = BASE_PAGE,
 ) -> dict[str, Any]:
 
@@ -92,7 +92,10 @@ def load_rows(
     home_wikis = get_home_wikis_cached(api, users)
     logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
-    last_edits = {} # get_last_edit_timestamps(users)
+    last_edits = {}
+    if load_last_edits:
+        last_edits = get_last_edit_timestamps(users)
+
     logger.info(f"Loaded {len(last_edits)} last-edit timestamps for {len(users)} users")
 
     rows = {}
@@ -146,8 +149,10 @@ def load_rows(
             "editcount_str": editcount_str,
             "home_wiki": home_wiki,
             "recent_editcount_str": recent_editcount_str,
-            "last_edit": last_edit,
         }
+
+        if load_last_edits:
+            row_data["last_edit"] = last_edit
 
         rows[sub["full_title"]] = row_data
 

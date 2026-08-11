@@ -51,6 +51,7 @@ def update(
     section_names: list[str],
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
+    load_last_edits: bool = False,
 ) -> str:
     """
     Updates and saves the wikitable data for a specified Wikipedia page or its subpages.
@@ -87,6 +88,7 @@ def update(
         all_subpages,
         unknown_placeholder=unknown_placeholder,
         load_recent_editcounts=load_recent_editcounts,
+        load_last_edits=load_last_edits,
         base_page=BASE_PAGE,
     )
 
@@ -99,8 +101,10 @@ def update(
         "Edits in last 3 months": "recent_editcount_str",
         "Age of account": "age",
         "Home Wiki": "home_wiki",
-        "Last edit": "last_edit",
     }
+
+    if load_last_edits:
+        table_headers_to_row_key["Last edit"] = "last_edit"
 
     page_updated_text = update_wikitable_data(
         rows,

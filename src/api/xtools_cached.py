@@ -28,6 +28,7 @@ META_KEY = "_meta"
 
 logger = logging.getLogger(__name__)
 
+USERS_NOT_EXISTS = []
 
 def load_dates(recent_days: int = RECENT_DAYS) -> tuple[str, str]:
     today = datetime.now(UTC).date()
@@ -71,6 +72,7 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
 
             # {"type":"https:\/\/tools.ietf.org\/html\/rfc2616#section-10","title":"Not Found","status":404,"detail":"The requested user does not exist","namespace":"all","start":"2026-05-12","end":"2026-08-10","limit":50,"username":"SALMOOZ","elapsed_time":0.03}
             if "The requested user does not exist" in response.text:
+                USERS_NOT_EXISTS.append(username)
                 return {}
 
             response.raise_for_status()
@@ -280,7 +282,8 @@ def get_recent_editcounts_cached(
         was_cached = username in cache.get(META_KEY, {})
 
         recent_count = get_recent_editcount_cached(username, start=start_s, end=end_s, cache=cache)
-        if set_zero:
+
+        if set_zero or username in USERS_NOT_EXISTS:
             recent_editcounts[username] = recent_count or 0
         else:
             if recent_count is not None:

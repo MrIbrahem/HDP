@@ -30,7 +30,10 @@ def build_wikitable(rows) -> str:
         lines.append(f"| {row['recent_editcount_str']}")
         lines.append(f"| {row['age']}")
         lines.append(f"| {row['home_wiki']}")
-        lines.append(f"| {row['last_edit']}")
+
+        if "last_edit" in row:
+            lines.append(f"| {row['last_edit']}")
+
         lines.append("| ")
 
     lines.append("|}")
