@@ -29,7 +29,7 @@ META_KEY = "_meta"
 logger = logging.getLogger(__name__)
 
 
-def load_dates(recent_days) -> tuple[str, str]:
+def load_dates(recent_days: int = RECENT_DAYS) -> tuple[str, str]:
     today = datetime.now(UTC).date()
     yesterday = today - timedelta(days=1)
     start = yesterday - timedelta(days=recent_days)
@@ -252,6 +252,7 @@ def get_recent_editcounts_cached(
     recent_days: int = RECENT_DAYS,
     cache_path: str = DEFAULT_CACHE_PATH,
     save_every: int = 5,
+    set_zero: bool = False,
 ) -> dict[str, int]:
     """
     Cached, JSON-file-backed version of get_recent_editcounts.
@@ -274,8 +275,11 @@ def get_recent_editcounts_cached(
         was_cached = username in cache.get(META_KEY, {})
 
         recent_count = get_recent_editcount_cached(username, start=start_s, end=end_s, cache=cache)
-        if recent_count is not None:
-            recent_editcounts[username] = recent_count
+        if set_zero:
+            recent_editcounts[username] = recent_count or 0
+        else:
+            if recent_count is not None:
+                recent_editcounts[username] = recent_count
 
         # Only throttle when we actually hit the network for this user.
         if not was_cached:

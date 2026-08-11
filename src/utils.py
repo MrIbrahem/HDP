@@ -25,6 +25,7 @@ users_redirects = {
     "babulbaishya": "BabulB",
     "micheal kaluba": "MichealKal",
     "mp1999": "TypeInfo",
+    "Eugene233 2": "Eugene233",
     "premchand murmu thakur": "Nacharhopon",
     "учитель": "Валентина Кодола",
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
