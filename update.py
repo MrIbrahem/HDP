@@ -9,6 +9,7 @@ update `User:Mr. Ibrahem/hdp` page
 
 import logging
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -31,11 +32,31 @@ if "test" in sys.argv:
     page_title = "User:Mr. Ibrahem/test"
     output_file_name = "test.wiki"
 
-if __name__ == "__main__":
-    update(
+SECTION_NAMES = [
+    "Category:Hardware donation program open requests",
+    "Category:Hardware donation program approved requests",
+    "Category:Hardware donation program drafts",
+]
+
+OUTPUT_DIR = Path(__file__).parent / "data"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def run() -> None:
+    full_text_table = update(
         page_title=page_title,
-        output_file_name=output_file_name,
+        section_names=SECTION_NAMES,
         unknown_placeholder="",
-        load_recent_editcounts=True,
-        section_name="Category:Hardware donation program open requests",
+        load_recent_editcounts=False,
     )
+
+    if full_text_table:
+        file = OUTPUT_DIR / output_file_name
+
+        file.write_text(full_text_table, encoding="utf-8")
+
+        logger.info(f"Saved to {file}")
+
+
+if __name__ == "__main__":
+    run()

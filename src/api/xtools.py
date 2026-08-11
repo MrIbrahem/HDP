@@ -3,7 +3,6 @@
 import logging
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 from urllib.parse import quote, urlencode
 
 import requests
@@ -89,7 +88,7 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
     return total_by_day
 
 
-def get_recent_editcount(username: str, start: str, end: str) -> Optional[int]:
+def get_recent_editcount(username: str, start: str, end: str) -> int | None:
     """ """
     total_by_day = _get_recent_editcount(username, start, end)
 
@@ -124,7 +123,56 @@ def get_recent_editcounts(
     return recent_editcounts
 
 
+def get_last_edit_timestamp(username: str) -> str | None:
+    """
+    Fetch the timestamp of a user's most recent global contribution via
+    XTools' Global Contributions API with limit=1.
+
+    Returns the ISO timestamp string (e.g. "2024-08-16") or None on failure.
+    """
+    encoded_username = quote(username)
+    url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{encoded_username}/all"
+    params = {"limit": 1}
+
+    try:
+        response = requests.get(url, params=params, headers=HEADERS, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+    except (requests.RequestException, ValueError) as e:
+        logger.error(f"XTools last-edit request failed for {username}: {e}")
+        return None
+
+    if "error" in data or "status" in data:
+        logger.warning(f"XTools last-edit error for {username}: {data}")
+        return None
+
+    contribs = data.get("globalcontribs", [])
+    if not contribs:
+        return None
+
+    # "timestamp": "2024-08-16T13:18:02Z" -> "2024-08-16"
+    return contribs[0]["timestamp"].split("T")[0]
+
+
+def get_last_edit_timestamps(users: list[str]) -> dict[str, str]:
+    """
+    Fetch the last-edit timestamp for each user. Returns a dict mapping
+    username -> date string (Y-m-d). Users with no data are omitted.
+    """
+    results: dict[str, str] = {}
+
+    for username in tqdm(users, desc="Fetching last edit dates", unit="user"):
+        ts = get_last_edit_timestamp(username)
+        if ts is not None:
+            results[username] = ts
+        # time.sleep(0.3)
+
+    return results
+
+
 __all__ = [
+    "get_last_edit_timestamp",
+    "get_last_edit_timestamps",
     "get_recent_editcount",
     "get_recent_editcounts",
 ]

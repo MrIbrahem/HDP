@@ -5,7 +5,6 @@ import logging
 import os
 import time
 from datetime import UTC, date, datetime, timedelta
-from typing import Optional
 from urllib.parse import quote, urlencode
 
 import requests
@@ -29,8 +28,9 @@ META_KEY = "_meta"
 
 logger = logging.getLogger(__name__)
 
+USERS_NOT_EXISTS = []
 
-def load_dates(recent_days) -> tuple[str, str]:
+def load_dates(recent_days: int = RECENT_DAYS) -> tuple[str, str]:
     today = datetime.now(UTC).date()
     yesterday = today - timedelta(days=1)
     start = yesterday - timedelta(days=recent_days)
@@ -69,6 +69,12 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
         try:
             response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
             logger.debug("status_code:%s, url:%s", response.status_code, full_url)
+
+            # {"type":"https:\/\/tools.ietf.org\/html\/rfc2616#section-10","title":"Not Found","status":404,"detail":"The requested user does not exist","namespace":"all","start":"2026-05-12","end":"2026-08-10","limit":50,"username":"SALMOOZ","elapsed_time":0.03}
+            if "The requested user does not exist" in response.text:
+                USERS_NOT_EXISTS.append(username)
+                return {}
+
             response.raise_for_status()
             data = response.json()
         except (requests.RequestException, ValueError) as e:
@@ -172,7 +178,7 @@ def get_recent_editcount_cached(
     start: str,
     end: str,
     cache: dict,
-) -> Optional[int]:
+) -> int | None:
     """
     Cached version of get_recent_editcount.
 
@@ -253,6 +259,7 @@ def get_recent_editcounts_cached(
     recent_days: int = RECENT_DAYS,
     cache_path: str = DEFAULT_CACHE_PATH,
     save_every: int = 5,
+    set_zero: bool = False,
 ) -> dict[str, int]:
     """
     Cached, JSON-file-backed version of get_recent_editcounts.
@@ -275,8 +282,12 @@ def get_recent_editcounts_cached(
         was_cached = username in cache.get(META_KEY, {})
 
         recent_count = get_recent_editcount_cached(username, start=start_s, end=end_s, cache=cache)
-        if recent_count is not None:
-            recent_editcounts[username] = recent_count
+
+        if set_zero or username in USERS_NOT_EXISTS:
+            recent_editcounts[username] = recent_count or 0
+        else:
+            if recent_count is not None:
+                recent_editcounts[username] = recent_count
 
         # Only throttle when we actually hit the network for this user.
         if not was_cached:
@@ -293,6 +304,7 @@ def get_recent_editcounts_offline(
     users: list[str],
     recent_days: int = RECENT_DAYS,
     cache_path: str = DEFAULT_CACHE_PATH,
+    set_zero: bool = False,
 ) -> dict[str, int]:
     """Return cached-only edit counts for each user. Never hits the API."""
     cache = load_cache(cache_path)
@@ -303,11 +315,16 @@ def get_recent_editcounts_offline(
 
     for username in tqdm(users, desc="Reading cached edits", unit="user"):
         user_counts = cache.get(username)
+
         if not user_counts:
             continue
+
         count = _sum_in_range(user_counts, start_s, end_s)
-        if count is not None:
-            recent_editcounts[username] = count
+        if set_zero or username in USERS_NOT_EXISTS:
+            recent_editcounts[username] = count or 0
+        else:
+            if count is not None:
+                recent_editcounts[username] = count
 
     return recent_editcounts
 
