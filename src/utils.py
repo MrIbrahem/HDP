@@ -11,7 +11,7 @@ USER_AGENT = "OWID-Meta Wiki-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-
 # wiki text parsers
 # -----------------------------------------
 
-users_redirects = {
+_users_redirects = {
     "vinoda mamatharai": "Vinoda mamatharai",
     "cbrescia": "Felino Volador",
     "abubakar a gwanki": "Gwanki",
@@ -25,12 +25,13 @@ users_redirects = {
     "babulbaishya": "BabulB",
     "micheal kaluba": "MichealKal",
     "mp1999": "TypeInfo",
-    "Eugene233 2": "Eugene233",
+    "eugene233 2": "Eugene233",
     "premchand murmu thakur": "Nacharhopon",
     "учитель": "Валентина Кодола",
     "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
 
+users_redirects = {x.lower(): y for x, y in _users_redirects.items()}
 
 def load_credentials() -> tuple[str | None, str | None]:
     """
