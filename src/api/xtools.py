@@ -165,7 +165,7 @@ def get_last_edit_timestamps(users: list[str]) -> dict[str, str]:
         ts = get_last_edit_timestamp(username)
         if ts is not None:
             results[username] = ts
-        time.sleep(0.3)
+        # time.sleep(0.3)
 
     return results
 
