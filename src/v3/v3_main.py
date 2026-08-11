@@ -51,6 +51,7 @@ def main(
     section_names: list[str],
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
+    load_last_edits: bool = False,
 ) -> str:
     """ """
     api = get_api()
@@ -74,9 +75,10 @@ def main(
                 subpages,
                 unknown_placeholder=unknown_placeholder,
                 load_recent_editcounts=load_recent_editcounts,
+                load_last_edits=load_last_edits,
                 base_page=BASE_PAGE,
             )
-            table = build_wikitable(rows)
+            table = build_wikitable(rows, add_last_edit=load_last_edits)
 
             new_page_text += f"=== {section_title} ===\n\n{table}\n"
 
