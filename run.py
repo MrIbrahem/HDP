@@ -11,7 +11,7 @@ import logging
 from dotenv import load_dotenv
 
 from src import setup_logging
-from src.v3 import main
+from src.v3_main import main
 
 setup_logging(level=logging.DEBUG)
 

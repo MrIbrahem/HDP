@@ -20,41 +20,32 @@ class WikiTableColumnManager:
     Handles checking, verifying, and inserting column structures into Wikitext tables.
     """
 
-    def load_table_cells(self, table: wtp.Table) -> list[list[Cell]] | None:
-        """Safely retrieve cells from a wikitext table."""
+    def load_table_cells(self, table: wtp.Table, span: bool = True) -> list[list[Cell]] | None:
+        """
+        Safely retrieve cells from a wikitext table.
+
+        span=False by default: structural operations must work on the literal
+        cell grid, not the flattened grid produced by colspan/rowspan duplication.
+        """
         try:
-            return table.cells()
+            return table.cells(span=span)
         except Exception as exc:
             logger.error(f"Error getting table cells: {exc}")
             return None
 
-    def get_header_index(self, table: wtp.Table, normlize_keys: bool = True) -> dict[str, int]:
-        """
-        return dict which maps column name (lowercase) to its index (0-based).
-        """
-        if not table:
-            logger.info("no table found")
-            return {}
-
-        all_cells: list[list[Cell]] | None = self.load_table_cells(table)
-
+    def _get_header_row(self, table: wtp.Table) -> list[Cell]:
+        """Returns the first header row's non-None cells, or [] if none found."""
+        all_cells = self.load_table_cells(table)
         if not all_cells:
-            return {}
+            return []
 
-        index_map: dict[str, int] = {}
         for row in all_cells:
             # Skip empty rows or non-header rows
             if not row or row[0] is None or not row[0].is_header:
                 continue
+            return [c for c in row if c is not None]
 
-            # Inspect header names in the header row
-            for idx, cell in enumerate(row):
-                if cell:
-                    key = cell.value.strip().lower() if normlize_keys else cell.value
-                    index_map[key] = idx
-            break  # Only inspect the first header row found
-
-        return index_map
+        return []
 
     def has_column(self, table: wtp.Table, col_name: str) -> bool:
         """
@@ -64,8 +55,20 @@ class WikiTableColumnManager:
             logger.info("no table found")
             return False
 
-        index_map: dict[str, int] = self.get_header_index(table)
-        return col_name.strip().lower() in index_map
+        header_row = self._get_header_row(table)
+        target = col_name.strip().lower()
+
+        for numb, cell in enumerate(header_row, start=1):
+            if cell.value.strip().lower() == target:
+                logger.info(f"header has {col_name}: in column {numb}")
+                return True
+
+        return False
+
+    def get_header_index(self, table: wtp.Table) -> dict[str, int]:
+        """Maps header text (lowercase, stripped) to its 0-based column index."""
+        header_row = self._get_header_row(table)
+        return {cell.value.strip().lower(): idx for idx, cell in enumerate(header_row)}
 
     def add_column(
         self,
@@ -157,10 +160,8 @@ class WikiTableColumnManager:
         default_value: str = "",
     ) -> None:
         """Verifies column presence and injects its structure if missing."""
-        index_map: dict[str, int] = self.get_header_index(table)
-
         for col_name in reversed(cols_name):
-            if col_name.strip().lower() not in index_map:
+            if not self.has_column(table, col_name):
                 self.add_column(
                     table=table,
                     col_name=col_name,
