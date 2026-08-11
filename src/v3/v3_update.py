@@ -99,6 +99,7 @@ def update(
         "Edits in last 3 months": "recent_editcount_str",
         "Age of account": "age",
         "Home Wiki": "home_wiki",
+        "Last edit": "last_edit",
     }
 
     page_updated_text = update_wikitable_data(

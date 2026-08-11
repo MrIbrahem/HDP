@@ -17,6 +17,7 @@ def build_wikitable(rows) -> str:
         "! Edits in last 3 months",
         "! Age of account",
         "! Home Wiki",
+        "! Last edit",
         "! Approved",
     ]
     for _, row in rows.items():
@@ -29,6 +30,7 @@ def build_wikitable(rows) -> str:
         lines.append(f"| {row['recent_editcount_str']}")
         lines.append(f"| {row['age']}")
         lines.append(f"| {row['home_wiki']}")
+        lines.append(f"| {row['last_edit']}")
         lines.append("| ")
 
     lines.append("|}")

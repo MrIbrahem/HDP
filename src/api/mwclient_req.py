@@ -62,7 +62,7 @@ def get_page_wikitext(site: Site, page_title: str) -> str:
         return ""
 
 
-def get_last_edit_timestamp(site: Site, page_title: str):
+def page_last_edit_timestamp(site: Site, page_title: str):
     """
     Fetches the timestamp of the last edit for a given page on a site.
 
@@ -348,8 +348,8 @@ class MwclientApi:
     def get_pages_wikitext(self, titles: list[str]) -> dict[str, str]:
         return get_pages_wikitext(self.site, titles)
 
-    def get_last_edit_timestamp(self, page_title: str):
-        return get_last_edit_timestamp(self.site, page_title)
+    def page_last_edit_timestamp(self, page_title: str):
+        return page_last_edit_timestamp(self.site, page_title)
 
     def get_page_creator(self, page_title: str) -> None | str:
         return get_page_creator(self.site, page_title)

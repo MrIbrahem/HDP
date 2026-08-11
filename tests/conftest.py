@@ -4,9 +4,9 @@ Shared pytest fixtures.
 
 from __future__ import annotations
 
-
 import pytest
 from pytest_socket import disable_socket
+
 
 @pytest.fixture(autouse=True)
 def stop_nets(request):

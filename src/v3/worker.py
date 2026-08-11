@@ -5,6 +5,7 @@ from typing import Any
 
 from ..api.home_wiki_cached import get_home_wikis_cached
 from ..api.mwclient_req import MwclientApi
+from ..api.xtools import get_last_edit_timestamps
 from ..api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from ..utils import calculate_age, extract_country, users_redirects
 
@@ -91,6 +92,9 @@ def load_rows(
     home_wikis = get_home_wikis_cached(api, users)
     logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
+    last_edits = get_last_edit_timestamps(users)
+    logger.info(f"Loaded {len(last_edits)} last-edit timestamps for {len(users)} users")
+
     rows = {}
     for sub in new_data:
         editcount_str = unknown_placeholder
@@ -98,6 +102,7 @@ def load_rows(
         user_link = unknown_placeholder
         home_wiki = unknown_placeholder
         recent_editcount_str = unknown_placeholder
+        last_edit = unknown_placeholder
 
         username = sub["username"]
 
@@ -122,6 +127,8 @@ def load_rows(
             recent_editcount = recent_editcounts.get(username)
             if recent_editcount is not None:
                 recent_editcount_str = f"{recent_editcount:,}"
+
+            last_edit = last_edits.get(username, unknown_placeholder)
         else:
             logger.warning(f"Username not found for {sub['full_title']}")
 
@@ -139,6 +146,7 @@ def load_rows(
             "editcount_str": editcount_str,
             "home_wiki": home_wiki,
             "recent_editcount_str": recent_editcount_str,
+            "last_edit": last_edit,
         }
 
         rows[sub["full_title"]] = row_data
