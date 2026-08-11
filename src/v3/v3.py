@@ -4,10 +4,10 @@ import logging
 import re
 from typing import Any
 
-from .api.home_wiki_cached import get_home_wikis_cached
-from .api.mwclient_req import MwclientApi
-from .api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
-from .utils import calculate_age, users_redirects
+from ..api.home_wiki_cached import get_home_wikis_cached
+from ..api.mwclient_req import MwclientApi
+from ..api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
+from ..utils import calculate_age, users_redirects
 
 BASE_PAGE = "Hardware donation program"
 

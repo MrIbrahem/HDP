@@ -16,13 +16,13 @@ Run this every few months (e.g. via cron) to keep the table current.
 import logging
 from pathlib import Path
 
-from .api.mwclient_req import (
+from ..api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
-from .load_subpages import get_subpages_for_section
-from .utils import load_credentials
-from .v3 import build_wikitable, load_rows
+from ..load_subpages import get_subpages_for_section
+from ..utils import load_credentials
+from . import build_wikitable, load_rows
 
 BASE_PAGE = "Hardware donation program"
 OUTPUT_DIR = Path(__file__).parent.parent / "data"
