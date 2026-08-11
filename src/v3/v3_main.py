@@ -14,7 +14,6 @@ Run this every few months (e.g. via cron) to keep the table current.
 """
 
 import logging
-from pathlib import Path
 
 from ..api.mwclient_req import (
     MwclientApi,
@@ -22,60 +21,66 @@ from ..api.mwclient_req import (
 )
 from ..load_subpages import get_subpages_for_section
 from ..utils import load_credentials
-from . import build_wikitable, load_rows
+from .tables_builder import build_wikitable
+from .worker import load_rows
 
 BASE_PAGE = "Hardware donation program"
-OUTPUT_DIR = Path(__file__).parent.parent / "data"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
 
 
-def main(
-    section_headings: list[str],
-    output_file_name: str = "table.wiki",
-    unknown_placeholder: str = "unknown",
-    load_recent_editcounts: bool = True,
-) -> None:
-    # Load credentials
+def get_api() -> None | MwclientApi:
     username, password = load_credentials()
     if not username or not password:
         logger.error("Failed to load credentials from .env file")
         logger.error("Please create a .env file with WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD")
-        return
+        return None
 
     # Connect to Meta Wiki
     site = connect_to_meta(username, password)
     if not site:
         logger.error("Failed to connect to Meta Wiki")
-        return
+        return None
 
     api = MwclientApi(site)
+    return api
 
-    full_wikitext = api.get_page_wikitext(BASE_PAGE)
 
-    full_text_table = ""
+def main(
+    page_title: str,
+    section_names: list[str],
+    unknown_placeholder: str = "unknown",
+    load_recent_editcounts: bool = True,
+) -> str:
+    """ """
+    api = get_api()
 
-    for section_title in section_headings:
+    if not api:
+        logger.error("Failed to connect to Meta Wiki")
+        return ""
 
-        subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_title)
+    full_wikitext = api.get_page_wikitext(page_title)
 
-        rows = load_rows(
-            api,
-            subpages,
-            unknown_placeholder=unknown_placeholder,
-            load_recent_editcounts=load_recent_editcounts,
-            base_page=BASE_PAGE,
-        )
-        table = build_wikitable(rows)
+    new_page_text = ""
 
-        full_text_table += f"=== {section_title} ===\n\n{table}\n"
+    if section_names:
+        for section_title in section_names:
+            subpages = get_subpages_for_section(api.site, full_wikitext, BASE_PAGE, section_title=section_title)
 
-    file = OUTPUT_DIR / output_file_name
+            logger.info(f"Total subpages collected: {len(subpages)}")
 
-    file.write_text(full_text_table, encoding="utf-8")
+            rows = load_rows(
+                api,
+                subpages,
+                unknown_placeholder=unknown_placeholder,
+                load_recent_editcounts=load_recent_editcounts,
+                base_page=BASE_PAGE,
+            )
+            table = build_wikitable(rows)
 
-    logger.info(f"Saved to {file}")
+            new_page_text += f"=== {section_title} ===\n\n{table}\n"
+
+    return new_page_text
 
 
 __all__ = [

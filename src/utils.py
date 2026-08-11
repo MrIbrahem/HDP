@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -72,3 +73,23 @@ def calculate_age(registration: str) -> str:
 
         # Fallback template format in case of an error
         return registration
+
+
+def extract_country(wikitext: str) -> str:
+    """Extract the 'country your from' value from an application's wikitext.
+
+    Handles patterns like:
+        ; country your from:Rwanda
+        ;country your from: Rwanda
+        ; Country your from: Germany
+    """
+    pattern = r";\s*country\s+your\s+from\s*:\s*(.+)"
+    match = re.search(pattern, wikitext, re.IGNORECASE)
+    if match:
+        country = match.group(1).strip()
+        # Take only the first line (strip trailing wikitext artifacts)
+        country = country.split("\n")[0].strip()
+        # Remove trailing carriage return if present
+        country = country.rstrip("\r").strip()
+        return country
+    return ""

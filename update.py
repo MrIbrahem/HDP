@@ -9,6 +9,7 @@ update `User:Mr. Ibrahem/hdp` page
 
 import logging
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -37,11 +38,25 @@ SECTION_NAMES = [
     "Category:Hardware donation program drafts",
 ]
 
-if __name__ == "__main__":
-    update(
+OUTPUT_DIR = Path(__file__).parent / "data"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def run() -> None:
+    full_text_table = update(
         page_title=page_title,
-        output_file_name=output_file_name,
+        section_names=SECTION_NAMES,
         unknown_placeholder="",
         load_recent_editcounts=False,
-        section_names=SECTION_NAMES,
     )
+
+    if full_text_table:
+        file = OUTPUT_DIR / output_file_name
+
+        file.write_text(full_text_table, encoding="utf-8")
+
+        logger.info(f"Saved to {file}")
+
+
+if __name__ == "__main__":
+    run()

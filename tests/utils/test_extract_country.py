@@ -1,4 +1,4 @@
-from src.v3 import extract_country
+from src.utils import extract_country
 
 
 class TestExtractCountry:

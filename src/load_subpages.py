@@ -72,12 +72,12 @@ def get_subpages_for_section(
 def get_subpages(
     full_wikitext: str,
     base_page: str,
-) -> list[str]:
+) -> set[str]:
     parsed = wtp.parse(full_wikitext)
     subpages = extract_subpage_links(base_page, parsed)
 
     logger.debug(f"Found {len(subpages)} subpages")
-    return subpages
+    return set(subpages)
 
 
 __all__ = [

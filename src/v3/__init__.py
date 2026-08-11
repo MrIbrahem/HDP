@@ -1,6 +1,7 @@
-from .v3 import build_wikitable, load_rows
+from .tables_builder import build_wikitable
 from .v3_main import main
 from .v3_update import update
+from .worker import load_rows
 
 __all__ = [
     "load_rows",

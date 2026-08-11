@@ -44,7 +44,7 @@ def build_wikitable(rows) -> str:
     return "\n".join(lines)
 
 
-def main(section_headings: list[str]) -> None:
+def main(section_names: list[str]) -> None:
     # Load credentials
     username, password = load_credentials()
     if not username or not password:
@@ -64,7 +64,7 @@ def main(section_headings: list[str]) -> None:
 
     full_text_table = ""
 
-    for section_title in section_headings:
+    for section_title in section_names:
         subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title)
 
         data = []

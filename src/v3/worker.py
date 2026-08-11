@@ -1,68 +1,16 @@
 """ """
 
 import logging
-import re
 from typing import Any
 
 from ..api.home_wiki_cached import get_home_wikis_cached
 from ..api.mwclient_req import MwclientApi
 from ..api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
-from ..utils import calculate_age, users_redirects
+from ..utils import calculate_age, extract_country, users_redirects
 
 BASE_PAGE = "Hardware donation program"
 
 logger = logging.getLogger(__name__)
-
-
-def extract_country(wikitext: str) -> str:
-    """Extract the 'country your from' value from an application's wikitext.
-
-    Handles patterns like:
-        ; country your from:Rwanda
-        ;country your from: Rwanda
-        ; Country your from: Germany
-    """
-    pattern = r";\s*country\s+your\s+from\s*:\s*(.+)"
-    match = re.search(pattern, wikitext, re.IGNORECASE)
-    if match:
-        country = match.group(1).strip()
-        # Take only the first line (strip trailing wikitext artifacts)
-        country = country.split("\n")[0].strip()
-        # Remove trailing carriage return if present
-        country = country.rstrip("\r").strip()
-        return country
-    return ""
-
-
-def build_wikitable(rows) -> str:
-    """rows: list of rows data."""
-    lines = [
-        '{| class="wikitable sortable"',
-        "! Page",
-        "! Last edited to application",
-        "! User ",
-        "! Country",
-        "! Global edits",
-        "! Edits in last 3 months",
-        "! Age of account",
-        "! Home Wiki",
-        "! Approved",
-    ]
-    for _, row in rows.items():
-        lines.append("|-")
-        lines.append(f"| {row['page_link']}")
-        lines.append(f"| {row['last_update']}")
-        lines.append(f"| {row['user_link']}")
-        lines.append(f"| {row.get('country', '')}")
-        lines.append(f"| {row['editcount_str']}")
-        lines.append(f"| {row['recent_editcount_str']}")
-        lines.append(f"| {row['age']}")
-        lines.append(f"| {row['home_wiki']}")
-        lines.append("| ")
-
-    lines.append("|}")
-
-    return "\n".join(lines)
 
 
 def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
@@ -93,7 +41,7 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
 
 def load_rows(
     api: MwclientApi,
-    subpages: list[str],
+    subpages: set[str],
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
     base_page: str = BASE_PAGE,
@@ -200,5 +148,4 @@ def load_rows(
 
 __all__ = [
     "load_rows",
-    "build_wikitable",
 ]
