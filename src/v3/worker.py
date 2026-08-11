@@ -83,10 +83,10 @@ def load_rows(
     recent_editcounts = {}
 
     if not load_recent_editcounts:
-        recent_editcounts = get_recent_editcounts_offline(users)
+        recent_editcounts = get_recent_editcounts_offline(users, set_zero=True)
         logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
     else:
-        recent_editcounts = get_recent_editcounts_cached(users)
+        recent_editcounts = get_recent_editcounts_cached(users, set_zero=True)
         logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
 
     home_wikis = get_home_wikis_cached(api, users)

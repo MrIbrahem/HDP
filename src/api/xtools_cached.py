@@ -304,6 +304,7 @@ def get_recent_editcounts_offline(
     users: list[str],
     recent_days: int = RECENT_DAYS,
     cache_path: str = DEFAULT_CACHE_PATH,
+    set_zero: bool = False,
 ) -> dict[str, int]:
     """Return cached-only edit counts for each user. Never hits the API."""
     cache = load_cache(cache_path)
@@ -314,11 +315,16 @@ def get_recent_editcounts_offline(
 
     for username in tqdm(users, desc="Reading cached edits", unit="user"):
         user_counts = cache.get(username)
+
         if not user_counts:
             continue
+
         count = _sum_in_range(user_counts, start_s, end_s)
-        if count is not None:
-            recent_editcounts[username] = count
+        if set_zero or username in USERS_NOT_EXISTS:
+            recent_editcounts[username] = count or 0
+        else:
+            if count is not None:
+                recent_editcounts[username] = count
 
     return recent_editcounts
 
