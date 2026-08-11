@@ -1,11 +1,13 @@
 """ """
 
 import logging
+from collections.abc import Mapping
 
 logger = logging.getLogger(__name__)
 
 
-def build_wikitable(rows) -> str:
+def build_wikitable(rows: Mapping[str, Mapping[str, str]]) -> str:
+    """Build a MediaWiki table from rows keyed by page title."""
     """rows: list of rows data."""
     lines = [
         '{| class="wikitable sortable"',
