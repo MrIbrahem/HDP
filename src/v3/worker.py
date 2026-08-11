@@ -92,7 +92,7 @@ def load_rows(
     home_wikis = get_home_wikis_cached(api, users)
     logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
-    last_edits = get_last_edit_timestamps(users)
+    last_edits = {} # get_last_edit_timestamps(users)
     logger.info(f"Loaded {len(last_edits)} last-edit timestamps for {len(users)} users")
 
     rows = {}
