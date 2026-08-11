@@ -68,6 +68,11 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
         try:
             response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
             logger.debug("status_code:%s, url:%s", response.status_code, full_url)
+
+            # {"type":"https:\/\/tools.ietf.org\/html\/rfc2616#section-10","title":"Not Found","status":404,"detail":"The requested user does not exist","namespace":"all","start":"2026-05-12","end":"2026-08-10","limit":50,"username":"SALMOOZ","elapsed_time":0.03}
+            if "The requested user does not exist" in response.text:
+                return {}
+
             response.raise_for_status()
             data = response.json()
         except (requests.RequestException, ValueError) as e:
