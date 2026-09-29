@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 USERS_NOT_EXISTS = []
 
+
 def load_dates(recent_days: int = RECENT_DAYS) -> tuple[str, str]:
     today = datetime.now(UTC).date()
     yesterday = today - timedelta(days=1)
