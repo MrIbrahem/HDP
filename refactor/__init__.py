@@ -8,9 +8,11 @@ Package layout::
     ├── models.py          # UserInfo, ApplicationRow
     ├── cache.py           # HomeWikiCache, RecentEditCache
     ├── services.py        # HdpService
+    ├── logging_setup.py
+    ├── cli.py / __main__.py
     ├── wiki/              # WikiClient, CategoryService, UserResolver
     ├── xtools/            # XToolsClient
-    └── parsing/           # links + tables (next phase)
+    └── parsing/           # LinkExtractor, table managers
 """
 
 from .config import Credentials, Settings
