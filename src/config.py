@@ -4,12 +4,16 @@ Configuration, credentials, and project-wide constants for the HDP tools.
 
 from __future__ import annotations
 
+import logging
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
+
 
 # ---------------------------------------------------------------------------
 # Header ↔ row-key mapping used when updating existing wikitables
@@ -133,6 +137,12 @@ class Settings:
             users_redirects=redirects,
         )
 
+    def write_to_cache_dir(self, path: str, text: str) -> None:
+        out = self.cache_dir / path
+        out.parent.mkdir(parents=True, exist_ok=True)
+
+        out.write_text(text, encoding="utf-8")
+        logger.info("Saved to %s", out.resolve())
 
 def _load_users_redirects(path: Path) -> dict[str, str]:
     """Load a JSON object of lowercase-name → canonical-name mappings."""

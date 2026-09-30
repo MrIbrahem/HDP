@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-from pathlib import Path
 
 from .config import DEFAULT_SECTION_NAMES, Settings
 from .logging_setup import setup_logging
@@ -67,10 +66,8 @@ class Cli:
             logger.error("generate produced empty output")
             return 1
 
-        out = Path(args.output)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(text, encoding="utf-8")
-        logger.info("Saved to %s", out.resolve())
+        self.settings.write_to_cache_dir(args.output, text)
+
         return 0
 
     def _cmd_update(self, service: HdpService, args: argparse.Namespace) -> int:
@@ -81,7 +78,7 @@ class Cli:
         if args.test:
             page_title = "User:Mr. Ibrahem/test"
 
-        if args.test and output == "Mr. Ibrahem_hdp.wiki":
+        if args.test and output == "Mr._Ibrahem_hdp.wiki":
             output = "test.wiki"
 
         section_names = args.sections or list(DEFAULT_SECTION_NAMES)
@@ -96,10 +93,7 @@ class Cli:
             logger.error("update produced empty output")
             return 1
 
-        out = Path(output)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(text, encoding="utf-8")
-        logger.info("Saved to %s", out.resolve())
+        self.settings.write_to_cache_dir(output, text)
         return 0
 
     # ------------------------------------------------------------------
@@ -150,7 +144,7 @@ class Cli:
         )
         gen.add_argument(
             "--output",
-            default="data/table.wiki",
+            default="table.wiki",
             help="Output file path (default: data/table.wiki)",
         )
         gen.add_argument(
@@ -177,7 +171,7 @@ class Cli:
         )
         upd.add_argument(
             "--output",
-            default="data/Mr. Ibrahem_hdp.wiki",
+            default="Mr._Ibrahem_hdp.wiki",
             help="Output file path",
         )
         upd.add_argument(
