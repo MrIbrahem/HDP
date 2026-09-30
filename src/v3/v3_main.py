@@ -38,7 +38,6 @@ def get_api() -> None | WikiClient:
     return api
 
 
-
 def main(
     page_title: str,
     section_names: list[str],
@@ -59,6 +58,7 @@ def main(
         load_last_edits=load_last_edits,
         unknown=unknown_placeholder,
     )
+
 
 __all__ = [
     "main",

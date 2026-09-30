@@ -97,7 +97,14 @@ class HdpService:
             sub = sub.replace("_", " ")
             raw_user = sub.replace("(2nd Application)", "").split("/")[0].strip()
             username = self.users.normalize(raw_user)
-            draft.append(ApplicationRow.from_subpage(sub, base_page=base, username=username, unknown=unknown))
+            draft.append(
+                ApplicationRow.from_subpage(
+                    sub,
+                    base_page=base,
+                    username=username,
+                    unknown=unknown,
+                )
+            )
 
         # 2. Live User: redirects
         usernames = [r.username for r in draft if r.username]

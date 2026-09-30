@@ -13,11 +13,11 @@ from pathlib import Path
 from ..config import RECENT_DAYS
 from ..xtools.client import XToolsClient
 from .json_cache import JsonCache
-
 from .xtools_cached import (
     get_recent_editcounts_cached,
     get_recent_editcounts_offline,
 )
+
 logger = logging.getLogger(__name__)
 
 META_KEY = "_meta"
@@ -65,6 +65,7 @@ class RecentEditCache:
             return get_recent_editcounts_offline(users, set_zero=set_zero)
 
         return get_recent_editcounts_cached(users, set_zero=set_zero)
+
 
 __all__ = [
     "RecentEditCache",

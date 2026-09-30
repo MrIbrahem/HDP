@@ -12,7 +12,6 @@ from collections.abc import Sequence
 from typing import Any
 
 from ..cache import HomeWikiCache, RecentEditCache
-from ..cache.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from ..config import DEFAULT_USERS_REDIRECTS, Settings
 from ..models import (
     ApplicationRow,
@@ -250,7 +249,7 @@ class HdpService:
         for section_title in section_names:
             subpages = self.subpages._subpages_for_section(full_wikitext, section_title)
             logger.info("Section %r: %s subpages", section_title, len(subpages))
-        rows = self.load_rows(
+            rows = self.load_rows(
                 subpages,
                 load_recent_editcounts=load_recent_editcounts,
                 load_last_edits=load_last_edits,
