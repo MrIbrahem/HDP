@@ -56,16 +56,27 @@ class HomeWikiCache:
         save_every: int = 5,
     ) -> dict[str, UserInfo]:
         """
-        Return ``{username: {"home": ..., "registration": ...}}`` for each user.
+        Retrieve global user information for multiple users.
 
-        Uses a persistent JSON cache so that users already present are never
-        re-fetched from the API.  Only new (uncached) users trigger a network
-        call, with a 0.1 s throttle between requests.
+        This method fetches the home wiki and registration details for a list of users.
+        It utilizes a local cache to avoid redundant API requests. For users not present
+        in the cache, their information is fetched from the wiki, cached, and the cache
+        is periodically saved to the underlying store based on the `save_every` parameter.
 
         Args:
-            users: List of usernames to look up.
-            save_every: Flush the cache to disk every *save_every* new fetches
-                so a crash partway through doesn't lose everything.
+            users (list[str]): A list of usernames to fetch information for.
+            save_every (int, optional): The number of newly fetched users after which
+                the cache is automatically saved to the store. Defaults to 5.
+
+        Returns:
+            dict[str, UserInfo]: A dictionary mapping usernames to their corresponding
+                `UserInfo` objects.
+
+        Side Effects:
+            - Sleeps for 0.1 seconds between fetching new users to avoid rate limiting.
+            - Saves the updated cache to the store periodically and at the end if any
+              new users were fetched.
+            - Logs the number of cached and newly fetched users.
         """
         cache = self._store.load()
         result: dict[str, UserInfo] = {}

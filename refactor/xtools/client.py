@@ -84,6 +84,7 @@ class XToolsClient:
                 )
                 logger.debug("status_code:%s, url:%s", response.status_code, full_url)
                 if "The requested user does not exist" in response.text:
+                    # {"type":"https:\/\/tools.ietf.org\/html\/rfc2616#section-10","title":"Not Found","status":404,"detail":"The requested user does not exist","namespace":"all","limit":50,"username":"Aelita1cdcd4","elapsed_time":0.024}
                     self.users_not_exists.append(username)
                     return {}
 
