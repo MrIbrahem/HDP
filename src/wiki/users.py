@@ -24,7 +24,7 @@ class UserResolver:
         self,
         wiki: WikiClient,
         static_redirects: Mapping[str, str] | None = None,
-    ):
+    ) -> None:
         self._wiki = wiki
         self._static = {k.lower(): v for k, v in (static_redirects or {}).items()}
 

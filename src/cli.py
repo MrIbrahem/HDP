@@ -70,7 +70,7 @@ class Cli:
         out = Path(args.output)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
-        logger.info("Saved to %s", out)
+        logger.info("Saved to %s", out.resolve())
         return 0
 
     def _cmd_update(self, service: HdpService, args: argparse.Namespace) -> int:
@@ -99,7 +99,7 @@ class Cli:
         out = Path(output)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
-        logger.info("Saved to %s", out)
+        logger.info("Saved to %s", out.resolve())
         return 0
 
     # ------------------------------------------------------------------
