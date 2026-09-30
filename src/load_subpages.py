@@ -9,7 +9,7 @@ from typing import Any
 
 import wikitextparser as wtp
 
-from .api.category import get_category_count, get_category_members_titles
+from .wiki.category import get_category_count, get_category_members_titles
 from .parsing import (
     extract_subpage_links,
     get_section_by_heading,

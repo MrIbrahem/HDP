@@ -10,17 +10,18 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 
-from .cache import HomeWikiCache, RecentEditCache
-from .config import Settings
-from .models import (
+from ..cache import HomeWikiCache, RecentEditCache
+from ..config import Settings
+from .tables_builder import build_wikitable
+from ..models import (
     TABLE_HEADERS_TO_ROW_KEY,
     ApplicationRow,
     UserInfo,
 )
-from .wiki.category import CategoryService
-from .wiki.client import WikiClient
-from .wiki.users import UserResolver
-from .xtools.client import XToolsClient
+from ..wiki.category import CategoryService
+from ..wiki.client import WikiClient
+from ..wiki.users import UserResolver
+from ..xtools.client import XToolsClient
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +113,7 @@ class HdpService:
 
         # Parse section body for wikilinks (requires parsing module)
         try:
-            from .parsing.links import LinkExtractor
+            from ..parsing.links import LinkExtractor
 
             extractor = LinkExtractor()
             section = extractor.get_section(full_wikitext, section_title)
@@ -140,7 +141,7 @@ class HdpService:
         try:
             import wikitextparser as wtp
 
-            from .parsing.links import LinkExtractor
+            from ..parsing.links import LinkExtractor
 
             parsed = wtp.parse(full_wikitext)
             return set(LinkExtractor().extract_subpages(self.settings.base_page, parsed))
@@ -244,37 +245,7 @@ class HdpService:
         add_last_edit: bool = False,
     ) -> str:
         """Render a fresh MediaWiki table from rows."""
-        lines = [
-            '{| class="wikitable sortable"',
-            "! Page",
-            "! Last edited to application",
-            "! User ",
-            "! Country",
-            "! Global edits",
-            "! Edits in last 3 months",
-            "! Age of account",
-            "! Home Wiki",
-        ]
-        if add_last_edit:
-            lines.append("! Last edit")
-        lines.append("! Approved")
-
-        for row in rows.values():
-            lines.append("|-")
-            lines.append(f"| {row.page_link}")
-            lines.append(f"| {row.last_update}")
-            lines.append(f"| {row.user_link}")
-            lines.append(f"| {row.country}")
-            lines.append(f"| {row.editcount_str}")
-            lines.append(f"| {row.recent_editcount_str}")
-            lines.append(f"| {row.age}")
-            lines.append(f"| {row.home_wiki}")
-            if add_last_edit:
-                lines.append(f"| {row.last_edit}")
-            lines.append("| ")
-
-        lines.append("|}")
-        return "\n".join(lines)
+        return build_wikitable(rows, add_last_edit=add_last_edit)
 
     def generate(
         self,
@@ -339,7 +310,7 @@ class HdpService:
         full_wikitext = self.wiki.get_page_wikitext(page_title)
 
         try:
-            from .parsing.tables import WikiTableDataUpdater
+            from ..parsing.tables import WikiTableDataUpdater
 
             updater = WikiTableDataUpdater()
             return updater.update_wikitable_data(

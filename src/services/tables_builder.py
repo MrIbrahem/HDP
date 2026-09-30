@@ -6,9 +6,15 @@ from collections.abc import Mapping
 logger = logging.getLogger(__name__)
 
 
-def build_wikitable(rows: Mapping[str, Mapping[str, str]], add_last_edit: bool = False) -> str:
-    """Build a MediaWiki table from rows keyed by page title."""
-    """rows: list of rows data."""
+def build_wikitable(
+    rows: Mapping[str, Mapping[str, str]],
+    *,
+    add_last_edit: bool = False
+) -> str:
+    """
+    Build a MediaWiki table from rows keyed by page title."""
+    """rows: list of rows data.
+    """
     lines = [
         '{| class="wikitable sortable"',
         "! Page",
@@ -30,7 +36,7 @@ def build_wikitable(rows: Mapping[str, Mapping[str, str]], add_last_edit: bool =
 
     lines.append("! Approved")
 
-    for _, row in rows.items():
+    for row in rows.values():
         lines.append("|-")
         lines.append(f"| {row['page_link']}")
         lines.append(f"| {row['last_update']}")
