@@ -2,8 +2,21 @@ import os
 
 import pytest
 
-from src.cache.home_wiki_cache import get_many
+from src.cache.home_wiki_cache import HomeWikiCache
 from src.cache.json_cache import JsonCache
+
+
+def get_many(
+    api,
+    users: list[str],
+    cache_path: str = "",
+    save_every: int = 5,
+) -> dict[str, dict[str, str]]:
+    return HomeWikiCache(cache_path, api).get_many(
+        users,
+        save_every=save_every,
+    )
+
 
 
 class TestGetHomeWikisCached:
