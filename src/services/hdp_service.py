@@ -232,6 +232,40 @@ class HdpService:
         """Render a fresh MediaWiki table from rows."""
         return build_wikitable(rows, add_last_edit=add_last_edit)
 
+    def generate(
+        self,
+        page_title: str,
+        section_names: Sequence[str],
+        *,
+        load_recent_editcounts: bool = True,
+        load_last_edits: bool = False,
+        unknown: str = "unknown",
+    ) -> str:
+        """ """
+        full_wikitext = api.get_page_wikitext(page_title)
+
+        new_page_text = ""
+
+        if section_names:
+            for section_title in section_names:
+                subpages = _subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
+
+                logger.info(f"Total subpages collected: {len(subpages)}")
+
+                rows = load_rows(
+                    api,
+                    subpages,
+                    unknown_placeholder=unknown_placeholder,
+                    load_recent_editcounts=load_recent_editcounts,
+                    load_last_edits=load_last_edits,
+                    base_page=BASE_PAGE,
+                )
+                table = build_wikitable(rows, add_last_edit=load_last_edits)
+
+                new_page_text += f"=== {section_title} ===\n\n{table}\n"
+
+        return new_page_text
+
     def update(
         self,
         page_title: str,
