@@ -1,7 +1,7 @@
 """
 MediaWiki API client built on mwclient.
 
-Wraps the former ``MwclientApi`` / ``mwclient_req`` helpers in a single class
+Wraps the former ``WikiClient`` / ``client`` helpers in a single class
 that receives credentials (or an already-connected Site) and exposes the
 methods needed by ``HdpService``.
 """
@@ -22,9 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 class WikiClient:
-    """Thin, injectable wrapper around a logged-in ``mwclient.Site``."""
+    """
+    Thin, injectable wrapper around a logged-in ``mwclient.Site``.
+    """
 
-    def __init__(self, site: Site):
+    def __init__(self, site: Site) -> None:
         self._site = site
 
     # ------------------------------------------------------------------
@@ -59,6 +61,17 @@ class WikiClient:
             return None
 
     @classmethod
+    def connect_by_user(
+        cls,
+        username: str,
+        password: str,
+        *,
+        user_agent: str = USER_AGENT,
+        host: str = "meta.wikimedia.org",
+    ) -> WikiClient | None:
+        return cls.connect(Credentials(username, password), user_agent=user_agent, host=host)
+
+    @classmethod
     def from_settings(cls, settings: Settings) -> WikiClient | None:
         """Convenience: load credentials from env and connect."""
         credentials = Credentials.from_env()
@@ -76,7 +89,9 @@ class WikiClient:
     # ------------------------------------------------------------------
 
     def get_page_wikitext(self, page_title: str) -> str:
-        """Fetch raw wikitext for a single page. Empty string on failure."""
+        """
+        Fetch raw wikitext for a single page. Empty string on failure.
+        """
         logger.info("Fetching wikitext of %s ...", page_title)
         try:
             return self._site.pages[page_title].text() or ""
@@ -128,7 +143,21 @@ class WikiClient:
         return result
 
     def page_last_edit_timestamp(self, page_title: str) -> str | None:
-        """Most recent revision timestamp, or ``None``."""
+        """
+        Fetches the timestamp of the last edit for a given page on a site.
+
+        This function queries the site's API for the most recent revision of the
+        specified page and extracts its timestamp. If the API request fails or
+        the page does not have any revisions, it returns None.
+
+        Args:
+            site (Site): The site object used to make the API request.
+            page_title (str): The title of the page to fetch the last edit timestamp for.
+
+        Returns:
+            str: The timestamp of the last edit as a string, or None if the request
+                fails, the page is missing, or there are no revisions.
+        """
         logger.info("Fetching last edit timestamp of %s ...", page_title)
         params = {
             "prop": "revisions",
@@ -150,7 +179,21 @@ class WikiClient:
         return None
 
     def get_page_creator(self, page_title: str) -> str | None:
-        """Username of the first revision (page creator), or ``None``."""
+        """
+        Retrieve the username of the user who created the page.
+
+        This function queries the site's API to fetch the oldest revision
+        (i.e., the first revision) of the specified page and returns the
+        username associated with that revision.
+
+        Args:
+            site (Site): The site object used to make the API request.
+            page_title (str): The title of the page to query.
+
+        Returns:
+            None | str: The username of the page creator if successful,
+            otherwise None if the API request fails or no revisions are found.
+        """
         logger.info("Fetching page creator of %s ...", page_title)
         params = {
             "prop": "revisions",
@@ -170,17 +213,68 @@ class WikiClient:
         pages = data.get("query", {}).get("pages", [])
         if pages and "revisions" in pages[0]:
             return pages[0]["revisions"][0]["user"]
+
         return None
 
     # ------------------------------------------------------------------
     # Users
     # ------------------------------------------------------------------
 
+    def get_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
+        """Fetches edit counts on Wikidata (www.wikidata.org) for a list of users.
+
+        Args:
+            users (list[str]): A list of usernames.
+            site (Site | None): Optional mwclient.Site instance for Wikidata.
+                If None, connects to 'www.wikidata.org'.
+
+        Returns:
+            dict[str, int]: Mapping from username to their Wikidata edit count.
+        """
+        if not users:
+            return {}
+
+        logger.info(f"Fetching Wikidata edit count for {len(users)} users...")
+        batch_size = 50
+        result: dict[str, int] = dict.fromkeys(users, 0)
+
+        for i in range(0, len(users), batch_size):
+            batch = users[i : i + batch_size]
+            params = {
+                "list": "users",
+                "usprop": "editcount",
+                "ususers": "|".join(batch),
+                "formatversion": 2,
+                "format": "json",
+            }
+            try:
+                data = self._site.get("query", **params)
+                user_list = data.get("query", {}).get("users", [])
+                for user_info in user_list:
+                    name = user_info.get("name")
+                    if name:
+                        result[name] = user_info.get("editcount", 0)
+            except Exception as e:
+                logger.error(f"API request failed for Wikidata editcounts batch {i}: {e}")
+
+        return result
+
     def get_global_editcounts(self, users: list[str]) -> dict[str, int]:
         """
-        Global edit counts via ``list=globalusers``.
+        Fetches the global edit counts for a list of users from a MediaWiki site.
 
-        Users that cannot be resolved are omitted (caller can default to 0).
+        Args:
+            site (Site): A Site object representing the MediaWiki site to query.
+            users (list[str]): A list of usernames to fetch the global edit counts for.
+
+        Returns:
+            dict[str, int]: A dictionary mapping usernames to their global edit counts.
+                If the API request fails or a user's edit count is unavailable,
+                it defaults to 0 for that user.
+
+        Raises:
+            Exception: Catches and logs any exceptions that occur during the API request,
+                but does not re-raise them.
         """
         if not users:
             return {}
@@ -200,6 +294,8 @@ class WikiClient:
             return {}
 
         result = data.get("query", {}).get("globalusers", [])
+        # [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
+
         logger.info("Received edit counts for %s users", len(result))
         return {x["name"]: x.get("editcount", 0) for x in result}
 
@@ -207,9 +303,14 @@ class WikiClient:
         """
         CentralAuth ``meta=globaluserinfo`` for a single user.
 
-        Returns the raw ``globaluserinfo`` dict (may be empty on failure).
+        Returns the raw 'globaluserinfo' dict, which includes:
+        - 'home': dbname of the user's home wiki (e.g. "enwiki"), may be empty
+
+        Note: meta=globaluserinfo only accepts a single username at a time
+        (no batching), so this is called once per user.
         """
         params = {
+            # "action": "query",
             "meta": "globaluserinfo",
             "guiuser": username,
             "guiprop": "editcount",
@@ -222,6 +323,7 @@ class WikiClient:
             logger.error("API request failed for %s: %s", username, e)
             return {}
 
+        # { "globaluserinfo": { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
         return data.get("query", {}).get("globaluserinfo", {}) or {}
 
     def get_home_wikis_and_registration(
@@ -236,11 +338,13 @@ class WikiClient:
         home_wikis: dict[str, dict[str, str]] = {}
         for username in tqdm(users, desc="Fetching home wiki", unit="user"):
             info = self.get_global_userinfo(username)
+            # info = { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
             home_wikis[username] = {
                 "home": info.get("home", ""),
                 "registration": info.get("registration", ""),
             }
             time.sleep(0.1)
+
         return home_wikis
 
     def solve_pages_redirects(self, pages: list[str], batch_size: int = 50) -> dict[str, str]:
@@ -260,6 +364,7 @@ class WikiClient:
                 min(i + batch_size, len(pages)),
             )
             params = {
+            # "action": "query",
                 "format": "json",
                 "prop": "redirects",
                 "titles": "|".join(group),
@@ -275,6 +380,7 @@ class WikiClient:
                 continue
 
             for page in data.get("query", {}).get("pages", []):
+                # page example: { "ns": 2, "title": "User:The Living love" }
                 if not isinstance(page, dict):
                     continue
                 target = page.get("title", "")
@@ -284,5 +390,6 @@ class WikiClient:
         logger.info("Resolved %s redirects", len(result))
         return result
 
-
-__all__ = ["WikiClient"]
+__all__ = [
+    "WikiClient",
+]

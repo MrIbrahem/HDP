@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import time
 
+import mwclient
 import mwclient.errors
 from mwclient.client import Site
 from tqdm import tqdm
@@ -26,8 +27,10 @@ class CategoryService:
 
     def count(self, category_name: str) -> int:
         """Return the total number of members (pages + files + subcats)."""
+        # Ensure the title has the proper prefix
         category_name = self._ensure_prefix(category_name)
         params = {
+            # "action": "query",
             "format": "json",
             "prop": "categoryinfo",
             "titles": category_name,
@@ -40,10 +43,15 @@ class CategoryService:
             logger.error("Failed to fetch category info for %s: %s", category_name, e)
             return 0
 
+        # { "batchcomplete": true, "query": { "pages": [ { "pageid": 718741, "ns": 14, "title": "Category:Yemen", "categoryinfo": { "size": 19, "pages": 3, "files": 0, "subcats": 16, "hidden": false } } ] } }
+
+        # Extract the page data dynamically since the page ID string changes
         pages = data.get("query", {}).get("pages") or []
         if not pages:
             return 0
+
         info = pages[0].get("categoryinfo") or {}
+        # {'size': 354, 'pages': 1, 'files': 309, 'subcats': 44}
         return int(info.get("size") or 0)
 
     def member_titles(
@@ -71,11 +79,14 @@ class CategoryService:
         )
 
         params: dict = {
+            # "action": "query",
             "format": "json",
             "list": "categorymembers",
             "cmtitle": category_name,
+            # "cmtype": "file",
             "cmlimit": "max",
         }
+
         if namespace is not None:
             if namespace == 14:
                 params["cmtype"] = "subcat"
@@ -90,6 +101,7 @@ class CategoryService:
         delay = 0.1
         max_delay = 8.0
 
+        # Initialize tqdm with the total expected items
         with tqdm(total=limit, desc="Fetching members", unit="item") as pbar:
             while first or cmcontinue is not None:
                 first = False
@@ -103,9 +115,15 @@ class CategoryService:
                     data = self._site.get("query", **params)
                     delay = 0.1
                     members = data.get("query", {}).get("categorymembers") or []
-                    new_titles = [m.get("title", "") for m in members]
+
+                    # Extract titles
+                    new_titles = [x.get("title", "") for x in members]
                     all_titles.extend(new_titles)
+
+                    # Update the progress bar by the number of items fetched in this batch
                     pbar.update(len(new_titles))
+
+                    logger.debug(f"Fetched category members: {len(members)} page, (total: {len(all_titles)}/{total_pages})")
 
                     if "continue" in data:
                         cmcontinue = data["continue"].get("cmcontinue")
@@ -117,18 +135,24 @@ class CategoryService:
                     if e.code == "invalidcategory":
                         logger.warning("Invalid category: %s", category_name)
                         break
+                    # Non-invalidcategory API errors: log and retry with backoff
                     logger.error("API error (code=%s): %s", e.code, e)
                     if delay >= max_delay:
+                        logger.error("Max delay reached, stopping retries")
                         break
+
                     time.sleep(delay)
                     delay = min(delay * 2, max_delay)
+                    continue
 
                 except Exception as e:
                     logger.error("API request failed: %s", e)
                     if delay >= max_delay:
                         break
+
                     time.sleep(delay)
                     delay = min(delay * 2, max_delay)
+                    continue
 
         logger.info("Finished fetching %s members", len(all_titles))
         return all_titles

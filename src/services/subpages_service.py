@@ -1,8 +1,7 @@
 """
-
-https://meta.wikimedia.org/wiki/Category:Hardware_donation_program_open_requests
-
 """
+
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -14,7 +13,7 @@ from ..parsing import (
     extract_subpage_links,
     get_section_by_heading,
 )
-from ..wiki.category import get_category_count, get_category_members_titles
+from ..wiki.category import CategoryService
 
 
 logger = logging.getLogger(__name__)
@@ -28,9 +27,12 @@ def _subpages_from_category(
     """Fetch subpage names (relative to base_page) from a MediaWiki category."""
     if not category_name.startswith("Category:"):
         category_name = f"Category:{category_name}"
-    total_pages = get_category_count(site, category_name)
-    members = get_category_members_titles(
-        site,
+
+    service = CategoryService(site)
+
+    total_pages = service.count(category_name)
+
+    members = service.member_titles(
         category_name,
         namespace=0,
         total_pages=total_pages,

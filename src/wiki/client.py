@@ -89,38 +89,31 @@ class WikiClient:
     # ------------------------------------------------------------------
 
     def get_page_wikitext(self, page_title: str) -> str:
-        """Fetch the full raw wikitext of a page via the API.
-
-        Args:
-            site (Site): The Site object representing the MediaWiki site to query.
-            page_title (str): The title of the page to fetch the wikitext from.
-
-        Returns:
-            str: The raw wikitext of the page as a string. Returns an empty
-            string if an exception occurs during the API request.
         """
-        logger.info(f"Fetching wikitext of {page_title}...")
-
-        page = self.site.pages[page_title]
-
+        Fetch raw wikitext for a single page. Empty string on failure.
+        """
+        logger.info("Fetching wikitext of %s ...", page_title)
         try:
-            return page.text()
+            return self._site.pages[page_title].text() or ""
         except Exception as e:
-            logger.error("API request failed %s", str(e))
+            logger.error("API request failed for %s: %s", page_title, e)
             return ""
 
-    def get_pages_wikitext(self, titles: list[str]) -> dict[str, str]:
-        """Fetch wikitext for multiple pages in batches of up to 50.
+    def get_pages_wikitext(self, titles: list[str], batch_size: int = 50) -> dict[str, str]:
+        """
+        Fetch wikitext for many pages in batches of up to ``batch_size``.
 
-        Returns a dict mapping page title -> wikitext content.
-        Pages that don't exist or have no revisions are omitted.
+        Missing pages are omitted from the result.
         """
         result: dict[str, str] = {}
-        batch_size = 50
 
         for i in range(0, len(titles), batch_size):
             batch = titles[i : i + batch_size]
-            logger.info(f"Fetching wikitext for batch {i // batch_size + 1} ({len(batch)} pages)...")
+            logger.info(
+                "Fetching wikitext for batch %s (%s pages) ...",
+                i // batch_size + 1,
+                len(batch),
+            )
             params = {
                 "format": "json",
                 "prop": "revisions",
@@ -130,20 +123,20 @@ class WikiClient:
                 "formatversion": "2",
             }
             try:
-                data = self.site.get("query", **params)
+                data = self._site.get("query", **params)
             except Exception as e:
-                logger.error(f"API request failed: {e}")
+                logger.error("API request failed: %s", e)
                 continue
 
-            pages = data.get("query", {}).get("pages", [])
-            for page in pages:
-                title = page.get("title", "")
+            for page in data.get("query", {}).get("pages", []):
                 if "missing" in page:
                     continue
-                revisions = page.get("revisions", [])
-                if revisions:
-                    content = revisions[0].get("slots", {}).get("main", {}).get("content", "")
-                    result[title] = content
+                title = page.get("title", "")
+                revisions = page.get("revisions") or []
+                if not revisions:
+                    continue
+                content = revisions[0].get("slots", {}).get("main", {}).get("content", "")
+                result[title] = content
 
             time.sleep(0.1)
 
@@ -354,69 +347,48 @@ class WikiClient:
 
         return home_wikis
 
-    def solve_pages_redirects(self, pages: list[str]) -> dict[str, str]:
+    def solve_pages_redirects(self, pages: list[str], batch_size: int = 50) -> dict[str, str]:
         """
-        Fetches and resolves redirect information for a given list of pages from a site.
+        Resolve redirects for a list of page titles.
 
-        This function queries the site's API in batches of 50 pages to determine which
-        pages are redirects. It returns a dictionary mapping the titles of redirect pages
-        to their corresponding non-redirect (target) page titles.
-
-        Args:
-            site (Site): The site object used to interact with the API.
-            pages (list[str]): A list of page title strings to check for redirects.
-
-        Returns:
-            dict[str, str]: A dictionary where keys are redirect page titles and values
-            are the corresponding non-redirect (target) page titles.
+        Returns ``{redirect_title: target_title}``.
         """
-        logger.info(f"Fetching redirects for {len(pages)} pages...")
-
-        params = {
-            # "action": "query",
-            "format": "json",
-            "prop": "redirects",
-            "titles": "",
-            "redirects": 1,
-            "formatversion": "2",
-            "rdprop": "title",
-            "rdlimit": "max",
-        }
-
-        result = {}
-        batch_size = 50
+        logger.info("Fetching redirects for %s pages ...", len(pages))
+        result: dict[str, str] = {}
 
         for i in range(0, len(pages), batch_size):
             group = pages[i : i + batch_size]
-            logger.info(f"Fetching pages {i} - {min(i + batch_size, len(pages))}...")
-            params["titles"] = "|".join(group)
+            logger.info(
+                "Fetching redirects %s – %s ...",
+                i,
+                min(i + batch_size, len(pages)),
+            )
+            params = {
+                # "action": "query",
+                "format": "json",
+                "prop": "redirects",
+                "titles": "|".join(group),
+                "redirects": 1,
+                "formatversion": "2",
+                "rdprop": "title",
+                "rdlimit": "max",
+            }
             try:
-                data = self.site.get("query", **params)
+                data = self._site.get("query", **params)
             except Exception as e:
-                logger.error("API request failed %s", str(e))
+                logger.error("API request failed: %s", e)
                 continue
 
-            fetched_pages = data.get("query", {}).get("pages", [])
-            logger.debug(f"len of group: {len(group)}, fetched_pages: {len(fetched_pages)}")
-
-            for page in fetched_pages:
+            for page in data.get("query", {}).get("pages", []):
                 # page example: { "ns": 2, "title": "User:The Living love" }
                 if not isinstance(page, dict):
                     continue
+                target = page.get("title", "")
+                for redirect in page.get("redirects") or []:
+                    result[redirect["title"]] = target
 
-                non_redirect_title = page["title"]
-                redirects = page.get("redirects", [])
-
-                if not redirects:
-                    continue
-
-                for redirect in redirects:
-                    result[redirect["title"]] = non_redirect_title
-
-        logger.info(f"len of data: {len(result)}")
-
+        logger.info("Resolved %s redirects", len(result))
         return result
-
 
 __all__ = [
     "WikiClient",

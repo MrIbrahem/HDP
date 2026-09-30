@@ -94,8 +94,7 @@ class HdpService:
         base = self.settings.base_page
 
         # 1. Initial rows + username normalisation
-        data: list[dict[str, str]] = []
-
+        draft: list[dict[str, str]] = []
         for sub in subpages:
             sub = sub.replace("_", " ")
             full_title = f"{base}/{sub}"
@@ -106,7 +105,7 @@ class HdpService:
             if username:
                 username = username[0].upper() + username[1:]
 
-            data.append(
+            draft.append(
                 {
                     "full_title": full_title,
                     "sub": sub,
@@ -114,7 +113,7 @@ class HdpService:
                 }
             )
 
-        draft = solve_users_redirects(api, data)
+        draft = solve_users_redirects(api, draft)
 
         users = [x["username"] for x in draft if x["username"]]
 
