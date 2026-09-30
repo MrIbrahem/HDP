@@ -14,7 +14,7 @@ BASE_PAGE = "Hardware donation program"
 logger = logging.getLogger(__name__)
 
 
-def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
+def solve_users_redirects(api: MwclientApi, data: list[dict[str, str]]) -> list[dict[str, str]]:
     users = []
     for x in data:
         if not x["username"]:
@@ -32,12 +32,13 @@ def solve_users_redirects(api: MwclientApi, data) -> list[dict[str, str]]:
             x["username"] = users_redirects_api[user_str].removeprefix("User:")
 
             if user_str == "User:Johnjoy12":
-                logger.info(f"Johnjoy12 is a redirect to {x["username"]}")
+                logger.info(f"Johnjoy12 is a redirect to {x['username']}")
                 logger.info(x)
 
         new_data.append(x)
 
     return new_data
+
 
 def load_rows(
     api: MwclientApi,
@@ -48,7 +49,7 @@ def load_rows(
     base_page: str = BASE_PAGE,
 ) -> dict[str, Any]:
 
-    data = []
+    data: list[dict[str, str]] = []
 
     for sub in subpages:
         sub = sub.replace("_", " ")
@@ -80,6 +81,9 @@ def load_rows(
     editcounts = api.get_global_editcounts(users)
     logger.info(f"Loaded {len(editcounts)} editcounts for {len(users)} users")
 
+    wikidata_editcounts = api.get_wikidata_editcounts(users)
+    logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
+
     recent_editcounts = {}
 
     if not load_recent_editcounts:
@@ -101,6 +105,8 @@ def load_rows(
     rows = {}
     for sub in new_data:
         editcount_str = unknown_placeholder
+        global_without_wikidata_str = unknown_placeholder
+        wikidata_editcount_str = unknown_placeholder
         age = ""
         user_link = unknown_placeholder
         home_wiki = unknown_placeholder
@@ -124,8 +130,13 @@ def load_rows(
             # logger.debug(f"User: {username}, {age=}, {home_wiki=}")
 
             editcount = editcounts.get(username)
+            wikidata_count = wikidata_editcounts.get(username, 0)
+
             if isinstance(editcount, int):
                 editcount_str = f"{editcount:,}"
+                without_wikidata = max(0, editcount - wikidata_count)
+                global_without_wikidata_str = f"{without_wikidata:,}"
+                wikidata_editcount_str = f"{wikidata_count:,}"
 
             recent_editcount = recent_editcounts.get(username)
             if recent_editcount is not None:
@@ -147,6 +158,8 @@ def load_rows(
             "user_link": user_link,
             "country": country,
             "editcount_str": editcount_str,
+            "global_without_wikidata_str": global_without_wikidata_str,
+            "wikidata_editcount_str": wikidata_editcount_str,
             "home_wiki": home_wiki,
             "recent_editcount_str": recent_editcount_str,
         }

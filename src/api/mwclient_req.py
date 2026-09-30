@@ -140,6 +140,53 @@ def get_page_creator(site: Site, page_title: str) -> None | str:
     return None
 
 
+def get_wikidata_editcounts(users: list[str], site: Site | None = None) -> dict[str, int]:
+    """Fetches edit counts on Wikidata (www.wikidata.org) for a list of users.
+
+    Args:
+        users (list[str]): A list of usernames.
+        site (Site | None): Optional mwclient.Site instance for Wikidata.
+            If None, connects to 'www.wikidata.org'.
+
+    Returns:
+        dict[str, int]: Mapping from username to their Wikidata edit count.
+    """
+    if not users:
+        return {}
+
+    if site is None:
+        try:
+            site = Site("www.wikidata.org", clients_useragent=USER_AGENT)
+        except Exception as e:
+            logger.error(f"Failed to connect to Wikidata: {e}")
+            return dict.fromkeys(users, 0)
+
+    logger.info(f"Fetching Wikidata edit count for {len(users)} users...")
+    batch_size = 50
+    result: dict[str, int] = dict.fromkeys(users, 0)
+
+    for i in range(0, len(users), batch_size):
+        batch = users[i : i + batch_size]
+        params = {
+            "list": "users",
+            "usprop": "editcount",
+            "ususers": "|".join(batch),
+            "formatversion": 2,
+            "format": "json",
+        }
+        try:
+            data = site.get("query", **params)
+            user_list = data.get("query", {}).get("users", [])
+            for user_info in user_list:
+                name = user_info.get("name")
+                if name:
+                    result[name] = user_info.get("editcount", 0)
+        except Exception as e:
+            logger.error(f"API request failed for Wikidata editcounts batch {i}: {e}")
+
+    return result
+
+
 def get_global_editcounts(site: Site, users: list[str]) -> dict[str, int]:
     """Fetches the global edit counts for a list of users from a MediaWiki site.
 
@@ -357,6 +404,9 @@ class MwclientApi:
     def get_global_editcounts(self, users: list[str]) -> dict[str, int]:
         return get_global_editcounts(self.site, users)
 
+    def get_wikidata_editcounts(self, users: list[str], site: Site | None = None) -> dict[str, int]:
+        return get_wikidata_editcounts(users, site=site)
+
     def solve_pages_redirects(self, pages: list[str]) -> dict[str, str]:
         return solve_pages_redirects(self.site, pages)
 
@@ -373,5 +423,6 @@ class MwclientApi:
 __all__ = [
     "connect_to_meta",
     "get_pages_wikitext",
+    "get_wikidata_editcounts",
     "MwclientApi",
 ]
