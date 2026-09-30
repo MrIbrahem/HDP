@@ -82,13 +82,13 @@ Detailed refactoring plans for each area:
 
 | Module | Plan Document |
 |--------|---------------|
-| Models & Config | [models/README.md](./models/README.md) |
-| Wiki Client | [wiki/README.md](./wiki/README.md) |
-| XTools | [xtools/README.md](./xtools/README.md) |
-| Cache | [cache/README.md](./cache/README.md) |
-| Parsing | [parsing/README.md](./parsing/README.md) |
-| Services | [services/README.md](./services/README.md) |
-| CLI | [cli/README.md](./cli/README.md) |
+| Models & Config | [models/README.md](../../src/models/README.md) |
+| Wiki Client | [wiki/README.md](../../src/wiki/README.md) |
+| XTools | [xtools/README.md](../../src/xtools/README.md) |
+| Cache | [cache/README.md](../../src/cache/README.md) |
+| Parsing | [parsing/README.md](../../src/parsing/README.md) |
+| Services | [services/README.md](../../src/services/README.md) |
+| CLI | [cli/README.md](../../src/cli/README.md) |
 
 ---
 

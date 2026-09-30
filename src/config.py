@@ -173,21 +173,3 @@ class Credentials:
         if not username or not password:
             return None
         return cls(username=username, password=password)
-
-
-# ---------------------------------------------------------------------------
-# Backwards-compatible helpers (thin wrappers used during migration)
-# ---------------------------------------------------------------------------
-
-
-def load_credentials(env_file: str | Path | None = None) -> tuple[str, str]:
-    """
-    Legacy helper matching the old ``src.utils.load_credentials`` signature.
-
-    Returns ``(username, password)``. Either string may be empty on failure.
-    Prefer ``Credentials.from_env()`` in new code.
-    """
-    creds = Credentials.from_env(env_file)
-    if creds is None:
-        return "", ""
-    return creds.username, creds.password

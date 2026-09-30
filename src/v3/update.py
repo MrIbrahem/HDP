@@ -13,8 +13,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src import setup_logging
-from src.v3 import update
+from ..logging_setup import setup_logging
+
+from ..config import BASE_PAGE, DEFAULT_SECTION_NAMES
+from ..services.hdp_service import HdpService
 
 setup_logging(level=logging.DEBUG)
 
@@ -32,22 +34,23 @@ if "test" in sys.argv:
     page_title = "User:Mr. Ibrahem/test"
     output_file_name = "test.wiki"
 
-SECTION_NAMES = [
-    "Category:Hardware donation program open requests",
-    "Category:Hardware donation program approved requests",
-    "Category:Hardware donation program drafts",
-]
-
 OUTPUT_DIR = Path(__file__).parent / "data"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def run() -> None:
-    full_text_table = update(
+    service = HdpService.from_settings()
+
+    if not service:
+        logger.error("Failed to connect to Meta Wiki")
+        return ""
+
+    full_text_table = service.update(
         page_title=page_title,
-        section_names=SECTION_NAMES,
-        unknown_placeholder="",
+        section_names=DEFAULT_SECTION_NAMES,
         load_recent_editcounts=False,
+        load_last_edits=False,
+        unknown="",
     )
 
     if full_text_table:
