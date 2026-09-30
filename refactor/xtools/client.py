@@ -200,16 +200,6 @@ class XToolsClient:
         return results
 
 
-def get_last_edit_timestamps(users: list[str]) -> dict[str, str]:
-    """
-    Fetch the last-edit timestamp for each user. Returns a dict mapping
-    username -> date string (Y-m-d). Users with no data are omitted.
-    """
-    client = XToolsClient()
-    return client.last_edit_timestamps(users)
-
-
 __all__ = [
     "XToolsClient",
-    "get_last_edit_timestamps",
 ]

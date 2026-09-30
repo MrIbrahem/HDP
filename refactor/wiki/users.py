@@ -62,9 +62,10 @@ class UserResolver:
         if not titles:
             return {}
 
-        redirects = self._wiki.solve_pages_redirects(list(titles))
+        live_redirects = self._wiki.solve_pages_redirects(titles)
+
         result: dict[str, str] = {}
-        for src, dst in redirects.items():
+        for src, dst in live_redirects.items():
             # src / dst look like "User:Foo"
             src_name = src.removeprefix("User:")
             dst_name = dst.removeprefix("User:")

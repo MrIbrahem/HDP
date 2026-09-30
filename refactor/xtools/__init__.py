@@ -2,4 +2,6 @@
 
 from .client import XToolsClient
 
-__all__ = ["XToolsClient"]
+__all__ = [
+    "XToolsClient",
+]

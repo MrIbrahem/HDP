@@ -43,12 +43,11 @@ def extract_country(wikitext: str) -> str:
     if not match:
         return ""
 
-    country = match.group(1).strip()
+    value = match.group(1).strip()
     # Take only the first line (strip trailing wikitext artifacts)
-    country = country.split("\n")[0].strip()
+    value = value.splitlines()[0]
     # Remove trailing carriage return if present
-    country = country.rstrip("\r").strip()
-    return country
+    return value.strip().rstrip("\r").strip()
 
 
 # ---------------------------------------------------------------------------

@@ -43,8 +43,11 @@ def extract_country(wikitext: str) -> str:
     if not match:
         return ""
 
-    value = match.group(1).splitlines()[0]
-    return value.strip().rstrip("\r")
+    value = match.group(1).strip()
+    # Take only the first line (strip trailing wikitext artifacts)
+    value = value.splitlines()[0]
+    # Remove trailing carriage return if present
+    return value.strip().rstrip("\r").strip()
 
 
 # ---------------------------------------------------------------------------
@@ -183,6 +186,27 @@ class ApplicationRow:
             "username": self.username,
             **self.to_table_dict(),
         }
+
+    def build_row(self, add_last_edit: bool = False) -> list[str]:
+        lines = ["|-"]
+        lines.append(f"| {self.page_link}")
+        lines.append(f"| {self.last_update}")
+        lines.append(f"| {self.user_link}")
+        lines.append(f"| {self.country}")
+            # lines.append(f"| {self.editcount_str}")
+
+        lines.append(f"| {self.global_without_wikidata_str}")
+        lines.append(f"| {self.wikidata_editcount_str}")
+
+        lines.append(f"| {self.recent_editcount_str}")
+        lines.append(f"| {self.age}")
+        lines.append(f"| {self.home_wiki}")
+
+        if add_last_edit:
+            lines.append(f"| {self.last_edit}")
+
+        lines.append("| ")
+        return lines
 
 
 __all__ = [

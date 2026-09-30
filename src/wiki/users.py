@@ -5,7 +5,7 @@ Username normalisation and redirect resolution.
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from .client import WikiClient
 
@@ -62,20 +62,31 @@ class UserResolver:
         if not titles:
             return {}
 
-        live_redirects = self._wiki.solve_pages_redirects(usernames)
+        live_redirects = self._wiki.solve_pages_redirects(titles)
 
-        new_data = []
-        for x in usernames:
-            username = x["username"]
-            user_str = f"User:{username}"
-            if live_redirects.get(user_str):
-                x["username"] = live_redirects[user_str].removeprefix("User:")
+        result: dict[str, str] = {}
+        for src, dst in live_redirects.items():
+            # src / dst look like "User:Foo"
+            src_name = src.removeprefix("User:")
+            dst_name = dst.removeprefix("User:")
+            if src_name != dst_name:
+                result[src_name] = dst_name
+                if src_name == "Johnjoy12":
+                    logger.info("Johnjoy12 is a redirect to %s", dst_name)
 
-                if user_str == "User:Johnjoy12":
-                    logger.info(f"Johnjoy12 is a redirect to {x['username']}")
-                    logger.info(x)
+        return result
 
-            new_data.append(x)
+    def normalize_and_resolve(
+        self,
+        raw_names: Sequence[str],
+    ) -> list[str]:
+        """
+        Full pipeline: static normalise → live redirect resolve → list of
+        canonical usernames (same order as input, empties preserved).
+        """
+        normalized = [self.normalize(n) for n in raw_names]
+        live = self.resolve_batch([n for n in normalized if n])
+        return [live.get(n, n) for n in normalized]
 
 
 __all__ = ["UserResolver"]
