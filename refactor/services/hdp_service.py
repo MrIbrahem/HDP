@@ -12,7 +12,6 @@ from collections.abc import Sequence
 
 from ..cache import HomeWikiCache, RecentEditCache
 from ..config import Settings
-from .tables_builder import build_wikitable
 from ..models import (
     TABLE_HEADERS_TO_ROW_KEY,
     ApplicationRow,
@@ -22,6 +21,7 @@ from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
+from .tables_builder import build_wikitable
 
 logger = logging.getLogger(__name__)
 

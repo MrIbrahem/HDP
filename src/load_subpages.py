@@ -9,11 +9,11 @@ from typing import Any
 
 import wikitextparser as wtp
 
-from .wiki.category import get_category_count, get_category_members_titles
 from .parsing import (
     extract_subpage_links,
     get_section_by_heading,
 )
+from .wiki.category import get_category_count, get_category_members_titles
 
 SECTIONS_TO_CATEGORY = {
     "Draft requests": "Category:Hardware donation program drafts",

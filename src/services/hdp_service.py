@@ -8,20 +8,17 @@ build enriched rows, generate or update wikitables.
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
 
 from ..cache import HomeWikiCache, RecentEditCache
 from ..config import Settings
-from .tables_builder import build_wikitable
 from ..models import (
-    TABLE_HEADERS_TO_ROW_KEY,
     ApplicationRow,
-    UserInfo,
 )
 from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
+from .tables_builder import build_wikitable
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +52,6 @@ class HdpService:
             self.xtools,
             recent_days=settings.recent_days,
         )
-
 
     def load_rows(
         self,

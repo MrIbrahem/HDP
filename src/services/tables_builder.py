@@ -6,11 +6,7 @@ from collections.abc import Mapping
 logger = logging.getLogger(__name__)
 
 
-def build_wikitable(
-    rows: Mapping[str, Mapping[str, str]],
-    *,
-    add_last_edit: bool = False
-) -> str:
+def build_wikitable(rows: Mapping[str, Mapping[str, str]], *, add_last_edit: bool = False) -> str:
     """
     Build a MediaWiki table from rows keyed by page title."""
     """rows: list of rows data.

@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from src.v3.tables_builder import build_wikitable
+from src.services.tables_builder import build_wikitable
 from src.v3.worker import load_rows
 
 
