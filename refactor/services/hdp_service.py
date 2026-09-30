@@ -119,6 +119,9 @@ class HdpService:
         editcounts = self.wiki.get_global_editcounts(users)
         logger.info("Loaded %s global edit counts", len(editcounts))
 
+        wikidata_editcounts = self.wiki.get_wikidata_editcounts(users)
+        logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
+
         # 5. Recent edit counts
         if load_recent_editcounts:
             recent = self.recent_cache.get_many(users, set_zero=True)

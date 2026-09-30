@@ -129,13 +129,11 @@ class HdpService:
         wikidata_editcounts = self.wiki.get_wikidata_editcounts(users)
         logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
 
-        recent = {}
-
         # 5. Recent edit counts
         if load_recent_editcounts:
-            recent = get_recent_editcounts_cached(users, set_zero=True)
+            recent = self.recent_cache.get_many(users, set_zero=True)
         else:
-            recent = get_recent_editcounts_offline(users, set_zero=True)
+            recent = self.recent_cache.get_many(users, offline=True, set_zero=True)
         logger.info("Loaded %s recent edit counts", len(recent))
 
         # 6. Home wiki + registration
