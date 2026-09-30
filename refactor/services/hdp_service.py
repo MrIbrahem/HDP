@@ -102,7 +102,7 @@ class HdpService:
                 unknown=unknown,
             )
 
-            draft.append( row )
+            draft.append(row)
 
         # 2. Live User: redirects
         usernames = [r.username for r in draft if r.username]

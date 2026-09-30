@@ -51,7 +51,6 @@ class UserResolver:
             resolved = resolved[0].upper() + resolved[1:]
         return resolved
 
-
     def resolve_batch(self, usernames: Sequence[str]) -> dict[str, str]:
         """
         Resolve ``User:`` page redirects for a batch of usernames.
@@ -77,5 +76,6 @@ class UserResolver:
                     logger.info(x)
 
             new_data.append(x)
+
 
 __all__ = ["UserResolver"]

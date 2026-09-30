@@ -96,15 +96,15 @@ class HdpService:
         # 1. Initial rows + username normalisation
         draft: list[ApplicationRow] = []
         for sub in subpages:
-            username = self.users.normalize(sub)
+            row.username = self.users.normalize(sub)
             row = ApplicationRow.from_subpage(
                 sub,
                 base_page=base,
-                username=username,
+                username=row.username,
                 unknown=unknown,
             )
 
-            draft.append( row )
+            draft.append(row)
 
         # 2. Live User: redirects
         usernames = [r.username for r in draft if r.username]
@@ -144,82 +144,63 @@ class HdpService:
         last_edits: dict[str, str] = {}
         if load_last_edits:
             last_edits = self.xtools.last_edit_timestamps(users)
-
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
 
         # 8. Assemble
         rows: dict[str, ApplicationRow] = {}
         for row in draft:
-            editcount_str = unknown
-            global_without_wikidata_str = unknown
-            wikidata_editcount_str = unknown
-            age = ""
-            user_link = unknown
-            home_wiki = unknown
-            recent_editcount_str = unknown
-            last_edit = unknown
+            # to be moved into UserInfo
+            if not row.username:
+                logger.warning("Username not found for %s", row.full_title)
+                userinfo = {
+                    "age": "",
+                    "user_link": unknown,
+                    "home_wiki": unknown,
+                    "registration": "",
+                    "global_editcount": editcounts.get(row.username),
+                    "recent_editcount": recent.get(row.username),
+                    "last_edit": last_edits.get(row.username),
+                    "editcount_str": unknown,
+                    "global_without_wikidata_str": unknown,
+                    "wikidata_editcount_str": unknown,
+                    "recent_editcount_str": unknown,
+                }
+            else:
+                home_data = home_wikis.get(row.username, {})
+                global_editcount = editcounts.get(row.username)
+                wikidata_count = wikidata_editcounts.get(row.username, 0)
 
-            username = row.username
-            if username:
-                info = home_wikis.get(username) or UserInfo(username=username)
+                without_wikidata = max(0, global_editcount - wikidata_count)
+
+                userinfo = {
+                    "age": calculate_age(home_data.get("registration", "")),
+                    "user_link": f"[[User:{row.username}]]",
+                    "home_wiki": home_data.get("home", unknown),
+                    "registration": home_data.get("registration", ""),
+                    "global_editcount": editcounts.get(row.username),
+                    "recent_editcount": recent.get(row.username),
+                    "last_edit": last_edits.get(row.username),
+                    "editcount_str": f"{global_editcount:,}",
+                    "global_without_wikidata_str": f"{without_wikidata:,}",
+                    "wikidata_editcount_str": f"{wikidata_count:,}",
+                    "recent_editcount_str": f"{recent.get(row.username):,}",
+                }
+
+                info = home_wikis.get(row.username) or UserInfo(username=row.username)
                 info = info.with_editcounts(
-                    global_editcount=editcounts.get(username),
-                    recent_editcount=recent.get(username),
-                    last_edit=last_edits.get(username),
+                    global_editcount=editcounts.get(row.username),
+                    recent_editcount=recent.get(row.username),
+                    last_edit=last_edits.get(row.username),
                 )
                 row.apply_user_info(info, unknown=unknown)
-                user_link = f"[[User:{username}]]"
 
-                home_data = home_wikis.get(username, {})
                 if not home_data or not home_data.get("home"):
-                    logger.warning(f"Home data not found for {username}")
-
-                home_wiki = home_data.get("home", unknown)
-                registration = home_data.get("registration", "")
-                if registration:
-                    age = calculate_age(registration)
-
-                # logger.debug(f"User: {username}, {age=}, {home_wiki=}")
-
-                editcount = editcounts.get(username)
-                wikidata_count = wikidata_editcounts.get(username, 0)
-
-                if isinstance(editcount, int):
-                    editcount_str = f"{editcount:,}"
-                    without_wikidata = max(0, editcount - wikidata_count)
-                    global_without_wikidata_str = f"{without_wikidata:,}"
-                    wikidata_editcount_str = f"{wikidata_count:,}"
-
-                recent_editcount = recent.get(username)
-                if recent_editcount is not None:
-                    recent_editcount_str = f"{recent_editcount:,}"
-
-                last_edit = last_edits.get(username, unknown)
-            else:
-                logger.warning("Username not found for %s", row.full_title)
+                    logger.warning(f"Home data not found for {row.username}")
 
             wikitext = app_texts.get(row.full_title, "")
             # Extract country from application page wikitext
             if wikitext:
                 row.apply_country(wikitext)
-
-            # to be moved into UserInfo
-            userinfo = {
-                "age": age,
-                "user_link": user_link,
-                "home_wiki": home_wiki,
-                "registration": home_data.get("registration", ""),
-                "global_editcount":editcounts.get(username),
-                "recent_editcount":recent.get(username),
-                "last_edit":last_edits.get(username),
-                "editcount_str": editcount_str,
-                "global_without_wikidata_str": global_without_wikidata_str,
-                "wikidata_editcount_str": wikidata_editcount_str,
-                "recent_editcount_str": recent_editcount_str,
-            }
-
-            if load_last_edits:
-                userinfo["last_edit"] = last_edit
 
             # to be moved into ApplicationRow
             row_data = {
