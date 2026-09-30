@@ -18,7 +18,7 @@ import logging
 from ..config import BASE_PAGE, load_credentials
 from ..models import TABLE_HEADERS_TO_ROW_KEY
 from ..parsing import update_wikitable_data
-from ..services.subpages_service import _subpages_for_section, get_subpages
+from ..services.subpages_service import _subpages_for_section, _all_subpage_links
 from ..wiki.client import WikiClient
 from .worker import load_rows
 
@@ -74,7 +74,7 @@ def update(
 
     # Fallback to default subpage parsing
     if not all_subpages:
-        all_subpages = get_subpages(full_wikitext, BASE_PAGE)
+        all_subpages = _all_subpage_links(full_wikitext, BASE_PAGE)
 
     logger.info(f"Total subpages collected: {len(all_subpages)}")
 

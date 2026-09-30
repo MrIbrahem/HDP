@@ -38,7 +38,7 @@ class HdpService:
     def __init__(
         self,
         wiki: WikiClient,
-        settings: Settings,
+        settings: Settings | None = None,
         *,
         category: CategoryService | None = None,
         users: UserResolver | None = None,
@@ -47,7 +47,7 @@ class HdpService:
         xtools: XToolsClient | None = None,
     ):
         self.wiki = wiki
-        self.settings = settings
+        self.settings = settings or Settings.from_env()
         self.category = category or CategoryService(wiki.site)
         self.users = users or UserResolver(wiki, settings.users_redirects)
         self.xtools = xtools or XToolsClient(user_agent=settings.user_agent)

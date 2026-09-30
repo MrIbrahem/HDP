@@ -97,8 +97,8 @@ class HdpService:
         for sub in subpages:
             sub = sub.replace("_", " ")
             full_title = f"{base}/{sub}"
-            user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = DEFAULT_USERS_REDIRECTS.get(user_name.lower()) or user_name
+            raw_user = sub.replace("(2nd Application)", "").split("/")[0].strip()
+            username = DEFAULT_USERS_REDIRECTS.get(raw_user.lower()) or raw_user
 
             # first letter upper (guard against empty username)
             if username:
