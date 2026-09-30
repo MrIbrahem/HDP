@@ -171,6 +171,10 @@ class ApplicationRow:
     user_link: str = "unknown"
     country: str = ""
     editcount_str: str = "unknown"
+
+    global_without_wikidata_str: str = ""
+    wikidata_editcount_str: str = ""
+
     recent_editcount_str: str = "unknown"
     age: str = ""
     home_wiki: str = "unknown"

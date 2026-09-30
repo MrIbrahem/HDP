@@ -3,17 +3,17 @@
 import logging
 from typing import Any
 
-from ..api.home_wiki_cached import get_home_wikis_cached
-from ..api.mwclient_req import MwclientApi
-from ..api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
+from ..cache.home_wiki_cache import get_many
+from ..cache.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from ..config import BASE_PAGE
 from ..utils import calculate_age, extract_country, users_redirects
+from ..wiki.client import WikiClient
 from ..xtools import get_last_edit_timestamps
 
 logger = logging.getLogger(__name__)
 
 
-def solve_users_redirects(api: MwclientApi, data: list[dict[str, str]]) -> list[dict[str, str]]:
+def solve_users_redirects(api: WikiClient, data: list[dict[str, str]]) -> list[dict[str, str]]:
     users = []
     for x in data:
         if not x["username"]:
@@ -40,7 +40,7 @@ def solve_users_redirects(api: MwclientApi, data: list[dict[str, str]]) -> list[
 
 
 def load_rows(
-    api: MwclientApi,
+    api: WikiClient,
     subpages: set[str],
     unknown_placeholder: str = "unknown",
     load_recent_editcounts: bool = True,
@@ -92,7 +92,7 @@ def load_rows(
         recent_editcounts = get_recent_editcounts_cached(users, set_zero=True)
         logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
 
-    home_wikis = get_home_wikis_cached(api, users)
+    home_wikis = get_many(api, users)
     logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
     last_edits = {}

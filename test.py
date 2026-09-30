@@ -7,7 +7,7 @@ python -m test
 import logging
 
 from src import setup_logging
-from src.api.xtools_cached import get_recent_editcounts_cached
+from src.cache.xtools_cached import get_recent_editcounts_cached
 
 setup_logging(level=logging.DEBUG)
 

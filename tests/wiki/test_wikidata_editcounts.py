@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock
 
-from src.api.mwclient_req import get_wikidata_editcounts
+from src.wiki.client import WikiClient
 
 
 def test_get_wikidata_editcounts_empty():
-    res = get_wikidata_editcounts([])
+    res = WikiClient({}).get_wikidata_editcounts([])
     assert res == {}
 
 
@@ -20,7 +20,7 @@ def test_get_wikidata_editcounts_mocked_site():
     }
 
     users = ["UserA", "UserB"]
-    res = get_wikidata_editcounts(users, site=mock_site)
+    res = WikiClient(mock_site).get_wikidata_editcounts(users)
 
     assert res == {"UserA": 1500, "UserB": 42}
     mock_site.get.assert_called_once_with(
@@ -44,7 +44,7 @@ def test_get_wikidata_editcounts_batching():
 
     mock_site.get.side_effect = side_effect
 
-    res = get_wikidata_editcounts(users, site=mock_site)
+    res = WikiClient(mock_site).get_wikidata_editcounts(users)
     assert len(res) == 55
     assert res["User0"] == 10
     assert res["User54"] == 10

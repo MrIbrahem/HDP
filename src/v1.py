@@ -10,13 +10,10 @@ and, for each linked subpage, prints:
 import logging
 from pathlib import Path
 
-from .api.mwclient_req import (
-    MwclientApi,
-    connect_to_meta,
-)
 from .config import BASE_PAGE, load_credentials
 from .load_subpages import get_subpages_for_section
 from .utils import users_redirects
+from .wiki.client import WikiClient
 
 OUTPUT_FILE_TABLE = Path(__file__).parent.parent / "data/table.wiki"
 
@@ -53,19 +50,17 @@ def main(section_names: list[str]) -> None:
         return
 
     # Connect to Meta Wiki
-    site = connect_to_meta(username, password)
-    if not site:
+    api = WikiClient.connect_by_user(username, password)
+    if not api:
         logger.error("Failed to connect to Meta Wiki")
         return
-
-    api = MwclientApi(site)
 
     full_wikitext = api.get_page_wikitext(BASE_PAGE)
 
     full_text_table = ""
 
     for section_title in section_names:
-        subpages = get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title)
+        subpages = get_subpages_for_section(api.site, full_wikitext, BASE_PAGE, section_title)
 
         data = []
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.api.xtools_cached import _get_recent_editcount, get_recent_editcount_cached, load_dates
+from src.cache.xtools_cached import _get_recent_editcount, get_recent_editcount_cached, load_dates
 
 
 @pytest.mark.network

@@ -43,15 +43,15 @@ def test_load_rows(tmp_path):
 
     subpages = {"TestUser"}
 
-    # Pass custom cache path or patch get_home_wikis_cached
+    # Pass custom cache path or patch get_many
     import src.v3.worker as worker_module
 
-    old_get_home_wikis = worker_module.get_home_wikis_cached
+    old_get_home_wikis = worker_module.get_many
 
     def mock_get_home_wikis(api, users):
         return {u: {"home": "arwiki", "registration": "2020-01-01T00:00:00Z"} for u in users}
 
-    worker_module.get_home_wikis_cached = mock_get_home_wikis
+    worker_module.get_many = mock_get_home_wikis
     try:
         rows = load_rows(
             api=mock_api,
@@ -59,7 +59,7 @@ def test_load_rows(tmp_path):
             load_recent_editcounts=False,
         )
     finally:
-        worker_module.get_home_wikis_cached = old_get_home_wikis
+        worker_module.get_many = old_get_home_wikis
 
     row_data = rows["Hardware donation program/TestUser"]
     assert row_data["editcount_str"] == "1,000"

@@ -53,9 +53,30 @@ class HdpService:
             recent_days=settings.recent_days,
         )
 
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def from_settings(cls, settings: Settings | None = None) -> HdpService | None:
+        """Wire a fully configured service from env / defaults. ``None`` on login failure."""
+        settings = settings or Settings.from_env()
+        wiki = WikiClient.from_settings(settings)
+        if wiki is None:
+            return None
+        return cls(wiki=wiki, settings=settings)
+
+    # ------------------------------------------------------------------
+    # Subpage discovery
+    # ------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    # Row building
+    # ------------------------------------------------------------------
+
     def load_rows(
         self,
-        api: MwclientApi,
+        api: WikiClient,
         subpages: set[str],
         unknown_placeholder: str = "unknown",
         load_recent_editcounts: bool = True,
@@ -107,12 +128,12 @@ class HdpService:
             recent_editcounts = get_recent_editcounts_cached(users, set_zero=True)
             logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
 
-        home_wikis = get_home_wikis_cached(api, users)
+        home_wikis = get_many(api, users)
         logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
 
         last_edits = {}
         if load_last_edits:
-            last_edits = get_last_edit_timestamps(users)
+            last_edits = self.xtools.last_edit_timestamps(users)
 
         logger.info(f"Loaded {len(last_edits)} last-edit timestamps for {len(users)} users")
 

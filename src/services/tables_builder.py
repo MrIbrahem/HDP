@@ -39,8 +39,10 @@ def build_wikitable(rows: Mapping[str, Mapping[str, str]], *, add_last_edit: boo
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row.get('country', '')}")
         # lines.append(f"| {row['editcount_str']}")
+
         lines.append(f"| {row['global_without_wikidata_str']}")
         lines.append(f"| {row['wikidata_editcount_str']}")
+
         lines.append(f"| {row['recent_editcount_str']}")
         lines.append(f"| {row['age']}")
         lines.append(f"| {row['home_wiki']}")

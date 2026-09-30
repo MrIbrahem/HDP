@@ -15,19 +15,16 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 import logging
 
-from ..api.mwclient_req import (
-    MwclientApi,
-    connect_to_meta,
-)
 from ..config import BASE_PAGE, load_credentials
 from ..load_subpages import get_subpages_for_section
 from ..services.tables_builder import build_wikitable
+from ..wiki.client import WikiClient
 from .worker import load_rows
 
 logger = logging.getLogger(__name__)
 
 
-def get_api() -> None | MwclientApi:
+def get_api() -> None | WikiClient:
     username, password = load_credentials()
     if not username or not password:
         logger.error("Failed to load credentials from .env file")
@@ -35,12 +32,11 @@ def get_api() -> None | MwclientApi:
         return None
 
     # Connect to Meta Wiki
-    site = connect_to_meta(username, password)
-    if not site:
+    api = WikiClient.connect_by_user(username, password)
+    if not api:
         logger.error("Failed to connect to Meta Wiki")
         return None
 
-    api = MwclientApi(site)
     return api
 
 
@@ -64,7 +60,7 @@ def main(
 
     if section_names:
         for section_title in section_names:
-            subpages = get_subpages_for_section(api.site, full_wikitext, BASE_PAGE, section_title=section_title)
+            subpages = get_subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
 
             logger.info(f"Total subpages collected: {len(subpages)}")
 
