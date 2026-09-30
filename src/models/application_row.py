@@ -102,6 +102,7 @@ class ApplicationRow:
         unknown: str = "unknown",
     ) -> ApplicationRow:
         """Create a minimal row from a subpage name (before enrichment)."""
+        sub = sub.replace("_", " ")
         full_title = f"{base_page}/{sub}"
         user_link = f"[[User:{username}]]" if username else unknown
         return cls(

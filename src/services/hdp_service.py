@@ -9,15 +9,17 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
-from typing import Any
 
 from ..cache import HomeWikiCache, RecentEditCache
-from ..config import DEFAULT_USERS_REDIRECTS, Settings
+from ..config import Settings
 from ..models import (
+    TABLE_HEADERS_TO_ROW_KEY,
     ApplicationRow,
+    UserInfo,
     calculate_age,
     extract_country,
 )
+from ..parsing import WikiTableDataUpdater
 from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
@@ -83,7 +85,7 @@ class HdpService:
         load_recent_editcounts: bool = True,
         load_last_edits: bool = False,
         unknown: str = "unknown",
-    ) -> dict[str, Any]:
+    ) -> dict[str, ApplicationRow]:
         """
         Build an enriched ``ApplicationRow`` for every application subpage.
 
@@ -92,32 +94,31 @@ class HdpService:
         base = self.settings.base_page
 
         # 1. Initial rows + username normalisation
-        draft: list[dict[str, str]] = []
+        draft: list[ApplicationRow] = []
         for sub in subpages:
-            sub = sub.replace("_", " ")
-            full_title = f"{base}/{sub}"
-            raw_user = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = DEFAULT_USERS_REDIRECTS.get(raw_user.lower()) or raw_user
-
-            # first letter upper (guard against empty username)
-            if username:
-                username = username[0].upper() + username[1:]
-
-            draft.append(
-                {
-                    "full_title": full_title,
-                    "sub": sub,
-                    "username": username,
-                }
+            username = self.users.normalize(sub)
+            row = ApplicationRow.from_subpage(
+                sub,
+                base_page=base,
+                username=username,
+                unknown=unknown,
             )
 
-        draft = solve_users_redirects(api, draft)
+            draft.append( row )
 
-        users = [x["username"] for x in draft if x["username"]]
+        # 2. Live User: redirects
+        usernames = [r.username for r in draft if r.username]
+        live_redirects = self.users.resolve_batch(usernames)
+        for row in draft:
+            if row.username in live_redirects:
+                row.username = live_redirects[row.username]
+                row.user_link = f"[[User:{row.username}]]"
+
+        users = [r.username for r in draft if r.username]
 
         # 3. Application wikitext (country)
         # Batch-fetch application page wikitexts to extract country
-        titles = [r["full_title"] for r in draft]
+        titles = [r.full_title for r in draft]
         app_texts = self.wiki.get_pages_wikitext(titles)
         logger.info("Fetched wikitext for %s application pages", len(app_texts))
 
@@ -147,8 +148,8 @@ class HdpService:
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
 
         # 8. Assemble
-        rows = {}
-        for sub in draft:
+        rows: dict[str, ApplicationRow] = {}
+        for row in draft:
             editcount_str = unknown
             global_without_wikidata_str = unknown
             wikidata_editcount_str = unknown
@@ -158,8 +159,7 @@ class HdpService:
             recent_editcount_str = unknown
             last_edit = unknown
 
-            username = sub["username"]
-
+            username = row.username
             if username:
                 user_link = f"[[User:{username}]]"
 
@@ -189,17 +189,17 @@ class HdpService:
 
                 last_edit = last_edits.get(username, unknown)
             else:
-                logger.warning(f"Username not found for {sub['full_title']}")
+                logger.warning(f"Username not found for {row['full_title']}")
 
             # Extract country from application page wikitext
-            app_wikitext = app_texts.get(sub["full_title"], "")
+            app_wikitext = app_texts.get(row["full_title"], "")
             country = extract_country(app_wikitext) if app_wikitext else ""
 
             row_data = {
                 "age": age,
-                "page_link": f"[[{sub['full_title']}]]",
-                "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{sub['full_title']}}}}}}}}}",
-                "full_title": sub["full_title"],
+                "page_link": f"[[{row['full_title']}]]",
+                "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}",
+                "full_title": row["full_title"],
                 "user_link": user_link,
                 "country": country,
                 "editcount_str": editcount_str,
@@ -212,7 +212,7 @@ class HdpService:
             if load_last_edits:
                 row_data["last_edit"] = last_edit
 
-            rows[sub["full_title"]] = row_data
+            rows[row["full_title"]] = row_data
 
         return rows
 

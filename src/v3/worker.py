@@ -10,32 +10,6 @@ from ..wiki.client import WikiClient
 logger = logging.getLogger(__name__)
 
 
-def solve_users_redirects(api: WikiClient, data: list[dict[str, str]]) -> list[dict[str, str]]:
-    users = []
-    for x in data:
-        if not x["username"]:
-            continue
-        user_str = f"User:{x['username']}"
-        users.append(user_str)
-
-    users_redirects_api = api.solve_pages_redirects(users)
-
-    new_data = []
-    for x in data[:]:
-        username = x["username"]
-        user_str = f"User:{username}"
-        if users_redirects_api.get(user_str):
-            x["username"] = users_redirects_api[user_str].removeprefix("User:")
-
-            if user_str == "User:Johnjoy12":
-                logger.info(f"Johnjoy12 is a redirect to {x['username']}")
-                logger.info(x)
-
-        new_data.append(x)
-
-    return new_data
-
-
 def load_rows(
     api: WikiClient,
     subpages: set[str],
