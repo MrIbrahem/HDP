@@ -105,4 +105,6 @@ class SubPages:
             return set()
 
 
-__all__ = ["SubPages"]
+__all__ = [
+    "SubPages",
+]

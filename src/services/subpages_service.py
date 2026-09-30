@@ -7,14 +7,33 @@ from typing import Any
 
 import wikitextparser as wtp
 
-from ..config import SECTION_TO_CATEGORY
+from ..config import SECTION_TO_CATEGORY, Settings
 from ..parsing import (
     extract_subpage_links,
     get_section_by_heading,
 )
 from ..wiki.category import CategoryService
+from ..wiki.client import WikiClient
 
 logger = logging.getLogger(__name__)
+
+
+class SubPages:
+
+    def __init__(
+        self,
+        wiki: WikiClient,
+        settings: Settings,
+        *,
+        category: CategoryService | None = None,
+    ) -> None:
+        self.wiki = wiki
+        self.settings = settings
+        self.category = category or CategoryService(wiki.site)
+
+    # ------------------------------------------------------------------
+    # Subpage discovery
+    # ------------------------------------------------------------------
 
 
 def _subpages_from_category(
@@ -77,6 +96,7 @@ def get_subpages(
 
 
 __all__ = [
+    "SubPages",
     "_subpages_for_section",
     "get_subpages",
 ]

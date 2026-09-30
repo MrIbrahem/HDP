@@ -16,8 +16,9 @@ from ..cache.xtools_cached import get_recent_editcounts_cached, get_recent_editc
 from ..config import DEFAULT_USERS_REDIRECTS, Settings
 from ..models import (
     ApplicationRow,
+    calculate_age,
+    extract_country,
 )
-from ..models import calculate_age, extract_country
 from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver

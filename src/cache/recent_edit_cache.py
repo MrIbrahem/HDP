@@ -8,12 +8,8 @@ instances — this module never opens HTTP connections itself beyond those calls
 from __future__ import annotations
 
 import logging
-import time
-from datetime import date, timedelta
 from pathlib import Path
-from typing import Any
 
-from tqdm import tqdm
 
 from ..config import RECENT_DAYS
 from ..xtools.client import XToolsClient
@@ -51,6 +47,7 @@ class RecentEditCache:
         self._recent_days = recent_days
 
     # -- public ----------------------------------------------------------
+
 
 __all__ = [
     "RecentEditCache",
