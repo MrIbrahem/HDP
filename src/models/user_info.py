@@ -17,6 +17,9 @@ def calculate_age(registration: str) -> str:
     Returns example:
         {{age in years and months |2008|07|24}}
     """
+    if not registration:
+        return ""
+
     try:
         # Parse the ISO 8601 string into a datetime object
         # Replacing 'Z' with '+00:00' to ensure compatibility with fromisoformat
@@ -93,23 +96,15 @@ class UserInfo:
     def from_globaluserinfo(cls, username: str, info: Mapping[str, Any]) -> UserInfo:
         """
         Build from the dict returned by ``meta=globaluserinfo``.
+
+        info example:
+        { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
         """
         return cls(
             username=username,
             home_wiki=str(info.get("home") or ""),
             registration=str(info.get("registration") or ""),
             global_editcount=_as_optional_int(info.get("editcount")),
-        )
-
-    @classmethod
-    def from_cache(cls, username: str, entry: Mapping[str, Any]) -> UserInfo:
-        """
-        Build from the dict returned by HomeWikiCache.
-        """
-        return cls(
-            username=username,
-            home_wiki=str(entry.get("home") or ""),
-            registration=str(entry.get("registration") or ""),
         )
 
 

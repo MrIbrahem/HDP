@@ -11,6 +11,7 @@ import requests
 from tqdm import tqdm
 
 from ..config import USER_AGENT
+from .json_cache import JsonCache
 
 # How many days back counts as "recent" for the recent-edits column.
 RECENT_DAYS = 90
@@ -146,30 +147,6 @@ def _parse_iso(s: str) -> date:
     return date.fromisoformat(s)
 
 
-def load_cache(cache_path: str = DEFAULT_CACHE_PATH) -> dict:
-    """Load the cache file, creating an empty structure if it doesn't exist."""
-    if not os.path.exists(cache_path):
-        return {META_KEY: {}}
-
-    try:
-        with open(cache_path, "r", encoding="utf-8") as f:
-            cache = json.load(f)
-    except (json.JSONDecodeError, OSError) as e:
-        logger.warning(f"Could not read cache file {cache_path} ({e}); starting fresh")
-        cache = {}
-
-    cache.setdefault(META_KEY, {})
-    return cache
-
-
-def save_cache(cache: dict, cache_path: str = DEFAULT_CACHE_PATH) -> None:
-    """Write the cache atomically (write to temp file, then rename)."""
-    tmp_path = f"{cache_path}.tmp"
-    with open(tmp_path, "w", encoding="utf-8") as f:
-        json.dump(cache, f, indent=2, sort_keys=True, ensure_ascii=False)
-    os.replace(tmp_path, cache_path)
-
-
 def _sum_in_range(user_counts: dict, start: str, end: str) -> int:
     return sum(count for day, count in user_counts.items() if start <= day <= end)
 
@@ -192,7 +169,7 @@ def get_recent_editcount_cached(
         [start, end] range fresh, to avoid silently leaving a hole.
 
     Mutates `cache` in place (adds/updates the user's entry). Caller is
-    responsible for calling save_cache() when done (batched for efficiency
+    responsible for calling JsonCache.save() when done (batched for efficiency
     when processing many users).
 
     Returns None if we have no data at all for the user (mirrors the
@@ -273,7 +250,9 @@ def get_recent_editcounts_cached(
     processing a long user list, so a crash partway through doesn't lose
     everything already fetched.
     """
-    cache = load_cache(cache_path)
+    cache_obj = JsonCache(cache_path)
+    cache = cache_obj.load()
+    cache.setdefault(META_KEY, {})
 
     recent_editcounts: dict[str, int] = {}
 
@@ -295,9 +274,9 @@ def get_recent_editcounts_cached(
             time.sleep(0.3)
 
         if i % save_every == 0:
-            save_cache(cache, cache_path)
+            cache_obj.save(cache)
 
-    save_cache(cache, cache_path)
+    cache_obj.save(cache)
     return recent_editcounts
 
 
@@ -308,7 +287,8 @@ def get_recent_editcounts_offline(
     set_zero: bool = False,
 ) -> dict[str, int]:
     """Return cached-only edit counts for each user. Never hits the API."""
-    cache = load_cache(cache_path)
+    cache = JsonCache(cache_path).load()
+    cache.setdefault(META_KEY, {})
 
     recent_editcounts: dict[str, int] = {}
 

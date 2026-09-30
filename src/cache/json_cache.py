@@ -14,8 +14,6 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CACHE_PATH = "data/home_wiki_cache.json"
-
 # ---------------------------------------------------------------------------
 # Shared JSON store
 # ---------------------------------------------------------------------------
@@ -53,18 +51,6 @@ class JsonCache:
         os.replace(tmp, self.path)
 
 
-def load_cache(cache_path: str = DEFAULT_CACHE_PATH) -> dict:
-    """Load the cache file, returning an empty dict if it doesn't exist."""
-    return JsonCache(cache_path).load()
-
-
-def save_cache(cache: dict, cache_path: str = DEFAULT_CACHE_PATH) -> None:
-    """Write the cache atomically (write to temp file, then rename)."""
-    return JsonCache(cache_path).save(cache)
-
-
 __all__ = [
     "JsonCache",
-    "load_cache",
-    "save_cache",
 ]

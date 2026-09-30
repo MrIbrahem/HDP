@@ -3,7 +3,7 @@ import os
 import pytest
 
 from src.cache.home_wiki_cache import get_many
-from src.cache.json_cache import load_cache, save_cache
+from src.cache.json_cache import JsonCache
 
 
 class TestGetHomeWikisCached:
@@ -39,9 +39,8 @@ class TestGetHomeWikisCached:
         cache_path = str(tmp_path / "cache.json")
 
         # Pre-populate the cache with Alice
-        save_cache(
+        JsonCache(cache_path).save(
             {"Alice": {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"}},
-            cache_path,
         )
 
         users = ["Alice", "Bob"]
@@ -58,7 +57,7 @@ class TestGetHomeWikisCached:
             "Alice": {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"},
             "Bob": {"home": "frwiki", "registration": "2015-06-15T12:00:00Z"},
         }
-        save_cache(preloaded, cache_path)
+        JsonCache(cache_path).save(preloaded)
 
         result = get_many(mock_api, ["Alice", "Bob"], cache_path=cache_path)
 
@@ -71,6 +70,6 @@ class TestGetHomeWikisCached:
         get_many(mock_api, ["Alice"], cache_path=cache_path)
 
         # Load the cache independently and verify Alice is there
-        cache = load_cache(cache_path)
+        cache = JsonCache(cache_path).load()
         assert "Alice" in cache
         assert cache["Alice"]["home"] == "alicewiki"
