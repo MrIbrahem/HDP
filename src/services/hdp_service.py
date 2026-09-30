@@ -245,7 +245,7 @@ class HdpService:
 
         header_map = dict(TABLE_HEADERS_TO_ROW_KEY)
         if not load_last_edits:
-            header_map.pop("Last edited to application", None)
+            header_map.pop("Last edit", None)
 
         # Convert rows to the dict shape the table updater expects
         row_dicts = {title: row.to_table_dict() for title, row in rows.items()}

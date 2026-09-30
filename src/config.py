@@ -26,6 +26,7 @@ TABLE_HEADERS_TO_ROW_KEY: dict[str, str] = {
     "Edits in last 3 months": "recent_editcount_str",
     "Age of account": "age",
     "Home Wiki": "home_wiki",
+    "Last edit": "last_edit",
 }
 
 # ---------------------------------------------------------------------------

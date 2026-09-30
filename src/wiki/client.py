@@ -416,27 +416,6 @@ class WikiClient(WikiClientLoader):
             host=host,
         )
 
-    def get_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
-        """Fetches edit counts on Wikidata (www.wikidata.org) for a list of users.
-
-        Args:
-            users (list[str]): A list of usernames.
-            site (Site | None): Optional mwclient.Site instance for Wikidata.
-                If None, connects to 'www.wikidata.org'.
-
-        Returns:
-            dict[str, int]: Mapping from username to their Wikidata edit count.
-        """
-        if self._site.host == "www.wikidata.org":
-            return self.get_editcounts(users)
-
-        wd_client = self.load(host="www.wikidata.org")
-
-        if wd_client:
-            return wd_client.get_editcounts(users)
-
-        return {}
-
 __all__ = [
     "WikiClient",
 ]
