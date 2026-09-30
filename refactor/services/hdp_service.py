@@ -161,6 +161,7 @@ class HdpService:
                 logger.warning("Username not found for %s", row.full_title)
 
             wikitext = app_texts.get(row.full_title, "")
+            # Extract country from application page wikitext
             if wikitext:
                 row.apply_country(wikitext)
 

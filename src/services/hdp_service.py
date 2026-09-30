@@ -161,6 +161,13 @@ class HdpService:
 
             username = row.username
             if username:
+                info = home_wikis.get(username) or UserInfo(username=username)
+                info = info.with_editcounts(
+                    global_editcount=editcounts.get(username),
+                    recent_editcount=recent.get(username),
+                    last_edit=last_edits.get(username),
+                )
+                row.apply_user_info(info, unknown=unknown)
                 user_link = f"[[User:{username}]]"
 
                 home_data = home_wikis.get(username, {})
@@ -189,30 +196,41 @@ class HdpService:
 
                 last_edit = last_edits.get(username, unknown)
             else:
-                logger.warning(f"Username not found for {row['full_title']}")
+                logger.warning("Username not found for %s", row.full_title)
 
+            wikitext = app_texts.get(row.full_title, "")
             # Extract country from application page wikitext
-            app_wikitext = app_texts.get(row["full_title"], "")
-            country = extract_country(app_wikitext) if app_wikitext else ""
+            if wikitext:
+                row.apply_country(wikitext)
 
-            row_data = {
+            # to be moved into UserInfo
+            userinfo = {
                 "age": age,
-                "page_link": f"[[{row['full_title']}]]",
-                "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}",
-                "full_title": row["full_title"],
                 "user_link": user_link,
-                "country": country,
+                "home_wiki": home_wiki,
+                "registration": home_data.get("registration", ""),
+                "global_editcount":editcounts.get(username),
+                "recent_editcount":recent.get(username),
+                "last_edit":last_edits.get(username),
                 "editcount_str": editcount_str,
                 "global_without_wikidata_str": global_without_wikidata_str,
                 "wikidata_editcount_str": wikidata_editcount_str,
-                "home_wiki": home_wiki,
                 "recent_editcount_str": recent_editcount_str,
             }
 
             if load_last_edits:
-                row_data["last_edit"] = last_edit
+                userinfo["last_edit"] = last_edit
 
-            rows[row["full_title"]] = row_data
+            # to be moved into ApplicationRow
+            row_data = {
+                "page_link": f"[[{row['full_title']}]]",
+                "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}",
+                "full_title": row["full_title"],
+            }
+
+            row_data.update(userinfo)
+
+            rows[row.full_title] = row
 
         return rows
 
@@ -292,7 +310,7 @@ class HdpService:
 
         updater = WikiTableDataUpdater()
         return updater.update_wikitable_data(
-            rows=rows,
+            rows=row_dicts,
             wikitext=full_wikitext,
             table_headers_to_row_key=header_map,
             replace_values=False,
