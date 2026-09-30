@@ -1,0 +1,73 @@
+"""
+Section lookup and subpage-link extraction from wikitext.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any, Optional
+
+import wikitextparser as wtp
+
+logger = logging.getLogger(__name__)
+
+
+class LinkExtractor:
+    """Extract sections and subpage wikilinks from MediaWiki wikitext."""
+
+    def get_section(
+        self,
+        wikitext: str,
+        heading: str,
+    ) -> Optional[Any]:
+        """
+        Return the first section whose title matches ``heading`` exactly
+        (after stripping), or ``None``.
+        """
+        parsed = wtp.parse(wikitext)
+        for section in parsed.get_sections(include_subsections=True):
+            if section.title and section.title.strip() == heading:
+                return section
+        logger.warning("Section %r not found", heading)
+        return None
+
+    def extract_subpages(
+        self,
+        base_page: str,
+        section: Any,
+    ) -> list[str]:
+        """
+        Collect unique subpage names linked as ``BasePage/Sub`` inside
+        ``section`` (a wikitextparser Section or any object with ``.wikilinks``).
+        """
+        prefix = base_page + "/"
+        seen: list[str] = []
+        for link in getattr(section, "wikilinks", []) or []:
+            title = (link.title or "").strip().replace("_", " ")
+            if title.startswith(prefix):
+                name = title[len(prefix) :]
+                if name and name not in seen:
+                    seen.append(name)
+        return seen
+
+
+# ---------------------------------------------------------------------------
+# Module-level helpers (same signatures as the old wtp_links API)
+# ---------------------------------------------------------------------------
+
+_default = LinkExtractor()
+
+
+def get_section_by_heading(wikitext: str, heading: str):
+    return _default.get_section(wikitext, heading)
+
+
+def extract_subpage_links(base_page: str, section: Any) -> list[str]:
+    return _default.extract_subpages(base_page, section)
+
+
+__all__ = [
+    "LinkExtractor",
+    "get_section_by_heading",
+    "extract_subpage_links",
+]

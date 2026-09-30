@@ -1,5 +1,17 @@
-"""Wikitext parsing helpers (links, tables)."""
+"""Wikitext parsing: links, sections, and tables."""
 
-# Populated in a later phase; optional imports are guarded in services.py.
+from .links import LinkExtractor, extract_subpage_links, get_section_by_heading
+from .tables import (
+    WikiTableColumnManager,
+    WikiTableDataUpdater,
+    update_wikitable_data,
+)
 
-__all__: list[str] = []
+__all__ = [
+    "LinkExtractor",
+    "get_section_by_heading",
+    "extract_subpage_links",
+    "WikiTableColumnManager",
+    "WikiTableDataUpdater",
+    "update_wikitable_data",
+]
