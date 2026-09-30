@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Optional
+from typing import Any
 
 import wikitextparser as wtp
 from wikitextparser._cell import Cell
@@ -154,7 +154,7 @@ class WikiTableDataUpdater:
     Update wikitext table cells from a ``{page_title: row_data}`` mapping.
     """
 
-    def __init__(self, manager: Optional[WikiTableColumnManager] = None) -> None:
+    def __init__(self, manager: WikiTableColumnManager | None = None) -> None:
         self.manager = manager or WikiTableColumnManager()
 
     def update_table(

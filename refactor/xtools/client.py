@@ -7,8 +7,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Optional
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 import requests
 from tqdm import tqdm
@@ -59,7 +58,7 @@ class XToolsClient:
         base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{encoded}/all/{start}/{end}"
 
         total_by_day: dict[str, int] = {}
-        offset: Optional[str] = None
+        offset: str | None = None
         delay = 0.5
         max_delay = 8.0
         max_pages = 50
@@ -109,7 +108,7 @@ class XToolsClient:
 
         return total_by_day
 
-    def recent_editcount(self, username: str, start: str, end: str) -> Optional[int]:
+    def recent_editcount(self, username: str, start: str, end: str) -> int | None:
         """Sum of per-day counts, or ``None`` when no data was returned."""
         by_day = self.recent_editcount_by_day(username, start, end)
         if not by_day:
@@ -135,7 +134,7 @@ class XToolsClient:
     # Last edit
     # ------------------------------------------------------------------
 
-    def last_edit_timestamp(self, username: str) -> Optional[str]:
+    def last_edit_timestamp(self, username: str) -> str | None:
         """Most recent global contribution date (``Y-m-d``), or ``None``."""
         encoded = quote(username)
         url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{encoded}/all"

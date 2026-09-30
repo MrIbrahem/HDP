@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Optional
 
 import mwclient.errors
 from mwclient.client import Site
@@ -51,9 +50,9 @@ class CategoryService:
         self,
         category_name: str,
         *,
-        namespace: Optional[int] = None,
-        total_pages: Optional[int] = None,
-        max_items: Optional[int] = None,
+        namespace: int | None = None,
+        total_pages: int | None = None,
+        max_items: int | None = None,
     ) -> list[str]:
         """
         Paginate ``list=categorymembers`` and return all member titles.
@@ -86,7 +85,7 @@ class CategoryService:
                 params["cmnamespace"] = str(namespace)
 
         all_titles: list[str] = []
-        cmcontinue: Optional[str] = None
+        cmcontinue: str | None = None
         first = True
         delay = 0.1
         max_delay = 8.0

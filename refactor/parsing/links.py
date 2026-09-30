@@ -5,7 +5,7 @@ Section lookup and subpage-link extraction from wikitext.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import wikitextparser as wtp
 
@@ -19,7 +19,7 @@ class LinkExtractor:
         self,
         wikitext: str,
         heading: str,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """
         Return the first section whose title matches ``heading`` exactly
         (after stripping), or ``None``.

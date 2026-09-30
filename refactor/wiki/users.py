@@ -5,7 +5,7 @@ Username normalisation and redirect resolution.
 from __future__ import annotations
 
 import logging
-from typing import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 from .client import WikiClient
 
