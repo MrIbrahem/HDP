@@ -11,9 +11,8 @@ import logging
 from collections.abc import Sequence
 
 from ..cache import HomeWikiCache, RecentEditCache
-from ..config import Settings
+from ..config import Settings, TABLE_HEADERS_TO_ROW_KEY
 from ..models import (
-    TABLE_HEADERS_TO_ROW_KEY,
     ApplicationRow,
     UserInfo,
 )
@@ -241,7 +240,7 @@ class HdpService:
 
         header_map = dict(TABLE_HEADERS_TO_ROW_KEY)
         if not load_last_edits:
-            header_map.pop("Last edit", None)
+            header_map.pop("Last edited to application", None)
 
         # Convert rows to the dict shape the table updater expects
         row_dicts = {title: row.to_table_dict() for title, row in rows.items()}

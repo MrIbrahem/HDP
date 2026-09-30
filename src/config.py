@@ -12,6 +12,23 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # ---------------------------------------------------------------------------
+# Header ↔ row-key mapping used when updating existing wikitables
+# ---------------------------------------------------------------------------
+
+TABLE_HEADERS_TO_ROW_KEY: dict[str, str] = {
+    "Page": "page_link",
+    "Last edited to application": "last_update",
+    "User": "user_link",
+    "Country": "country",
+    # "Global edits": "editcount_str",
+    "Global edits without wikidata": "global_without_wikidata_str",
+    "Wikidata edits": "wikidata_editcount_str",
+    "Edits in last 3 months": "recent_editcount_str",
+    "Age of account": "age",
+    "Home Wiki": "home_wiki",
+}
+
+# ---------------------------------------------------------------------------
 # Constants (rarely overridden)
 # ---------------------------------------------------------------------------
 
@@ -157,3 +174,10 @@ class Credentials:
         if not username or not password:
             return None
         return cls(username=username, password=password)
+
+__all__ = [
+    "Credentials",
+    "Settings",
+    "TABLE_HEADERS_TO_ROW_KEY",
+    "DEFAULT_USERS_REDIRECTS",
+]
