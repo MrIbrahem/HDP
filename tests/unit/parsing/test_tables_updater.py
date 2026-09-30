@@ -1,6 +1,14 @@
+# ruff: noqa: F401
+"""
+Unit tests for src/parsing/tables_updater.py module.
+
+Classes to test: WikiTableDataUpdater
+"""
+
 import pytest
 
 from src.parsing.tables_updater import (
+    WikiTableDataUpdater,
     update_wikitable_data,
 )
 

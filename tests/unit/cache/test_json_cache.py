@@ -1,3 +1,8 @@
+"""
+Unit tests for src/cache/json_cache.py module.
+
+Classes to test: JsonCache
+"""
 import os
 
 from src.cache.json_cache import JsonCache

@@ -1,9 +1,16 @@
-""" """
+"""
+Unit tests for src/xtools/client.py module.
+
+Classes to test: XToolsClient
+
+TODO: write tests
+"""
 
 import pytest
 
-from src.xtools.client import XToolsClient
-
+from src.xtools.client import (
+    XToolsClient,
+)
 
 @pytest.mark.network
 def test_get_recent_editcount() -> None:

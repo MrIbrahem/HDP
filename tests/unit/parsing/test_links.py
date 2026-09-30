@@ -1,5 +1,17 @@
-from src.parsing.links import extract_subpage_links, get_section_by_heading
+# ruff: noqa: F401
+"""
+Unit tests for src/parsing/links.py module.
 
+Classes to test: LinkExtractor
+
+TODO: write tests
+"""
+
+from src.parsing.links import (
+    LinkExtractor,
+    get_section_by_heading,
+    extract_subpage_links,
+)
 
 def test_get_section_by_heading():
     wikitext = "== Section 1 ==\nBody 1\n== Section 2 ==\nBody 2"
