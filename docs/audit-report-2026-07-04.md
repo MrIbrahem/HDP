@@ -41,14 +41,14 @@
 
 Ordered by leverage (impact ÷ effort, discounted by confidence and fix-risk).
 
-### [CORRECTNESS-01] `python -m update` passes a category string as a section title — produces an empty subpage list and a silent no-op update of the live HDP page
+### [CORRECTNESS-01] `python update.py` passes a category string as a section title — produces an empty subpage list and a silent no-op update of the live HDP page
 
 -   **Evidence**:
     -   `update.py:40` — passes `section_name="Category:Hardware donation program open requests"` into `v3.update(...)`.
     -   `src/v3.py:258-261` — `if section_name:` branch calls `get_subpages_for_section(site, full_wikitext, BASE_PAGE, section_title=section_name)`.
     -   `src/load_subpages.py:18` — `SECTIONS_TO_CATEGORY = {"Draft requests": "Category:Hardware donation program drafts"}`. The passed string is NOT a key here.
     -   `src/load_subpages.py:29-45` — `category_name = SECTIONS_TO_CATEGORY.get(section_title)` returns `None`, so control falls to the `else` branch, which calls `get_section_by_heading(full_wikitext, "Category:Hardware donation program open requests")`. No heading has that title on the live HDP page, so the function logs a warning and returns `[]`.
--   **Impact**: The documented live-update entrypoint (`python -m update`) silently fetches zero subpages, builds empty `rows`, and writes back the original wikitext (the table is left untouched because no row keys match). The operator believes the page was updated; in reality nothing happened. AGENTS.md itself describes `update` as "updates User:Mr. Ibrahem/hdp page (live wikitext in-place update)" — i.e. it is expected to work and is broken in its current call shape.
+-   **Impact**: The documented live-update entrypoint (`python update.py`) silently fetches zero subpages, builds empty `rows`, and writes back the original wikitext (the table is left untouched because no row keys match). The operator believes the page was updated; in reality nothing happened. AGENTS.md itself describes `update` as "updates User:Mr. Ibrahem/hdp page (live wikitext in-place update)" — i.e. it is expected to work and is broken in its current call shape.
 -   **Effort**: S.
 -   **Risk**: MED. The fix is small, but the correct shape depends on how the live `User:Mr. Ibrahem/hdp` page is actually structured (does it contain a section titled `"Open requests"`? or is the intent to feed a _category_ name through a category-mapping branch that doesn't exist?). Two viable fix shapes; needs maintainer confirmation (see Direction #1).
 -   **Confidence**: MED (high that the current path is broken; MED on the intended contract, since the page may have been hand-edited to include such a heading historically).

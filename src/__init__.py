@@ -1,34 +1,30 @@
-import logging
-import sys
+"""
+Hardware Donation Program (HDP) tools.
 
-import colorlog
+Package layout::
 
+    hdp/
+    ├── config.py          # Settings, Credentials
+    ├── models.py          # UserInfo, ApplicationRow
+    ├── cache.py           # HomeWikiCache, RecentEditCache
+    ├── services.py        # HdpService
+    ├── logging_setup.py
+    ├── cli.py / __main__.py
+    ├── wiki/              # WikiClient, CategoryService, UserResolver
+    ├── xtools/            # XToolsClient
+    └── parsing/           # LinkExtractor, table managers
+"""
 
-def setup_logging(
-    level: str | int = "WARNING",
-    name: str = "src",
-) -> None:
-    """
-    Configure logging for the entire project namespace only.
-    """
-    project_logger = logging.getLogger(name)
-    numeric_level = getattr(logging, level.upper(), logging.INFO) if isinstance(level, str) else level
-    project_logger.setLevel(numeric_level)
-    project_logger.propagate = False
+from .config import Credentials, Settings
+from .logging_setup import setup_logging
+from .models import ApplicationRow, UserInfo
+from .services import HdpService
 
-    # Prevent duplicate handlers
-    if any(isinstance(h, logging.StreamHandler) for h in project_logger.handlers):
-        project_logger.debug("Logging already configured for '%s'", name)
-        return
-
-    console_formatter = colorlog.ColoredFormatter(
-        fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(funcName)s:%(lineno)d] - %(message)s",
-        datefmt="%H:%M:%S",
-    )
-
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(console_formatter)
-    console_handler.setLevel(numeric_level)
-    project_logger.addHandler(console_handler)
-
-    project_logger.debug("Setting up logging for '%s' with level '%s'", name, level)
+__all__ = [
+    "setup_logging",
+    "Settings",
+    "Credentials",
+    "UserInfo",
+    "ApplicationRow",
+    "HdpService",
+]
