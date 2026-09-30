@@ -16,7 +16,7 @@ Run this every few months (e.g. via cron) to keep the table current.
 import logging
 
 from ..config import BASE_PAGE, load_credentials
-from ..load_subpages import get_subpages_for_section
+from ..services.subpages_service import _subpages_for_section
 from ..services.tables_builder import build_wikitable
 from ..wiki.client import WikiClient
 from .worker import load_rows
@@ -60,7 +60,7 @@ def main(
 
     if section_names:
         for section_title in section_names:
-            subpages = get_subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
+            subpages = _subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
 
             logger.info(f"Total subpages collected: {len(subpages)}")
 

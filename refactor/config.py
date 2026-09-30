@@ -46,8 +46,24 @@ DEFAULT_SECTION_NAMES: list[str] = [
 DEFAULT_USERS_REDIRECTS: dict[str, str] = {
     # Add known renames here, e.g.:
     # "oldname": "NewName",
+    "vinoda mamatharai": "Vinoda mamatharai",
+    "cbrescia": "Felino Volador",
+    "abubakar a gwanki": "Gwanki",
+    "jaluj i": "Jaluj",
+    "the living love": "Em-mustapha",
+    "wiki ruhan": "Ruhan",
+    "sardeeq": "Sardeeq",
+    "muddyb 2": "Muddyb",
+    "muralikrishna m": "Muralikrishna m",
+    "brazal.dang": "Ballardmaize",
+    "babulbaishya": "BabulB",
+    "micheal kaluba": "MichealKal",
+    "mp1999": "TypeInfo",
+    "eugene233 2": "Eugene233",
+    "premchand murmu thakur": "Nacharhopon",
+    "учитель": "Валентина Кодола",
+    "bhupendra shrestha": "श्रेष्ठ भूपेन्द्र",
 }
-
 
 # ---------------------------------------------------------------------------
 # Settings

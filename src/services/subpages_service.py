@@ -9,22 +9,18 @@ from typing import Any
 
 import wikitextparser as wtp
 
-from .parsing import (
+from ..config import SECTION_TO_CATEGORY
+from ..parsing import (
     extract_subpage_links,
     get_section_by_heading,
 )
-from .wiki.category import get_category_count, get_category_members_titles
+from ..wiki.category import get_category_count, get_category_members_titles
 
-SECTIONS_TO_CATEGORY = {
-    "Draft requests": "Category:Hardware donation program drafts",
-    "Open requests": "Category:Hardware donation program open requests",
-    "Approved requests not yet delivered": "Category:Hardware donation program approved requests",
-}
 
 logger = logging.getLogger(__name__)
 
 
-def get_subpages_from_category(
+def _subpages_from_category(
     site: Any,
     category_name: str,
     base_page: str,
@@ -45,7 +41,7 @@ def get_subpages_from_category(
     return subpages
 
 
-def get_subpages_for_section(
+def _subpages_for_section(
     site: Any,
     full_wikitext: str,
     base_page: str,
@@ -53,11 +49,11 @@ def get_subpages_for_section(
 ) -> list[str]:
     # If the caller passed a full category name, use it directly
     if section_title.startswith("Category:"):
-        return get_subpages_from_category(site, section_title, base_page)
+        return _subpages_from_category(site, section_title, base_page)
 
-    category_name = SECTIONS_TO_CATEGORY.get(section_title)
+    category_name = SECTION_TO_CATEGORY.get(section_title)
     if category_name:
-        subpages = get_subpages_from_category(site, category_name, base_page)
+        subpages = _subpages_from_category(site, category_name, base_page)
     else:
         section = get_section_by_heading(full_wikitext, section_title)
         if section is None:
@@ -81,7 +77,6 @@ def get_subpages(
 
 
 __all__ = [
-    "get_subpages_for_section",
-    "get_subpages_from_category",
+    "_subpages_for_section",
     "get_subpages",
 ]

@@ -8,6 +8,12 @@ build enriched rows, generate or update wikitables.
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
+from typing import Any
+
+from ..config import DEFAULT_USERS_REDIRECTS
+from ..cache.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
+from ..models.application_row import calculate_age, extract_country
 
 from ..cache import HomeWikiCache, RecentEditCache
 from ..config import Settings
@@ -20,8 +26,9 @@ from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
 from .tables_builder import build_wikitable
 
-logger = logging.getLogger(__name__)
+from .subpages_service import SubPages
 
+logger = logging.getLogger(__name__)
 
 class HdpService:
     """
@@ -33,7 +40,7 @@ class HdpService:
     def __init__(
         self,
         wiki: WikiClient,
-        settings: Settings,
+        settings: Settings | None = None,
         *,
         category: CategoryService | None = None,
         users: UserResolver | None = None,
@@ -42,7 +49,7 @@ class HdpService:
         xtools: XToolsClient | None = None,
     ):
         self.wiki = wiki
-        self.settings = settings
+        self.settings = settings or Settings.from_env()
         self.category = category or CategoryService(wiki.site)
         self.users = users or UserResolver(wiki, settings.users_redirects)
         self.xtools = xtools or XToolsClient(user_agent=settings.user_agent)
@@ -52,6 +59,7 @@ class HdpService:
             self.xtools,
             recent_days=settings.recent_days,
         )
+        self.subpages = SubPages(wiki, settings, category=self.category)
 
     # ------------------------------------------------------------------
     # Factory
@@ -67,30 +75,32 @@ class HdpService:
         return cls(wiki=wiki, settings=settings)
 
     # ------------------------------------------------------------------
-    # Subpage discovery
-    # ------------------------------------------------------------------
-
-    # ------------------------------------------------------------------
     # Row building
     # ------------------------------------------------------------------
 
     def load_rows(
         self,
-        api: WikiClient,
-        subpages: set[str],
-        unknown_placeholder: str = "unknown",
+        subpages: set[str] | Sequence[str],
+        *,
         load_recent_editcounts: bool = True,
         load_last_edits: bool = False,
-        base_page: str = BASE_PAGE,
+        unknown: str = "unknown",
     ) -> dict[str, Any]:
+        """
+        Build an enriched ``ApplicationRow`` for every application subpage.
 
+        Steps mirror the former ``worker.load_rows`` pipeline.
+        """
+        base = self.settings.base_page
+
+        # 1. Initial rows + username normalisation
         data: list[dict[str, str]] = []
 
         for sub in subpages:
             sub = sub.replace("_", " ")
-            full_title = f"{base_page}/{sub}"
+            full_title = f"{base}/{sub}"
             user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = users_redirects.get(user_name.lower()) or user_name
+            username = DEFAULT_USERS_REDIRECTS.get(user_name.lower()) or user_name
 
             # first letter upper (guard against empty username)
             if username:
@@ -104,49 +114,54 @@ class HdpService:
                 }
             )
 
-        new_data = solve_users_redirects(api, data)
+        draft = solve_users_redirects(api, data)
 
-        users = [x["username"] for x in new_data if x["username"]]
+        users = [x["username"] for x in draft if x["username"]]
 
+        # 3. Application wikitext (country)
         # Batch-fetch application page wikitexts to extract country
-        application_titles = [x["full_title"] for x in new_data]
-        application_wikitexts = api.get_pages_wikitext(application_titles)
-        logger.info(f"Fetched wikitext for {len(application_wikitexts)} application pages")
+        titles = [r["full_title"] for r in draft]
+        app_texts = self.wiki.get_pages_wikitext(titles)
+        logger.info("Fetched wikitext for %s application pages", len(app_texts))
 
-        editcounts = api.get_global_editcounts(users)
-        logger.info(f"Loaded {len(editcounts)} editcounts for {len(users)} users")
+        # 4. Global edit counts
+        editcounts = self.wiki.get_global_editcounts(users)
+        logger.info("Loaded %s global edit counts", len(editcounts))
 
-        wikidata_editcounts = api.get_wikidata_editcounts(users)
+        wikidata_editcounts = self.wiki.get_wikidata_editcounts(users)
         logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
 
-        recent_editcounts = {}
+        recent = {}
 
-        if not load_recent_editcounts:
-            recent_editcounts = get_recent_editcounts_offline(users, set_zero=True)
-            logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
+        # 5. Recent edit counts
+        if load_recent_editcounts:
+            recent = get_recent_editcounts_cached(users, set_zero=True)
         else:
-            recent_editcounts = get_recent_editcounts_cached(users, set_zero=True)
-            logger.info(f"Loaded {len(recent_editcounts)} recent editcounts for {len(users)} users")
+            recent = get_recent_editcounts_offline(users, set_zero=True)
+        logger.info("Loaded %s recent edit counts", len(recent))
 
-        home_wikis = get_many(api, users)
-        logger.info(f"Loaded {len(home_wikis)} home wikis and registration for {len(users)} users")
+        # 6. Home wiki + registration
+        home_wikis = self.home_cache.get_many(users)
+        logger.info("Loaded %s home-wiki records", len(home_wikis))
 
-        last_edits = {}
+        # 7. Optional last-edit timestamps
+        last_edits: dict[str, str] = {}
         if load_last_edits:
             last_edits = self.xtools.last_edit_timestamps(users)
 
-        logger.info(f"Loaded {len(last_edits)} last-edit timestamps for {len(users)} users")
+            logger.info("Loaded %s last-edit timestamps", len(last_edits))
 
+        # 8. Assemble
         rows = {}
-        for sub in new_data:
-            editcount_str = unknown_placeholder
-            global_without_wikidata_str = unknown_placeholder
-            wikidata_editcount_str = unknown_placeholder
+        for sub in draft:
+            editcount_str = unknown
+            global_without_wikidata_str = unknown
+            wikidata_editcount_str = unknown
             age = ""
-            user_link = unknown_placeholder
-            home_wiki = unknown_placeholder
-            recent_editcount_str = unknown_placeholder
-            last_edit = unknown_placeholder
+            user_link = unknown
+            home_wiki = unknown
+            recent_editcount_str = unknown
+            last_edit = unknown
 
             username = sub["username"]
 
@@ -157,7 +172,7 @@ class HdpService:
                 if not home_data or not home_data.get("home"):
                     logger.warning(f"Home data not found for {username}")
 
-                home_wiki = home_data.get("home", unknown_placeholder)
+                home_wiki = home_data.get("home", unknown)
                 registration = home_data.get("registration", "")
                 if registration:
                     age = calculate_age(registration)
@@ -173,16 +188,16 @@ class HdpService:
                     global_without_wikidata_str = f"{without_wikidata:,}"
                     wikidata_editcount_str = f"{wikidata_count:,}"
 
-                recent_editcount = recent_editcounts.get(username)
+                recent_editcount = recent.get(username)
                 if recent_editcount is not None:
                     recent_editcount_str = f"{recent_editcount:,}"
 
-                last_edit = last_edits.get(username, unknown_placeholder)
+                last_edit = last_edits.get(username, unknown)
             else:
                 logger.warning(f"Username not found for {sub['full_title']}")
 
             # Extract country from application page wikitext
-            app_wikitext = application_wikitexts.get(sub["full_title"], "")
+            app_wikitext = app_texts.get(sub["full_title"], "")
             country = extract_country(app_wikitext) if app_wikitext else ""
 
             row_data = {

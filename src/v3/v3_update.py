@@ -15,8 +15,9 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 import logging
 
+from ..models import TABLE_HEADERS_TO_ROW_KEY
 from ..config import BASE_PAGE, load_credentials
-from ..load_subpages import get_subpages, get_subpages_for_section
+from ..services.subpages_service import get_subpages, _subpages_for_section
 from ..parsing import update_wikitable_data
 from ..wiki.client import WikiClient
 from .worker import load_rows
@@ -67,7 +68,7 @@ def update(
 
     if section_names:
         for section_title in section_names:
-            _subpages = get_subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
+            _subpages = _subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
             for sp in _subpages:
                 all_subpages.add(sp)
 
@@ -86,26 +87,13 @@ def update(
         base_page=BASE_PAGE,
     )
 
-    table_headers_to_row_key = {
-        "Page": "page_link",
-        "Last edited to application": "last_update",
-        "User": "user_link",
-        "Country": "country",
-        # "Global edits": "editcount_str",
-        "Global edits without wikidata": "global_without_wikidata_str",
-        "Wikidata edits": "wikidata_editcount_str",
-        "Edits in last 3 months": "recent_editcount_str",
-        "Age of account": "age",
-        "Home Wiki": "home_wiki",
-    }
-
     if load_last_edits:
-        table_headers_to_row_key["Last edit"] = "last_edit"
+        TABLE_HEADERS_TO_ROW_KEY["Last edit"] = "last_edit"
 
     page_updated_text = update_wikitable_data(
         rows,
         full_wikitext,
-        table_headers_to_row_key,
+        TABLE_HEADERS_TO_ROW_KEY,
         replace_values=False,
     )
     return page_updated_text

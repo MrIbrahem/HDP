@@ -21,10 +21,12 @@ from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
+from ..parsing import WikiTableDataUpdater
 from .tables_builder import build_wikitable
 
-logger = logging.getLogger(__name__)
+from .subpages_service import SubPages
 
+logger = logging.getLogger(__name__)
 
 class HdpService:
     """
@@ -55,6 +57,7 @@ class HdpService:
             self.xtools,
             recent_days=settings.recent_days,
         )
+        self.subpages = SubPages(wiki, settings, category=self.category)
 
     # ------------------------------------------------------------------
     # Factory
@@ -68,85 +71,6 @@ class HdpService:
         if wiki is None:
             return None
         return cls(wiki=wiki, settings=settings)
-
-    # ------------------------------------------------------------------
-    # Subpage discovery
-    # ------------------------------------------------------------------
-
-    def discover_subpages(
-        self,
-        page_title: str,
-        section_names: Sequence[str],
-    ) -> set[str]:
-        """
-        Collect application subpage names for the given sections / categories.
-
-        Section names that start with ``Category:`` (or appear in
-        ``settings.section_to_category``) are resolved via the category API;
-        otherwise the page wikitext is parsed for links under that heading.
-        """
-        full_wikitext = self.wiki.get_page_wikitext(page_title)
-        found: set[str] = set()
-
-        for section_title in section_names:
-            for sub in self._subpages_for_section(full_wikitext, section_title):
-                found.add(sub)
-
-        if not found:
-            # Fallback: every subpage link on the page
-            found = self._all_subpage_links(full_wikitext)
-
-        logger.info("Total subpages collected: %s", len(found))
-        return found
-
-    def _subpages_for_section(self, full_wikitext: str, section_title: str) -> list[str]:
-        base = self.settings.base_page
-
-        # Direct category name
-        if section_title.startswith("Category:"):
-            return self._subpages_from_category(section_title)
-
-        # Mapped section → category
-        category_name = self.settings.section_to_category.get(section_title)
-        if category_name:
-            return self._subpages_from_category(category_name)
-
-        # Parse section body for wikilinks (requires parsing module)
-        try:
-            from ..parsing.links import LinkExtractor
-
-            extractor = LinkExtractor()
-            section = extractor.get_section(full_wikitext, section_title)
-            if section is None:
-                logger.warning("Section %r not found", section_title)
-                return []
-            return extractor.extract_subpages(base, section)
-        except ImportError:
-            logger.warning(
-                "parsing.links not available; cannot parse section %r",
-                section_title,
-            )
-            return []
-
-    def _subpages_from_category(self, category_name: str) -> list[str]:
-        base = self.settings.base_page
-        total = self.category.count(category_name)
-        members = self.category.member_titles(category_name, namespace=0, total_pages=total)
-        prefix = f"{base}/"
-        subpages = [m[len(prefix) :] for m in members if m.startswith(prefix)]
-        logger.debug("Category %r → %s subpages", category_name, len(subpages))
-        return subpages
-
-    def _all_subpage_links(self, full_wikitext: str) -> set[str]:
-        try:
-            import wikitextparser as wtp
-
-            from ..parsing.links import LinkExtractor
-
-            parsed = wtp.parse(full_wikitext)
-            return set(LinkExtractor().extract_subpages(self.settings.base_page, parsed))
-        except ImportError:
-            return set()
 
     # ------------------------------------------------------------------
     # Row building
@@ -186,6 +110,7 @@ class HdpService:
         users = [r.username for r in draft if r.username]
 
         # 3. Application wikitext (country)
+        # Batch-fetch application page wikitexts to extract country
         titles = [r.full_title for r in draft]
         app_texts = self.wiki.get_pages_wikitext(titles)
         logger.info("Fetched wikitext for %s application pages", len(app_texts))
@@ -202,13 +127,14 @@ class HdpService:
         logger.info("Loaded %s recent edit counts", len(recent))
 
         # 6. Home wiki + registration
-        home = self.home_cache.get_many(users)
-        logger.info("Loaded %s home-wiki records", len(home))
+        home_wikis = self.home_cache.get_many(users)
+        logger.info("Loaded %s home-wiki records", len(home_wikis))
 
         # 7. Optional last-edit timestamps
         last_edits: dict[str, str] = {}
         if load_last_edits:
             last_edits = self.xtools.last_edit_timestamps(users)
+
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
 
         # 8. Assemble
@@ -216,7 +142,7 @@ class HdpService:
         for row in draft:
             username = row.username
             if username:
-                info = home.get(username) or UserInfo(username=username)
+                info = home_wikis.get(username) or UserInfo(username=username)
                 info = info.with_editcounts(
                     global_editcount=editcounts.get(username),
                     recent_editcount=recent.get(username),
@@ -265,7 +191,7 @@ class HdpService:
         full_wikitext = self.wiki.get_page_wikitext(page_title)
 
         for section_title in section_names:
-            subpages = self._subpages_for_section(full_wikitext, section_title)
+            subpages = self.subpages._subpages_for_section(full_wikitext, section_title)
             logger.info("Section %r: %s subpages", section_title, len(subpages))
             rows = self.load_rows(
                 subpages,
@@ -292,7 +218,7 @@ class HdpService:
 
         Returns the full updated page wikitext.
         """
-        subpages = self.discover_subpages(page_title, section_names)
+        subpages = self.subpages.discover_subpages(page_title, section_names)
         rows = self.load_rows(
             subpages,
             load_recent_editcounts=load_recent_editcounts,
@@ -309,19 +235,14 @@ class HdpService:
 
         full_wikitext = self.wiki.get_page_wikitext(page_title)
 
-        try:
-            from ..parsing.tables import WikiTableDataUpdater
 
-            updater = WikiTableDataUpdater()
-            return updater.update_wikitable_data(
-                rows=row_dicts,
-                wikitext=full_wikitext,
-                table_headers_to_row_key=header_map,
-                replace_values=False,
-            )
-        except ImportError:
-            logger.error("parsing.tables not available; returning original wikitext unchanged")
-            return full_wikitext
+        updater = WikiTableDataUpdater()
+        return updater.update_wikitable_data(
+            rows=row_dicts,
+            wikitext=full_wikitext,
+            table_headers_to_row_key=header_map,
+            replace_values=False,
+        )
 
 
 __all__ = ["HdpService"]

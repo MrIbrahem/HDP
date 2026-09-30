@@ -11,8 +11,8 @@ import logging
 from pathlib import Path
 
 from .config import BASE_PAGE, load_credentials
-from .load_subpages import get_subpages_for_section
-from .utils import users_redirects
+from .services.subpages_service import _subpages_for_section
+from .config import DEFAULT_USERS_REDIRECTS
 from .wiki.client import WikiClient
 
 OUTPUT_FILE_TABLE = Path(__file__).parent.parent / "data/table.wiki"
@@ -60,14 +60,14 @@ def main(section_names: list[str]) -> None:
     full_text_table = ""
 
     for section_title in section_names:
-        subpages = get_subpages_for_section(api.site, full_wikitext, BASE_PAGE, section_title)
+        subpages = _subpages_for_section(api.site, full_wikitext, BASE_PAGE, section_title)
 
         data = []
 
         for sub in subpages:
             full_title = f"{BASE_PAGE}/{sub}"
             user_name = sub.replace("(2nd Application)", "").split("/")[0].strip()
-            username = users_redirects.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
+            username = DEFAULT_USERS_REDIRECTS.get(user_name.lower()) or user_name  # api.get_page_creator(full_title)
             # first letter upper (guard against empty username)
             if username:
                 username = username[0].upper() + username[1:]
