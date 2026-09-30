@@ -15,6 +15,7 @@ def build_wikitable(rows: Mapping[str, Mapping[str, str]], add_last_edit: bool =
         "! Last edited to application",
         "! User ",
         "! Country",
+        # "! Global edits",
         "! Global edits without wikidata",
         "! Wikidata edits",
         "! Edits in last 3 months",
@@ -35,6 +36,7 @@ def build_wikitable(rows: Mapping[str, Mapping[str, str]], add_last_edit: bool =
         lines.append(f"| {row['last_update']}")
         lines.append(f"| {row['user_link']}")
         lines.append(f"| {row.get('country', '')}")
+        # lines.append(f"| {row['editcount_str']}")
         lines.append(f"| {row['global_without_wikidata_str']}")
         lines.append(f"| {row['wikidata_editcount_str']}")
         lines.append(f"| {row['recent_editcount_str']}")
