@@ -123,7 +123,9 @@ class CategoryService:
                     # Update the progress bar by the number of items fetched in this batch
                     pbar.update(len(new_titles))
 
-                    logger.debug(f"Fetched category members: {len(members)} page, (total: {len(all_titles)}/{total_pages})")
+                    logger.debug(
+                        f"Fetched category members: {len(members)} page, (total: {len(all_titles)}/{total_pages})"
+                    )
 
                     if "continue" in data:
                         cmcontinue = data["continue"].get("cmcontinue")

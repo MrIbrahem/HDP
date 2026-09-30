@@ -15,10 +15,10 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 import logging
 
-from ..models import TABLE_HEADERS_TO_ROW_KEY
 from ..config import BASE_PAGE, load_credentials
-from ..services.subpages_service import get_subpages, _subpages_for_section
+from ..models import TABLE_HEADERS_TO_ROW_KEY
 from ..parsing import update_wikitable_data
+from ..services.subpages_service import _subpages_for_section, get_subpages
 from ..wiki.client import WikiClient
 from .worker import load_rows
 

@@ -390,6 +390,7 @@ class WikiClient:
         logger.info("Resolved %s redirects", len(result))
         return result
 
+
 __all__ = [
     "WikiClient",
 ]

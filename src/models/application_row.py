@@ -14,6 +14,7 @@ from .user_info import UserInfo
 # Pure helpers used by the models
 # ---------------------------------------------------------------------------
 
+
 def extract_country(wikitext: str) -> str:
     """
     Extract the applicant country from an HDP application page.
@@ -177,7 +178,6 @@ class ApplicationRow:
             "username": self.username,
             **self.to_table_dict(),
         }
-
 
 
 __all__ = [

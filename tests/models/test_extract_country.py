@@ -1,4 +1,4 @@
-from src.utils import extract_country
+from src.models.application_row import extract_country
 
 
 class TestExtractCountry:

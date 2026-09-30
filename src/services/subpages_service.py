@@ -1,5 +1,4 @@
-"""
-"""
+""" """
 
 from __future__ import annotations
 
@@ -14,7 +13,6 @@ from ..parsing import (
     get_section_by_heading,
 )
 from ..wiki.category import CategoryService
-
 
 logger = logging.getLogger(__name__)
 

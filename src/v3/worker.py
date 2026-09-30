@@ -3,14 +3,9 @@
 import logging
 from typing import Any
 
-from ..services.hdp_service import HdpService
-
-from ..cache.home_wiki_cache import get_many
-from ..cache.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from ..config import BASE_PAGE
-from ..models.application_row import calculate_age, extract_country
+from ..services.hdp_service import HdpService
 from ..wiki.client import WikiClient
-from ..xtools import get_last_edit_timestamps
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +53,8 @@ def load_rows(
         load_last_edits=load_last_edits,
         unknown=unknown_placeholder,
     )
+
+
 __all__ = [
     "load_rows",
 ]

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 
@@ -35,6 +35,7 @@ def calculate_age(registration: str) -> str:
 
         # Fallback template format in case of an error
         return registration
+
 
 # ---------------------------------------------------------------------------
 # UserInfo

@@ -364,7 +364,7 @@ class WikiClient:
                 min(i + batch_size, len(pages)),
             )
             params = {
-            # "action": "query",
+                # "action": "query",
                 "format": "json",
                 "prop": "redirects",
                 "titles": "|".join(group),
@@ -389,6 +389,7 @@ class WikiClient:
 
         logger.info("Resolved %s redirects", len(result))
         return result
+
 
 __all__ = [
     "WikiClient",

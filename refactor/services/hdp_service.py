@@ -17,16 +17,16 @@ from ..models import (
     ApplicationRow,
     UserInfo,
 )
+from ..parsing import WikiTableDataUpdater
 from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
-from ..parsing import WikiTableDataUpdater
+from .subpages_service import SubPages
 from .tables_builder import build_wikitable
 
-from .subpages_service import SubPages
-
 logger = logging.getLogger(__name__)
+
 
 class HdpService:
     """
@@ -234,7 +234,6 @@ class HdpService:
         row_dicts = {title: row.to_table_dict() for title, row in rows.items()}
 
         full_wikitext = self.wiki.get_page_wikitext(page_title)
-
 
         updater = WikiTableDataUpdater()
         return updater.update_wikitable_data(

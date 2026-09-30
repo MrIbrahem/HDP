@@ -10,9 +10,8 @@ and, for each linked subpage, prints:
 import logging
 from pathlib import Path
 
-from .config import BASE_PAGE, load_credentials
+from .config import BASE_PAGE, DEFAULT_USERS_REDIRECTS, load_credentials
 from .services.subpages_service import _subpages_for_section
-from .config import DEFAULT_USERS_REDIRECTS
 from .wiki.client import WikiClient
 
 OUTPUT_FILE_TABLE = Path(__file__).parent.parent / "data/table.wiki"

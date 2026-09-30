@@ -11,24 +11,22 @@ import logging
 from collections.abc import Sequence
 from typing import Any
 
-from ..config import DEFAULT_USERS_REDIRECTS
-from ..cache.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
-from ..models.application_row import calculate_age, extract_country
-
 from ..cache import HomeWikiCache, RecentEditCache
-from ..config import Settings
+from ..cache.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
+from ..config import DEFAULT_USERS_REDIRECTS, Settings
 from ..models import (
     ApplicationRow,
 )
+from ..models import calculate_age, extract_country
 from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
+from .subpages_service import SubPages
 from .tables_builder import build_wikitable
 
-from .subpages_service import SubPages
-
 logger = logging.getLogger(__name__)
+
 
 class HdpService:
     """
