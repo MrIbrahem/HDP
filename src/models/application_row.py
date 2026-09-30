@@ -89,7 +89,7 @@ class ApplicationRow:
             self.last_update = f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{self.full_title}}}}}}}}}"
 
     # ------------------------------------------------------------------
-    # Factory helpers
+    # Factory
     # ------------------------------------------------------------------
 
     @classmethod

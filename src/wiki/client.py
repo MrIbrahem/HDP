@@ -23,94 +23,12 @@ logger = logging.getLogger(__name__)
 METAWIKI_HOST: str = "meta.wikimedia.org"
 
 
-class WikiClient:
+class WikiClientLoader:
     """
-    Thin, injectable wrapper around a logged-in ``mwclient.Site``.
     """
 
     def __init__(self, site: Site) -> None:
         self._site = site
-
-    # ------------------------------------------------------------------
-    # Construction
-    # ------------------------------------------------------------------
-
-    @classmethod
-    def connect(
-        cls,
-        credentials: Credentials,
-        *,
-        user_agent: str = USER_AGENT,
-        host: str = METAWIKI_HOST,
-    ) -> WikiClient | None:
-        """
-        Log in to Meta Wiki and return a client, or ``None`` on failure.
-        """
-        try:
-            logger.info("Connecting to %s ...", host)
-            site = Site(host, clients_useragent=user_agent)
-
-            logger.info("Logging in as %s ...", credentials.username)
-            site.login(credentials.username, credentials.password)
-
-            logger.info("Successfully connected and logged in")
-            return cls(site)
-        except mwclient.errors.LoginError as err:
-            logger.error("Login failed: %s", err)
-            return None
-        except Exception as err:
-            logger.exception("Failed to connect to %s: %s", host, err)
-            return None
-
-    @classmethod
-    def connect_by_user(
-        cls,
-        username: str,
-        password: str,
-        *,
-        user_agent: str = USER_AGENT,
-        host: str = METAWIKI_HOST,
-    ) -> WikiClient | None:
-        return cls.connect(Credentials(username, password), user_agent=user_agent, host=host)
-
-    @classmethod
-    def load(
-        cls,
-        settings: Settings | None = None,
-        host: str = METAWIKI_HOST,
-    ) -> WikiClient | None:
-        """
-        Convenience: load credentials from env and connect.
-        """
-        credentials = Credentials.from_env()
-        if not credentials:
-            logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
-            return None
-
-        if not settings:
-            settings = Settings.from_env()
-
-        return cls.connect(
-            credentials=credentials,
-            user_agent=settings.user_agent,
-            host=host,
-        )
-
-    @classmethod
-    def from_settings(
-        cls,
-        settings: Settings,
-        host: str = METAWIKI_HOST,
-    ) -> WikiClient | None:
-        """Convenience: load credentials from env and connect."""
-        return cls.load(
-            settings=settings,
-            host=host,
-        )
-
-    @property
-    def site(self) -> Site:
-        return self._site
 
     # ------------------------------------------------------------------
     # Page content
@@ -417,6 +335,86 @@ class WikiClient:
         logger.info("Resolved %s redirects", len(result))
         return result
 
+
+
+class WikiClient(WikiClientLoader):
+    """
+    Thin, injectable wrapper around a logged-in ``mwclient.Site``.
+    """
+
+    def __init__(self, site: Site) -> None:
+        self._site = site
+        super().__init__(site)
+
+    @property
+    def site(self) -> Site:
+        return self._site
+
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def connect(
+        cls,
+        credentials: Credentials,
+        *,
+        user_agent: str = USER_AGENT,
+        host: str = METAWIKI_HOST,
+    ) -> WikiClient | None:
+        """
+        Log in to Meta Wiki and return a client, or ``None`` on failure.
+        """
+        try:
+            logger.info("Connecting to %s ...", host)
+            site = Site(host, clients_useragent=user_agent)
+
+            logger.info("Logging in as %s ...", credentials.username)
+            site.login(credentials.username, credentials.password)
+
+            logger.info("Successfully connected and logged in")
+            return cls(site)
+        except mwclient.errors.LoginError as err:
+            logger.error("Login failed: %s", err)
+            return None
+        except Exception as err:
+            logger.exception("Failed to connect to %s: %s", host, err)
+            return None
+
+    @classmethod
+    def load(
+        cls,
+        settings: Settings | None = None,
+        host: str = METAWIKI_HOST,
+    ) -> WikiClient | None:
+        """
+        Convenience: load credentials from env and connect.
+        """
+        credentials = Credentials.from_env()
+        if not credentials:
+            logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
+            return None
+
+        if not settings:
+            settings = Settings.from_env()
+
+        return cls.connect(
+            credentials=credentials,
+            user_agent=settings.user_agent,
+            host=host,
+        )
+
+    @classmethod
+    def from_settings(
+        cls,
+        settings: Settings,
+        host: str = METAWIKI_HOST,
+    ) -> WikiClient | None:
+        """Convenience: load credentials from env and connect."""
+        return cls.load(
+            settings=settings,
+            host=host,
+        )
 
     def get_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
         """Fetches edit counts on Wikidata (www.wikidata.org) for a list of users.

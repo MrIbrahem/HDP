@@ -95,6 +95,10 @@ class Settings:
     def users_redirects_path(self) -> Path:
         return self.cache_dir / "users_redirects.json"
 
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
     @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> Settings:
         """
@@ -157,6 +161,10 @@ class Credentials:
 
     def __bool__(self) -> bool:
         return bool(self.username and self.password)
+
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
 
     @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> Credentials | None:

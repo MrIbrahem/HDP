@@ -65,7 +65,9 @@ class HdpService:
 
     @classmethod
     def from_settings(cls, settings: Settings | None = None) -> HdpService | None:
-        """Wire a fully configured service from env / defaults. ``None`` on login failure."""
+        """
+        Wire a fully configured service from env / defaults. ``None`` on login failure.
+        """
         settings = settings or Settings.from_env()
         wiki = WikiClient.from_settings(settings)
         if wiki is None:

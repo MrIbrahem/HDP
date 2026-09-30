@@ -88,10 +88,18 @@ def calculate_age(registration: str) -> str:
         return registration
 
 
+def _as_optional_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 # ---------------------------------------------------------------------------
 # UserInfo
 # ---------------------------------------------------------------------------
-
 
 @dataclass(frozen=True)
 class UserInfo:
@@ -140,6 +148,10 @@ class UserInfo:
             last_edit=last_edit if last_edit is not None else self.last_edit,
         )
 
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
     @classmethod
     def from_globaluserinfo(cls, username: str, info: Mapping[str, Any]) -> UserInfo:
         """
@@ -156,16 +168,6 @@ class UserInfo:
         )
 
 
-def _as_optional_int(value: Any) -> int | None:
-    if value is None:
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-
 __all__ = [
     "UserInfo",
-    "calculate_age",
 ]
