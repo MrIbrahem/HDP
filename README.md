@@ -121,6 +121,15 @@ python -m hdp generate \
   --log-level DEBUG
 ```
 
+#### run.py
+
+```bash
+# build table.wiki from the "Current donation requests" section
+python run.py
+# replaced by:
+python -m hdp generate
+```
+
 ### `update`
 
 Refresh table cells inside an existing wiki page
@@ -138,6 +147,18 @@ Refresh table cells inside an existing wiki page
 
 ```bash
 python -m hdp update --page "User:Mr. Ibrahem/hdp" --no-recent
+```
+
+#### update.py
+
+```bash
+python update.py         # in-place update of the User:Mr. Ibrahem/hdp page
+# replaced by:
+python -m hdp update
+
+python update.py test    # same, but targets User:Mr. Ibrahem/test -> test.wiki
+# replaced by:
+python -m hdp update --test
 ```
 
 ---
@@ -299,27 +320,6 @@ Markers:
 | `unit`        | Pure unit tests                                |
 | `integration` | Multi-component tests                          |
 | `network`     | Requires outbound HTTP (deselected by default) |
-
----
-
-## Migration from the old layout
-
-| Old location                         | New location                                        |
-| ------------------------------------ | --------------------------------------------------- |
-| `src/utils.py`                       | `config.py` + `models.py`                           |
-| `src/api/mwclient_req.py`            | `wiki/client.py`                                    |
-| `src/api/category.py`                | `wiki/category.py`                                  |
-| `src/api/home_wiki_cached.py`        | `cache.py` (`HomeWikiCache`)                        |
-| `src/api/xtools*.py`                 | `xtools/client.py` + `cache.py` (`RecentEditCache`) |
-| `src/load_subpages.py`               | `services.py` + `parsing/links.py`                  |
-| `src/v3/worker.py`                   | `services.py` (`load_rows`)                         |
-| `src/v3/tables_builder.py`           | `services.py` (`build_wikitable`)                   |
-| `src/v3/v3_main.py` / `v3_update.py` | `services.py` + `cli.py`                            |
-| `src/wtp_parse/*`                    | `parsing/links.py` + `parsing/tables.py`            |
-| `run.py` / `update.py`               | `python -m hdp generate` / `update`                 |
-
-Old and new code can coexist during migration: point new imports at `hdp.*`
-while keeping legacy scripts until the cutover is verified.
 
 ---
 

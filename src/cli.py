@@ -43,6 +43,7 @@ class Cli:
 
         if args.command == "generate":
             return self._cmd_generate(service, args)
+
         if args.command == "update":
             return self._cmd_update(service, args)
 
@@ -73,9 +74,15 @@ class Cli:
         return 0
 
     def _cmd_update(self, service: HdpService, args: argparse.Namespace) -> int:
+        # default: User:Mr. Ibrahem/hdp
         page_title = args.page
+        output = args.output
+
         if args.test:
             page_title = "User:Mr. Ibrahem/test"
+
+        if args.test and output == "Mr. Ibrahem_hdp.wiki":
+            output = "test.wiki"
 
         section_names = args.sections or list(DEFAULT_SECTION_NAMES)
         text = service.update(
@@ -89,7 +96,7 @@ class Cli:
             logger.error("update produced empty output")
             return 1
 
-        out = Path(args.output)
+        out = Path(output)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(text, encoding="utf-8")
         logger.info("Saved to %s", out)
@@ -98,6 +105,24 @@ class Cli:
     # ------------------------------------------------------------------
     # Argument parser
     # ------------------------------------------------------------------
+
+    def add_shared_args(self, com) -> None:
+        com.add_argument(
+            "--sections",
+            nargs="+",
+            default=None,
+            help="Section headings or Category: names to include",
+        )
+        com.add_argument(
+            "--no-recent",
+            action="store_true",
+            help="Skip XTools network calls; use offline cache only",
+        )
+        com.add_argument(
+            "--last-edits",
+            action="store_true",
+            help="Include last-edit-date column",
+        )
 
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(
@@ -124,31 +149,16 @@ class Cli:
             help=f"Source page title (default: {self.settings.base_page})",
         )
         gen.add_argument(
-            "--sections",
-            nargs="+",
-            default=None,
-            help="Section headings or Category: names to include",
-        )
-        gen.add_argument(
             "--output",
             default="data/table.wiki",
             help="Output file path (default: data/table.wiki)",
-        )
-        gen.add_argument(
-            "--no-recent",
-            action="store_true",
-            help="Skip XTools network calls; use offline cache only",
-        )
-        gen.add_argument(
-            "--last-edits",
-            action="store_true",
-            help="Include last-edit-date column",
         )
         gen.add_argument(
             "--unknown",
             default="unknown",
             help="Placeholder for missing values (default: unknown)",
         )
+        self.add_shared_args(gen)
 
         # --- update ---
         upd = sub.add_parser(
@@ -166,31 +176,16 @@ class Cli:
             help="Use User:Mr. Ibrahem/test instead of --page",
         )
         upd.add_argument(
-            "--sections",
-            nargs="+",
-            default=None,
-            help="Section headings or Category: names to include",
-        )
-        upd.add_argument(
             "--output",
             default="data/Mr. Ibrahem_hdp.wiki",
             help="Output file path",
-        )
-        upd.add_argument(
-            "--no-recent",
-            action="store_true",
-            help="Skip XTools network calls; use offline cache only",
-        )
-        upd.add_argument(
-            "--last-edits",
-            action="store_true",
-            help="Include last-edit-date column",
         )
         upd.add_argument(
             "--unknown",
             default="",
             help="Placeholder for missing values (default: empty string)",
         )
+        self.add_shared_args(upd)
 
         return parser
 

@@ -27,8 +27,8 @@ and emits `.wiki` files ready to be pasted/uploaded back to Meta.
 
 ```bash
 python run.py            # build table.wiki from the "Current donation requests" section
-python -m update         # in-place update of the User:Mr. Ibrahem/hdp page
-python -m update test    # same, but targets User:Mr. Ibrahem/test -> test.wiki
+python update.py         # in-place update of the User:Mr. Ibrahem/hdp page
+python update.py test    # same, but targets User:Mr. Ibrahem/test -> test.wiki
 ```
 
 Generated `.wiki` files are written to `src/` and are gitignored.

@@ -12,8 +12,8 @@ Builds wikitable reports for the Wikimedia Meta "Hardware donation program" page
 
 ```bash
 python run.py            # builds table.wiki from "Current donation requests" section
-python -m update         # updates User:Mr. Ibrahem/hdp page (live wikitext in-place update)
-python -m update test    # same, but against User:Mr. Ibrahem/test -> test.wiki
+python update.py         # updates User:Mr. Ibrahem/hdp page (live wikitext in-place update)
+python update.py test    # same, but against User:Mr. Ibrahem/test -> test.wiki
 ```
 
 Both entrypoints require a `.env` with `WIKIPEDIA_BOT_USERNAME` / `WIKIPEDIA_BOT_PASSWORD` (bot password from Special:BotPasswords). See `.env.example`. Both call `load_dotenv()` and `src.setup_logging()`.
