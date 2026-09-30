@@ -61,12 +61,7 @@ class HomeWikiCache:
 
         for username in tqdm(users, desc="Fetching home wiki", unit="user"):
             if username in cache:
-                entry = cache[username]
-                result[username] = UserInfo(
-                    username=username,
-                    home_wiki=entry.get("home", ""),
-                    registration=entry.get("registration", ""),
-                )
+                result[username] = UserInfo.from_globaluserinfo(username, cache[username])
                 continue
 
             info = self._wiki.get_global_userinfo(username)

@@ -1,13 +1,14 @@
 """ """
 
 import logging
-from collections.abc import Mapping
+
+from ..models import ApplicationRow
 
 logger = logging.getLogger(__name__)
 
 
 def build_wikitable(
-    rows: Mapping[str, Mapping[str, str]],
+    rows: dict[str, ApplicationRow],
     *,
     add_last_edit: bool = False,
 ) -> str:
@@ -37,21 +38,21 @@ def build_wikitable(
 
     for row in rows.values():
         lines.append("|-")
-        lines.append(f"| {row['page_link']}")
-        lines.append(f"| {row['last_update']}")
-        lines.append(f"| {row['user_link']}")
-        lines.append(f"| {row.get('country', '')}")
-        # lines.append(f"| {row['editcount_str']}")
+        lines.append(f"| {row.page_link}")
+        lines.append(f"| {row.last_update}")
+        lines.append(f"| {row.user_link}")
+        lines.append(f"| {row.country}")
+        # lines.append(f"| {row.editcount_str}")
 
-        lines.append(f"| {row['global_without_wikidata_str']}")
-        lines.append(f"| {row['wikidata_editcount_str']}")
+        lines.append(f"| {row.global_without_wikidata_str}")
+        lines.append(f"| {row.wikidata_editcount_str}")
 
-        lines.append(f"| {row['recent_editcount_str']}")
-        lines.append(f"| {row['age']}")
-        lines.append(f"| {row['home_wiki']}")
+        lines.append(f"| {row.recent_editcount_str}")
+        lines.append(f"| {row.age}")
+        lines.append(f"| {row.home_wiki}")
 
         if add_last_edit:
-            lines.append(f"| {row['last_edit']}")
+            lines.append(f"| {row.last_edit}")
 
         lines.append("| ")
 

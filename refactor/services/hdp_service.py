@@ -45,19 +45,20 @@ class HdpService:
         home_cache: HomeWikiCache | None = None,
         recent_cache: RecentEditCache | None = None,
         xtools: XToolsClient | None = None,
-    ):
+    ) -> None:
         self.wiki = wiki
-        self.settings = settings or Settings.from_env()
+        self.settings = settings if settings is not None else Settings.from_env()
         self.category = category or CategoryService(wiki.site)
-        self.users = users or UserResolver(wiki, settings.users_redirects)
-        self.xtools = xtools or XToolsClient(user_agent=settings.user_agent)
-        self.home_cache = home_cache or HomeWikiCache(settings.home_wiki_cache_path, wiki)
+
+        self.users = users or UserResolver(wiki, self.settings.users_redirects)
+        self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
+        self.home_cache = home_cache or HomeWikiCache(self.settings.home_wiki_cache_path, wiki)
         self.recent_cache = recent_cache or RecentEditCache(
-            settings.edit_counts_cache_path,
+            self.settings.edit_counts_cache_path,
             self.xtools,
-            recent_days=settings.recent_days,
+            recent_days=self.settings.recent_days,
         )
-        self.subpages = SubPages(wiki, settings, category=self.category)
+        self.subpages = SubPages(wiki, self.settings, category=self.category)
 
     # ------------------------------------------------------------------
     # Factory
@@ -150,13 +151,15 @@ class HdpService:
         for row in draft:
             username = row.username
             if username:
-                info = home_wikis.get(username) or UserInfo(username=username)
-                info = info.with_editcounts(
+                user_info = home_wikis.get(username) or UserInfo(username=username)
+
+                user_info = user_info.with_editcounts(
                     global_editcount=editcounts.get(username),
                     recent_editcount=recent.get(username),
                     last_edit=last_edits.get(username),
+                    wikidata_count=wikidata_editcounts.get(username),
                 )
-                row.apply_user_info(info, unknown=unknown)
+                row.apply_user_info(user_info, unknown=unknown)
             else:
                 logger.warning("Username not found for %s", row.full_title)
 

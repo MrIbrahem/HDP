@@ -57,17 +57,25 @@ class UserInfo:
     registration: str = ""  # ISO timestamp from CentralAuth
     global_editcount: int | None = None
     recent_editcount: int | None = None
+    wikidata_count: int | None = None
     last_edit: str | None = None  # Y-m-d
 
     @property
     def age(self) -> str:
         return calculate_age(self.registration)
 
+    @property
+    def global_without_wikidata_str(self) -> str:
+        if self.global_editcount is not None and self.wikidata_count is not None:
+            global_without_wikidata = max(0, self.global_editcount - self.wikidata_count)
+            return f"{global_without_wikidata:,}"
+
     def with_editcounts(
         self,
         *,
         global_editcount: int | None = None,
         recent_editcount: int | None = None,
+        wikidata_count: int | None = None,
         last_edit: str | None = None,
     ) -> UserInfo:
         """Return a new instance with updated edit-count fields."""
@@ -77,17 +85,31 @@ class UserInfo:
             registration=self.registration,
             global_editcount=(global_editcount if global_editcount is not None else self.global_editcount),
             recent_editcount=(recent_editcount if recent_editcount is not None else self.recent_editcount),
+            wikidata_count=(wikidata_count if wikidata_count is not None else self.wikidata_count),
             last_edit=last_edit if last_edit is not None else self.last_edit,
         )
 
     @classmethod
     def from_globaluserinfo(cls, username: str, info: Mapping[str, Any]) -> UserInfo:
-        """Build from the dict returned by ``meta=globaluserinfo``."""
+        """
+        Build from the dict returned by ``meta=globaluserinfo``.
+        """
         return cls(
             username=username,
             home_wiki=str(info.get("home") or ""),
             registration=str(info.get("registration") or ""),
             global_editcount=_as_optional_int(info.get("editcount")),
+        )
+
+    @classmethod
+    def from_cache(cls, username: str, entry: Mapping[str, Any]) -> UserInfo:
+        """
+        Build from the dict returned by HomeWikiCache.
+        """
+        return cls(
+            username=username,
+            home_wiki=str(entry.get("home") or ""),
+            registration=str(entry.get("registration") or ""),
         )
 
 

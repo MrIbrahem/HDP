@@ -16,8 +16,6 @@ from ..models import (
     TABLE_HEADERS_TO_ROW_KEY,
     ApplicationRow,
     UserInfo,
-    calculate_age,
-    extract_country,
 )
 from ..parsing import WikiTableDataUpdater
 from ..wiki.category import CategoryService
@@ -47,19 +45,20 @@ class HdpService:
         home_cache: HomeWikiCache | None = None,
         recent_cache: RecentEditCache | None = None,
         xtools: XToolsClient | None = None,
-    ):
+    ) -> None:
         self.wiki = wiki
-        self.settings = settings or Settings.from_env()
+        self.settings = settings if settings is not None else Settings.from_env()
         self.category = category or CategoryService(wiki.site)
-        self.users = users or UserResolver(wiki, settings.users_redirects)
-        self.xtools = xtools or XToolsClient(user_agent=settings.user_agent)
-        self.home_cache = home_cache or HomeWikiCache(settings.home_wiki_cache_path, wiki)
+
+        self.users = users or UserResolver(wiki, self.settings.users_redirects)
+        self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
+        self.home_cache = home_cache or HomeWikiCache(self.settings.home_wiki_cache_path, wiki)
         self.recent_cache = recent_cache or RecentEditCache(
-            settings.edit_counts_cache_path,
+            self.settings.edit_counts_cache_path,
             self.xtools,
-            recent_days=settings.recent_days,
+            recent_days=self.settings.recent_days,
         )
-        self.subpages = SubPages(wiki, settings, category=self.category)
+        self.subpages = SubPages(wiki, self.settings, category=self.category)
 
     # ------------------------------------------------------------------
     # Factory
@@ -96,11 +95,11 @@ class HdpService:
         # 1. Initial rows + username normalisation
         draft: list[ApplicationRow] = []
         for sub in subpages:
-            row.username = self.users.normalize(sub)
+            username = self.users.normalize(sub)
             row = ApplicationRow.from_subpage(
                 sub,
                 base_page=base,
-                username=row.username,
+                username=username,
                 unknown=unknown,
             )
 
@@ -144,72 +143,30 @@ class HdpService:
         last_edits: dict[str, str] = {}
         if load_last_edits:
             last_edits = self.xtools.last_edit_timestamps(users)
+
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
 
         # 8. Assemble
         rows: dict[str, ApplicationRow] = {}
         for row in draft:
-            # to be moved into UserInfo
-            if not row.username:
-                logger.warning("Username not found for %s", row.full_title)
-                userinfo = {
-                    "age": "",
-                    "user_link": unknown,
-                    "home_wiki": unknown,
-                    "registration": "",
-                    "global_editcount": editcounts.get(row.username),
-                    "recent_editcount": recent.get(row.username),
-                    "last_edit": last_edits.get(row.username),
-                    "editcount_str": unknown,
-                    "global_without_wikidata_str": unknown,
-                    "wikidata_editcount_str": unknown,
-                    "recent_editcount_str": unknown,
-                }
-            else:
-                home_data = home_wikis.get(row.username, {})
-                global_editcount = editcounts.get(row.username)
-                wikidata_count = wikidata_editcounts.get(row.username, 0)
+            username = row.username
+            if username:
+                user_info = home_wikis.get(username) or UserInfo(username=username)
 
-                without_wikidata = max(0, global_editcount - wikidata_count)
-
-                userinfo = {
-                    "age": calculate_age(home_data.get("registration", "")),
-                    "user_link": f"[[User:{row.username}]]",
-                    "home_wiki": home_data.get("home", unknown),
-                    "registration": home_data.get("registration", ""),
-                    "global_editcount": editcounts.get(row.username),
-                    "recent_editcount": recent.get(row.username),
-                    "last_edit": last_edits.get(row.username),
-                    "editcount_str": f"{global_editcount:,}",
-                    "global_without_wikidata_str": f"{without_wikidata:,}",
-                    "wikidata_editcount_str": f"{wikidata_count:,}",
-                    "recent_editcount_str": f"{recent.get(row.username):,}",
-                }
-
-                info = home_wikis.get(row.username) or UserInfo(username=row.username)
-                info = info.with_editcounts(
-                    global_editcount=editcounts.get(row.username),
-                    recent_editcount=recent.get(row.username),
-                    last_edit=last_edits.get(row.username),
+                user_info = user_info.with_editcounts(
+                    global_editcount=editcounts.get(username),
+                    recent_editcount=recent.get(username),
+                    last_edit=last_edits.get(username),
+                    wikidata_count=wikidata_editcounts.get(username),
                 )
-                row.apply_user_info(info, unknown=unknown)
-
-                if not home_data or not home_data.get("home"):
-                    logger.warning(f"Home data not found for {row.username}")
+                row.apply_user_info(user_info, unknown=unknown)
+            else:
+                logger.warning("Username not found for %s", row.full_title)
 
             wikitext = app_texts.get(row.full_title, "")
             # Extract country from application page wikitext
             if wikitext:
                 row.apply_country(wikitext)
-
-            # to be moved into ApplicationRow
-            row_data = {
-                "page_link": f"[[{row['full_title']}]]",
-                "last_update": f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{row['full_title']}}}}}}}}}",
-                "full_title": row["full_title"],
-            }
-
-            row_data.update(userinfo)
 
             rows[row.full_title] = row
 

@@ -67,12 +67,12 @@ class ApplicationRow:
     last_update: str = ""
     user_link: str = "unknown"
     country: str = ""
+
     editcount_str: str = "unknown"
-
     global_without_wikidata_str: str = ""
-    wikidata_editcount_str: str = ""
-
     recent_editcount_str: str = "unknown"
+    wikidata_editcount_str: str = "unknown"
+
     age: str = ""
     home_wiki: str = "unknown"
     last_edit: str = "unknown"
@@ -81,6 +81,7 @@ class ApplicationRow:
     def __post_init__(self) -> None:
         if not self.page_link and self.full_title:
             self.page_link = f"[[{self.full_title}]]"
+
         if not self.last_update and self.full_title:
             self.last_update = f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{self.full_title}}}}}}}}}"
 
@@ -98,6 +99,7 @@ class ApplicationRow:
         unknown: str = "unknown",
     ) -> ApplicationRow:
         """Create a minimal row from a subpage name (before enrichment)."""
+        sub = sub.replace("_", " ")
         full_title = f"{base_page}/{sub}"
         user_link = f"[[User:{username}]]" if username else unknown
         return cls(
@@ -133,10 +135,17 @@ class ApplicationRow:
         else:
             self.recent_editcount_str = unknown
 
+        if info.wikidata_count is not None:
+            self.wikidata_editcount_str = f"{info.wikidata_count:,}"
+        else:
+            self.wikidata_editcount_str = unknown
+
         if info.last_edit:
             self.last_edit = info.last_edit
         else:
             self.last_edit = unknown
+
+        self.global_without_wikidata_str = info.global_without_wikidata_str
 
         return self
 
