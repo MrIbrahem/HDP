@@ -193,7 +193,9 @@ class WikiClientLoader:
                 "format": "json",
             }
             try:
+                # API schema: "query": { "users": [{"userid":000,"name":"User","editcount":1000} ]}
                 data = self._site.get("query", **params)
+
                 user_list = data.get("query", {}).get("users", [])
                 for user_info in user_list:
                     name = user_info.get("name")
@@ -224,25 +226,34 @@ class WikiClientLoader:
         if not users:
             return {}
 
+        batch_size = 50
+        result: dict[str, int] = dict.fromkeys(users, 0)
         logger.info("Fetching global edit counts for %s users ...", len(users))
-        params = {
-            "list": "globalusers",
-            "gusprop": "editcount|registration",
-            "gususers": "|".join(users),
-            "formatversion": 2,
-            "format": "json",
-        }
-        try:
-            data = self._site.get("query", **params)
-        except Exception as e:
-            logger.error("API request failed: %s", e)
-            return {}
 
-        result = data.get("query", {}).get("globalusers", [])
-        # [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
+        for i in range(0, len(users), batch_size):
+            batch = users[i : i + batch_size]
+            params = {
+                "list": "globalusers",
+                "gusprop": "editcount|registration",
+                "gususers": "|".join(batch),
+                "formatversion": 2,
+                "format": "json",
+            }
+            try:
+                data = self._site.get("query", **params)
 
-        logger.info("Received edit counts for %s users", len(result))
-        return {x["name"]: x.get("editcount", 0) for x in result}
+                user_list = data.get("query", {}).get("globalusers", [])
+                # API schema: [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
+
+                logger.info("Received edit counts for %s users", len(user_list))
+                batch_data = {x["name"]: x.get("editcount", 0) for x in user_list}
+
+                result.update(batch_data)
+
+            except Exception as e:
+                logger.error(f"API request failed for editcounts batch {i}: {e}")
+
+        return result
 
     def get_global_userinfo(self, username: str) -> dict[str, Any]:
         """
@@ -268,7 +279,7 @@ class WikiClientLoader:
             logger.error("API request failed for %s: %s", username, e)
             return {}
 
-        # { "globaluserinfo": { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
+        # API schema: {"globaluserinfo":{"home":"enwiki","id":000,"registration":...}
         return data.get("query", {}).get("globaluserinfo", {}) or {}
 
     def get_home_wikis_and_registration(
@@ -283,7 +294,7 @@ class WikiClientLoader:
         home_wikis: dict[str, dict[str, str]] = {}
         for username in tqdm(users, desc="Fetching home wiki", unit="user"):
             info = self.get_global_userinfo(username)
-            # info = { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
+            # API schema: {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
             home_wikis[username] = {
                 "home": info.get("home", ""),
                 "registration": info.get("registration", ""),
@@ -361,6 +372,7 @@ class WikiClient(WikiClientLoader):
         *,
         user_agent: str = USER_AGENT,
         host: str = METAWIKI_HOST,
+        login: bool = True,
     ) -> WikiClient | None:
         """
         Log in to Meta Wiki and return a client, or ``None`` on failure.
@@ -368,9 +380,11 @@ class WikiClient(WikiClientLoader):
         try:
             logger.info("Connecting to %s ...", host)
             site = Site(host, clients_useragent=user_agent)
-
-            logger.info("Logging in as %s ...", credentials.username)
-            site.login(credentials.username, credentials.password)
+            if login:
+                logger.info("Logging in as %s ...", credentials.username)
+                site.login(credentials.username, credentials.password)
+            else:
+                site.credentials = (credentials.username, credentials.password, None)
 
             logger.info("Successfully connected and logged in")
             return cls(site)
@@ -386,6 +400,7 @@ class WikiClient(WikiClientLoader):
         cls,
         settings: Settings | None = None,
         host: str = METAWIKI_HOST,
+        login: bool = True,
     ) -> WikiClient | None:
         """
         Convenience: load credentials from env and connect.
@@ -402,6 +417,7 @@ class WikiClient(WikiClientLoader):
             credentials=credentials,
             user_agent=settings.user_agent,
             host=host,
+            login=login,
         )
 
     @classmethod
@@ -409,11 +425,13 @@ class WikiClient(WikiClientLoader):
         cls,
         settings: Settings,
         host: str = METAWIKI_HOST,
+        login: bool = True,
     ) -> WikiClient | None:
         """Convenience: load credentials from env and connect."""
         return cls.load(
             settings=settings,
             host=host,
+            login=login,
         )
 
 __all__ = [

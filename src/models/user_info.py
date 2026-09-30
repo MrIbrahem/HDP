@@ -140,8 +140,8 @@ class UserInfo:
         """
         Build from the dict returned by ``meta=globaluserinfo``.
 
-        info example:
-        { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
+        # API schema:
+        # {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
         """
         return cls(
             username=username,

@@ -1,7 +1,22 @@
+
+import pytest
 from unittest.mock import MagicMock
 
 from src.wiki.client import WikiClient
+from src.config import Credentials
 
+class TestRealNetwork:
+    @pytest.mark.network
+    def test_get_editcounts():
+        site = WikiClient.connect(
+            credentials=Credentials("", ""),
+            host="www.wikidata.org",
+            login=False,
+        )
+        assert site is not None
+
+        res = site.get_editcounts(["Mr. Ibrahem"])
+        assert res["Mr. Ibrahem"] > 1711570
 
 def test_get_editcounts_empty():
     res = WikiClient({}).get_editcounts([])
