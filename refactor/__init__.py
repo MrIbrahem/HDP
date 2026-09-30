@@ -15,8 +15,8 @@ Package layout::
     └── parsing/           # LinkExtractor, table managers
 """
 
-from .logging_setup import setup_logging
 from .config import Credentials, Settings
+from .logging_setup import setup_logging
 from .models import ApplicationRow, UserInfo
 from .services import HdpService
 

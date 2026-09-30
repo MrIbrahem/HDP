@@ -193,7 +193,7 @@ class ApplicationRow:
         lines.append(f"| {self.last_update}")
         lines.append(f"| {self.user_link}")
         lines.append(f"| {self.country}")
-            # lines.append(f"| {self.editcount_str}")
+        # lines.append(f"| {self.editcount_str}")
 
         lines.append(f"| {self.global_without_wikidata_str}")
         lines.append(f"| {self.wikidata_editcount_str}")

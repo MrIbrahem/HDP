@@ -2,6 +2,7 @@ import pytest
 
 from src.services.tables_builder import build_wikitable
 
+
 @pytest.mark.skip("build_wikitable now expects a dict[str, ApplicationRow]")
 def test_build_wikitable():
     rows = {

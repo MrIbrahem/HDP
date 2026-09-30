@@ -44,6 +44,7 @@ def build_wikitable(
 
     return "\n".join(lines)
 
+
 __all__ = [
     "build_wikitable",
 ]
