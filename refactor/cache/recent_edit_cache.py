@@ -21,6 +21,8 @@ from .json_cache import JsonCache
 
 logger = logging.getLogger(__name__)
 
+# Reserved top-level key used to store per-user "what range have we already
+# fetched" bookkeeping. Not a valid Wikimedia username, so no collision risk.
 META_KEY = "_meta"
 
 # ---------------------------------------------------------------------------
@@ -63,6 +65,21 @@ class RecentEditCache:
         if offline:
             return self._offline(users, set_zero=set_zero)
 
+        return self.get_online(
+            users=users,
+            set_zero=set_zero,
+            save_every=save_every,
+        )
+
+    # -- internals -------------------------------------------------------
+
+    def get_online(
+        self,
+        users: list[str],
+        *,
+        set_zero: bool = False,
+        save_every: int = 5,
+    ) -> dict[str, int]:
         cache = self._store.load()
         cache.setdefault(META_KEY, {})
         start_s, end_s = XToolsClient.load_dates(self._recent_days)
@@ -84,8 +101,6 @@ class RecentEditCache:
 
         self._store.save(cache)
         return results
-
-    # -- internals -------------------------------------------------------
 
     def _offline(self, users: list[str], *, set_zero: bool) -> dict[str, int]:
         cache = self._store.load()

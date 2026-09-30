@@ -10,29 +10,22 @@ from urllib.parse import quote, urlencode
 import requests
 from tqdm import tqdm
 
-from ..config import USER_AGENT
+from ..config import USER_AGENT, XTOOLS_GLOBALCONTRIBS_URL, Settings
 from .json_cache import JsonCache
 
-# How many days back counts as "recent" for the recent-edits column.
-RECENT_DAYS = 90
-XTOOLS_GLOBALCONTRIBS_URL = "https://xtools.wmcloud.org/api/user/globalcontribs"
+logger = logging.getLogger(__name__)
 
-HEADERS = {"User-Agent": USER_AGENT}
 
-# Default location for the on-disk cache. Override via the `cache_path`
-# argument on the public functions if you want it somewhere else.
-DEFAULT_CACHE_PATH = "data/edit_counts_cache.json"
+settings = Settings.from_env()
 
 # Reserved top-level key used to store per-user "what range have we already
 # fetched" bookkeeping. Not a valid Wikimedia username, so no collision risk.
 META_KEY = "_meta"
 
-logger = logging.getLogger(__name__)
-
 USERS_NOT_EXISTS = []
 
 
-def load_dates(recent_days: int = RECENT_DAYS) -> tuple[str, str]:
+def load_dates(recent_days: int = settings.recent_days) -> tuple[str, str]:
     today = datetime.now(UTC).date()
     yesterday = today - timedelta(days=1)
     start = yesterday - timedelta(days=recent_days)
@@ -69,7 +62,7 @@ def _get_recent_editcount(username: str, start: str, end: str) -> dict[str, int]
         logger.debug(f"XTools globalcontribs request for {username}, round: {_}")
         full_url = f"{base_url}?{urlencode(params)}"
         try:
-            response = requests.get(base_url, params=params, headers=HEADERS, timeout=15)
+            response = requests.get(base_url, params=params, headers={"User-Agent": USER_AGENT}, timeout=15)
             logger.debug("status_code:%s, url:%s", response.status_code, full_url)
 
             # {"type":"https:\/\/tools.ietf.org\/html\/rfc2616#section-10","title":"Not Found","status":404,"detail":"The requested user does not exist","namespace":"all","start":"2026-05-12","end":"2026-08-10","limit":50,"username":"SALMOOZ","elapsed_time":0.03}
@@ -234,8 +227,8 @@ def get_recent_editcount_cached(
 
 def get_recent_editcounts_cached(
     users: list[str],
-    recent_days: int = RECENT_DAYS,
-    cache_path: str = DEFAULT_CACHE_PATH,
+    recent_days: int = settings.recent_days,
+    cache_path: str = settings.edit_counts_cache_path,
     save_every: int = 5,
     set_zero: bool = False,
 ) -> dict[str, int]:
@@ -282,8 +275,8 @@ def get_recent_editcounts_cached(
 
 def get_recent_editcounts_offline(
     users: list[str],
-    recent_days: int = RECENT_DAYS,
-    cache_path: str = DEFAULT_CACHE_PATH,
+    recent_days: int = settings.recent_days,
+    cache_path: str = settings.edit_counts_cache_path,
     set_zero: bool = False,
 ) -> dict[str, int]:
     """Return cached-only edit counts for each user. Never hits the API."""

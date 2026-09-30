@@ -12,11 +12,9 @@ from urllib.parse import quote, urlencode
 import requests
 from tqdm import tqdm
 
-from ..config import RECENT_DAYS, USER_AGENT
+from ..config import RECENT_DAYS, USER_AGENT, XTOOLS_GLOBALCONTRIBS_URL
 
 logger = logging.getLogger(__name__)
-
-XTOOLS_GLOBALCONTRIBS_URL = "https://xtools.wmcloud.org/api/user/globalcontribs"
 
 
 class XToolsClient:

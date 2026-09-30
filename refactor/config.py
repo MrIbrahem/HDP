@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 # Constants (rarely overridden)
 # ---------------------------------------------------------------------------
 
+XTOOLS_GLOBALCONTRIBS_URL = "https://xtools.wmcloud.org/api/user/globalcontribs"
+
 BASE_PAGE = "Hardware donation program"
 
 DEFAULT_CACHE_DIR = Path("data")
