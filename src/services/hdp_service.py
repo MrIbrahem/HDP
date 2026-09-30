@@ -241,30 +241,27 @@ class HdpService:
         load_last_edits: bool = False,
         unknown: str = "unknown",
     ) -> str:
-        """ """
-        full_wikitext = api.get_page_wikitext(page_title)
+        """
+        Build section-scoped tables (successor of ``v3_main.main``).
 
-        new_page_text = ""
+        Returns a single wikitext string with ``=== Section ===`` headings.
+        """
+        parts: list[str] = []
+        full_wikitext = self.wiki.get_page_wikitext(page_title)
 
-        if section_names:
-            for section_title in section_names:
-                subpages = _subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
+        for section_title in section_names:
+            subpages = self.subpages._subpages_for_section(full_wikitext, section_title)
+            logger.info("Section %r: %s subpages", section_title, len(subpages))
+        rows = self.load_rows(
+                subpages,
+                load_recent_editcounts=load_recent_editcounts,
+                load_last_edits=load_last_edits,
+                unknown=unknown,
+            )
+            table = self.build_wikitable(rows, add_last_edit=load_last_edits)
+            parts.append(f"=== {section_title} ===\n\n{table}\n")
 
-                logger.info(f"Total subpages collected: {len(subpages)}")
-
-                rows = load_rows(
-                    api,
-                    subpages,
-                    unknown_placeholder=unknown_placeholder,
-                    load_recent_editcounts=load_recent_editcounts,
-                    load_last_edits=load_last_edits,
-                    base_page=BASE_PAGE,
-                )
-                table = build_wikitable(rows, add_last_edit=load_last_edits)
-
-                new_page_text += f"=== {section_title} ===\n\n{table}\n"
-
-        return new_page_text
+        return "".join(parts)
 
     def update(
         self,
