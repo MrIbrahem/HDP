@@ -3,8 +3,6 @@ import re
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-# User-Agent header (required by Wikimedia)
-USER_AGENT = "OWID-Meta Wiki-Categorizer/1.0 (https://github.com/MrIbrahem/OWID-categories; contact via GitHub)"
 
 # -----------------------------------------
 # wiki text parsers

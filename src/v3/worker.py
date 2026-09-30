@@ -5,7 +5,7 @@ from typing import Any
 
 from ..api.home_wiki_cached import get_home_wikis_cached
 from ..api.mwclient_req import MwclientApi
-from ..api.xtools import get_last_edit_timestamps
+from ..xtools import get_last_edit_timestamps
 from ..api.xtools_cached import get_recent_editcounts_cached, get_recent_editcounts_offline
 from ..config import BASE_PAGE
 from ..utils import calculate_age, extract_country, users_redirects

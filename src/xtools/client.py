@@ -83,10 +83,6 @@ class XToolsClient:
                     timeout=self._timeout,
                 )
                 logger.debug("status_code:%s, url:%s", response.status_code, full_url)
-                if "The requested user does not exist" in response.text:
-                    self.users_not_exists.append(username)
-                    return {}
-
                 response.raise_for_status()
                 data = response.json()
             except (requests.RequestException, ValueError) as e:

@@ -7,7 +7,7 @@ import mwclient.errors
 from mwclient.client import Site
 from tqdm import tqdm
 
-from src.utils import USER_AGENT
+from src.config import USER_AGENT
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ from urllib.parse import quote, urlencode
 import requests
 from tqdm import tqdm
 
-from ..utils import USER_AGENT
+from ..config import USER_AGENT
 
 # How many days back counts as "recent" for the recent-edits column.
 RECENT_DAYS = 90
