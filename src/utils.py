@@ -33,7 +33,6 @@ _users_redirects = {
 
 users_redirects = {x.lower(): y for x, y in _users_redirects.items()}
 
-
 def load_credentials() -> tuple[str | None, str | None]:
     """
     Load credentials from .env file.
