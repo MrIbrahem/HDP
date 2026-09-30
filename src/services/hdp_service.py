@@ -11,7 +11,7 @@ import logging
 from collections.abc import Sequence
 
 from ..cache import HomeWikiCache, RecentEditCache
-from ..config import Settings, TABLE_HEADERS_TO_ROW_KEY
+from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
 from ..models import (
     ApplicationRow,
     UserInfo,
@@ -124,8 +124,11 @@ class HdpService:
         editcounts = self.wiki.get_global_editcounts(users)
         logger.info("Loaded %s global edit counts", len(editcounts))
 
-        wikidata_editcounts = self.wiki.get_wikidata_editcounts(users)
-        logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
+        wikidata_editcounts = {}
+        wd_client = WikiClient.load(host="www.wikidata.org")
+        if wd_client:
+            wikidata_editcounts = wd_client.get_editcounts(users)
+            logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
 
         # 5. Recent edit counts
         if load_recent_editcounts:

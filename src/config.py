@@ -175,6 +175,7 @@ class Credentials:
             return None
         return cls(username=username, password=password)
 
+
 __all__ = [
     "Credentials",
     "Settings",

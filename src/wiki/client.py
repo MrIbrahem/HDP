@@ -20,6 +20,8 @@ from ..config import USER_AGENT, Credentials, Settings
 
 logger = logging.getLogger(__name__)
 
+METAWIKI_HOST: str = "meta.wikimedia.org"
+
 
 class WikiClient:
     """
@@ -39,7 +41,7 @@ class WikiClient:
         credentials: Credentials,
         *,
         user_agent: str = USER_AGENT,
-        host: str = "meta.wikimedia.org",
+        host: str = METAWIKI_HOST,
     ) -> WikiClient | None:
         """
         Log in to Meta Wiki and return a client, or ``None`` on failure.
@@ -67,18 +69,44 @@ class WikiClient:
         password: str,
         *,
         user_agent: str = USER_AGENT,
-        host: str = "meta.wikimedia.org",
+        host: str = METAWIKI_HOST,
     ) -> WikiClient | None:
         return cls.connect(Credentials(username, password), user_agent=user_agent, host=host)
 
     @classmethod
-    def from_settings(cls, settings: Settings) -> WikiClient | None:
-        """Convenience: load credentials from env and connect."""
+    def load(
+        cls,
+        settings: Settings | None = None,
+        host: str = METAWIKI_HOST,
+    ) -> WikiClient | None:
+        """
+        Convenience: load credentials from env and connect.
+        """
         credentials = Credentials.from_env()
         if not credentials:
             logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
             return None
-        return cls.connect(credentials, user_agent=settings.user_agent)
+
+        if not settings:
+            settings = Settings.from_env()
+
+        return cls.connect(
+            credentials=credentials,
+            user_agent=settings.user_agent,
+            host=host,
+        )
+
+    @classmethod
+    def from_settings(
+        cls,
+        settings: Settings,
+        host: str = METAWIKI_HOST,
+    ) -> WikiClient | None:
+        """Convenience: load credentials from env and connect."""
+        return cls.load(
+            settings=settings,
+            host=host,
+        )
 
     @property
     def site(self) -> Site:
@@ -220,21 +248,20 @@ class WikiClient:
     # Users
     # ------------------------------------------------------------------
 
-    def get_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
-        """Fetches edit counts on Wikidata (www.wikidata.org) for a list of users.
+    def get_editcounts(self, users: list[str]) -> dict[str, int]:
+        """
+        Fetches edit counts for a list of users.
 
         Args:
             users (list[str]): A list of usernames.
-            site (Site | None): Optional mwclient.Site instance for Wikidata.
-                If None, connects to 'www.wikidata.org'.
 
         Returns:
-            dict[str, int]: Mapping from username to their Wikidata edit count.
+            dict[str, int]: Mapping from username to their edit count.
         """
         if not users:
             return {}
 
-        logger.info(f"Fetching Wikidata edit count for {len(users)} users...")
+        logger.info(f"Fetching edit count for {len(users)} users...")
         batch_size = 50
         result: dict[str, int] = dict.fromkeys(users, 0)
 
@@ -255,7 +282,7 @@ class WikiClient:
                     if name:
                         result[name] = user_info.get("editcount", 0)
             except Exception as e:
-                logger.error(f"API request failed for Wikidata editcounts batch {i}: {e}")
+                logger.error(f"API request failed for editcounts batch {i}: {e}")
 
         return result
 
@@ -390,6 +417,27 @@ class WikiClient:
         logger.info("Resolved %s redirects", len(result))
         return result
 
+
+    def get_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
+        """Fetches edit counts on Wikidata (www.wikidata.org) for a list of users.
+
+        Args:
+            users (list[str]): A list of usernames.
+            site (Site | None): Optional mwclient.Site instance for Wikidata.
+                If None, connects to 'www.wikidata.org'.
+
+        Returns:
+            dict[str, int]: Mapping from username to their Wikidata edit count.
+        """
+        if self._site.host == "www.wikidata.org":
+            return self.get_editcounts(users)
+
+        wd_client = self.load(host="www.wikidata.org")
+
+        if wd_client:
+            return wd_client.get_editcounts(users)
+
+        return {}
 
 __all__ = [
     "WikiClient",
