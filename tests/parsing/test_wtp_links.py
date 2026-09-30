@@ -1,4 +1,4 @@
-from src.wtp_parse.wtp_links import extract_subpage_links, get_section_by_heading
+from src.parsing.wtp_links import extract_subpage_links, get_section_by_heading
 
 
 def test_get_section_by_heading():

@@ -20,8 +20,8 @@ from ..api.mwclient_req import (
     connect_to_meta,
 )
 from ..load_subpages import get_subpages, get_subpages_for_section
+from ..parsing import update_wikitable_data
 from ..utils import load_credentials
-from ..wtp_parse import update_wikitable_data
 from .worker import load_rows
 
 BASE_PAGE = "Hardware donation program"

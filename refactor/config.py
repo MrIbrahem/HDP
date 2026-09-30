@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Mapping
+from collections.abc import Mapping
 
 from dotenv import load_dotenv
 
@@ -62,12 +62,8 @@ class Settings:
     recent_days: int = RECENT_DAYS
     cache_dir: Path = DEFAULT_CACHE_DIR
     user_agent: str = USER_AGENT
-    section_to_category: Mapping[str, str] = field(
-        default_factory=lambda: dict(SECTION_TO_CATEGORY)
-    )
-    users_redirects: Mapping[str, str] = field(
-        default_factory=lambda: dict(DEFAULT_USERS_REDIRECTS)
-    )
+    section_to_category: Mapping[str, str] = field(default_factory=lambda: dict(SECTION_TO_CATEGORY))
+    users_redirects: Mapping[str, str] = field(default_factory=lambda: dict(DEFAULT_USERS_REDIRECTS))
 
     @property
     def home_wiki_cache_path(self) -> Path:

@@ -1,6 +1,6 @@
 import pytest
 
-from src.wtp_parse.wtp_tables import (
+from src.parsing.wtp_tables import (
     update_wikitable_data,
 )
 

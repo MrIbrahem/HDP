@@ -8,7 +8,7 @@ build enriched rows, generate or update wikitables.
 from __future__ import annotations
 
 import logging
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from .cache import HomeWikiCache, RecentEditCache
 from .config import Settings
@@ -37,20 +37,18 @@ class HdpService:
         wiki: WikiClient,
         settings: Settings,
         *,
-        category: Optional[CategoryService] = None,
-        users: Optional[UserResolver] = None,
-        home_cache: Optional[HomeWikiCache] = None,
-        recent_cache: Optional[RecentEditCache] = None,
-        xtools: Optional[XToolsClient] = None,
+        category: CategoryService | None = None,
+        users: UserResolver | None = None,
+        home_cache: HomeWikiCache | None = None,
+        recent_cache: RecentEditCache | None = None,
+        xtools: XToolsClient | None = None,
     ):
         self.wiki = wiki
         self.settings = settings
         self.category = category or CategoryService(wiki.site)
         self.users = users or UserResolver(wiki, settings.users_redirects)
         self.xtools = xtools or XToolsClient(user_agent=settings.user_agent)
-        self.home_cache = home_cache or HomeWikiCache(
-            settings.home_wiki_cache_path, wiki
-        )
+        self.home_cache = home_cache or HomeWikiCache(settings.home_wiki_cache_path, wiki)
         self.recent_cache = recent_cache or RecentEditCache(
             settings.edit_counts_cache_path,
             self.xtools,
@@ -62,7 +60,7 @@ class HdpService:
     # ------------------------------------------------------------------
 
     @classmethod
-    def from_settings(cls, settings: Optional[Settings] = None) -> Optional[HdpService]:
+    def from_settings(cls, settings: Settings | None = None) -> HdpService | None:
         """Wire a fully configured service from env / defaults. ``None`` on login failure."""
         settings = settings or Settings.from_env()
         wiki = WikiClient.from_settings(settings)
@@ -132,9 +130,7 @@ class HdpService:
     def _subpages_from_category(self, category_name: str) -> list[str]:
         base = self.settings.base_page
         total = self.category.count(category_name)
-        members = self.category.member_titles(
-            category_name, namespace=0, total_pages=total
-        )
+        members = self.category.member_titles(category_name, namespace=0, total_pages=total)
         prefix = f"{base}/"
         subpages = [m[len(prefix) :] for m in members if m.startswith(prefix)]
         logger.debug("Category %r → %s subpages", category_name, len(subpages))
@@ -142,8 +138,9 @@ class HdpService:
 
     def _all_subpage_links(self, full_wikitext: str) -> set[str]:
         try:
-            from .parsing.links import LinkExtractor
             import wikitextparser as wtp
+
+            from .parsing.links import LinkExtractor
 
             parsed = wtp.parse(full_wikitext)
             return set(LinkExtractor().extract_subpages(self.settings.base_page, parsed))
@@ -175,11 +172,7 @@ class HdpService:
             sub = sub.replace("_", " ")
             raw_user = sub.replace("(2nd Application)", "").split("/")[0].strip()
             username = self.users.normalize(raw_user)
-            draft.append(
-                ApplicationRow.from_subpage(
-                    sub, base_page=base, username=username, unknown=unknown
-                )
-            )
+            draft.append(ApplicationRow.from_subpage(sub, base_page=base, username=username, unknown=unknown))
 
         # 2. Live User: redirects
         usernames = [r.username for r in draft if r.username]
@@ -356,9 +349,7 @@ class HdpService:
                 replace_values=False,
             )
         except ImportError:
-            logger.error(
-                "parsing.tables not available; returning original wikitext unchanged"
-            )
+            logger.error("parsing.tables not available; returning original wikitext unchanged")
             return full_wikitext
 
 

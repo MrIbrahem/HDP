@@ -6,8 +6,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Mapping, Optional
-
+from typing import Any, Optional
+from collections.abc import Mapping
 
 # ---------------------------------------------------------------------------
 # Pure helpers used by the models
@@ -105,9 +105,9 @@ class UserInfo:
     username: str
     home_wiki: str = ""
     registration: str = ""  # ISO timestamp from CentralAuth
-    global_editcount: Optional[int] = None
-    recent_editcount: Optional[int] = None
-    last_edit: Optional[str] = None  # Y-m-d
+    global_editcount: int | None = None
+    recent_editcount: int | None = None
+    last_edit: str | None = None  # Y-m-d
 
     @property
     def age(self) -> str:
@@ -116,21 +116,17 @@ class UserInfo:
     def with_editcounts(
         self,
         *,
-        global_editcount: Optional[int] = None,
-        recent_editcount: Optional[int] = None,
-        last_edit: Optional[str] = None,
+        global_editcount: int | None = None,
+        recent_editcount: int | None = None,
+        last_edit: str | None = None,
     ) -> UserInfo:
         """Return a new instance with updated edit-count fields."""
         return UserInfo(
             username=self.username,
             home_wiki=self.home_wiki,
             registration=self.registration,
-            global_editcount=(
-                global_editcount if global_editcount is not None else self.global_editcount
-            ),
-            recent_editcount=(
-                recent_editcount if recent_editcount is not None else self.recent_editcount
-            ),
+            global_editcount=(global_editcount if global_editcount is not None else self.global_editcount),
+            recent_editcount=(recent_editcount if recent_editcount is not None else self.recent_editcount),
             last_edit=last_edit if last_edit is not None else self.last_edit,
         )
 
@@ -145,7 +141,7 @@ class UserInfo:
         )
 
 
-def _as_optional_int(value: Any) -> Optional[int]:
+def _as_optional_int(value: Any) -> int | None:
     if value is None:
         return None
     try:
@@ -185,9 +181,7 @@ class ApplicationRow:
         if not self.page_link and self.full_title:
             self.page_link = f"[[{self.full_title}]]"
         if not self.last_update and self.full_title:
-            self.last_update = (
-                f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{self.full_title}}}}}}}}}"
-            )
+            self.last_update = f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{self.full_title}}}}}}}}}"
 
     # ------------------------------------------------------------------
     # Factory helpers

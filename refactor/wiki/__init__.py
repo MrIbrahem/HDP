@@ -1,7 +1,7 @@
 """MediaWiki / mwclient integration for HDP tools."""
 
-from .client import WikiClient
 from .category import CategoryService
+from .client import WikiClient
 from .users import UserResolver
 
 __all__ = [

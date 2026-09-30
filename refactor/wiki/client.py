@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 import mwclient.errors
 from mwclient.client import Site
 from tqdm import tqdm
 
-from ..config import Credentials, Settings, USER_AGENT
+from ..config import USER_AGENT, Credentials, Settings
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class WikiClient:
         *,
         user_agent: str = USER_AGENT,
         host: str = "meta.wikimedia.org",
-    ) -> Optional[WikiClient]:
+    ) -> WikiClient | None:
         """
         Log in to Meta Wiki and return a client, or ``None`` on failure.
         """
@@ -59,14 +59,11 @@ class WikiClient:
             return None
 
     @classmethod
-    def from_settings(cls, settings: Settings) -> Optional[WikiClient]:
+    def from_settings(cls, settings: Settings) -> WikiClient | None:
         """Convenience: load credentials from env and connect."""
         credentials = Credentials.from_env()
         if not credentials:
-            logger.error(
-                "Failed to load credentials. "
-                "Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD."
-            )
+            logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
             return None
         return cls.connect(credentials, user_agent=settings.user_agent)
 
@@ -123,19 +120,14 @@ class WikiClient:
                 revisions = page.get("revisions") or []
                 if not revisions:
                     continue
-                content = (
-                    revisions[0]
-                    .get("slots", {})
-                    .get("main", {})
-                    .get("content", "")
-                )
+                content = revisions[0].get("slots", {}).get("main", {}).get("content", "")
                 result[title] = content
 
             time.sleep(0.1)
 
         return result
 
-    def page_last_edit_timestamp(self, page_title: str) -> Optional[str]:
+    def page_last_edit_timestamp(self, page_title: str) -> str | None:
         """Most recent revision timestamp, or ``None``."""
         logger.info("Fetching last edit timestamp of %s ...", page_title)
         params = {
@@ -157,7 +149,7 @@ class WikiClient:
             return pages[0]["revisions"][0]["timestamp"]
         return None
 
-    def get_page_creator(self, page_title: str) -> Optional[str]:
+    def get_page_creator(self, page_title: str) -> str | None:
         """Username of the first revision (page creator), or ``None``."""
         logger.info("Fetching page creator of %s ...", page_title)
         params = {

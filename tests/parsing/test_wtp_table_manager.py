@@ -1,7 +1,7 @@
 import pytest
 import wikitextparser as wtp
 
-from src.wtp_parse.wtp_table_manager import (
+from src.parsing.wtp_table_manager import (
     WikiTableColumnManager,
 )
 

@@ -13,7 +13,7 @@ import os
 import time
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from tqdm import tqdm
 
@@ -38,7 +38,7 @@ class JsonCache:
     def __init__(self, path: str | Path):
         self.path = Path(path)
 
-    def load(self, default: Optional[dict] = None) -> dict:
+    def load(self, default: dict | None = None) -> dict:
         if not self.path.exists():
             return {} if default is None else dict(default)
         try:
@@ -167,9 +167,7 @@ class RecentEditCache:
         start_s, end_s = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
 
-        for i, username in enumerate(
-            tqdm(users, desc="Fetching recent edits", unit="user"), start=1
-        ):
+        for i, username in enumerate(tqdm(users, desc="Fetching recent edits", unit="user"), start=1):
             was_cached = username in cache.get(META_KEY, {})
             count = self._get_one(username, start_s, end_s, cache)
 
@@ -209,7 +207,7 @@ class RecentEditCache:
         start: str,
         end: str,
         cache: dict,
-    ) -> Optional[int]:
+    ) -> int | None:
         meta = cache[META_KEY].get(username)
         user_counts: dict[str, int] = cache.setdefault(username, {})
 
@@ -258,11 +256,7 @@ class RecentEditCache:
 
     @staticmethod
     def _sum_in_range(user_counts: dict[str, Any], start: str, end: str) -> int:
-        return sum(
-            count
-            for day, count in user_counts.items()
-            if isinstance(count, int) and start <= day <= end
-        )
+        return sum(count for day, count in user_counts.items() if isinstance(count, int) and start <= day <= end)
 
 
 __all__ = [
