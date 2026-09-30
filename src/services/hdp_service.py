@@ -232,5 +232,43 @@ class HdpService:
         """Render a fresh MediaWiki table from rows."""
         return build_wikitable(rows, add_last_edit=add_last_edit)
 
+    def update(
+        self,
+        page_title: str,
+        section_names: Sequence[str],
+        *,
+        load_recent_editcounts: bool = True,
+        load_last_edits: bool = False,
+        unknown: str = "",
+    ) -> str:
+        """
+        Refresh table cells inside an existing page (successor of ``v3_update.update``).
+
+        Returns the full updated page wikitext.
+        """
+        full_wikitext = self.wiki.get_page_wikitext(page_title)
+        subpages = self.subpages.discover_subpages(page_title, section_names)
+        rows = self.load_rows(
+            subpages,
+            load_recent_editcounts=load_recent_editcounts,
+            load_last_edits=load_last_edits,
+            unknown=unknown,
+        )
+
+        header_map = dict(TABLE_HEADERS_TO_ROW_KEY)
+        if not load_last_edits:
+            header_map.pop("Last edit", None)
+
+        # Convert rows to the dict shape the table updater expects
+        row_dicts = {title: row.to_table_dict() for title, row in rows.items()}
+
+        updater = WikiTableDataUpdater()
+        return updater.update_wikitable_data(
+            rows=rows,
+            wikitext=full_wikitext,
+            table_headers_to_row_key=header_map,
+            replace_values=False,
+        )
+
 
 __all__ = ["HdpService"]

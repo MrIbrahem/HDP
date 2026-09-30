@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-
 from ..config import RECENT_DAYS
 from ..xtools.client import XToolsClient
 from .json_cache import JsonCache

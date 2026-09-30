@@ -218,6 +218,7 @@ class HdpService:
 
         Returns the full updated page wikitext.
         """
+        full_wikitext = self.wiki.get_page_wikitext(page_title)
         subpages = self.subpages.discover_subpages(page_title, section_names)
         rows = self.load_rows(
             subpages,
@@ -232,8 +233,6 @@ class HdpService:
 
         # Convert rows to the dict shape the table updater expects
         row_dicts = {title: row.to_table_dict() for title, row in rows.items()}
-
-        full_wikitext = self.wiki.get_page_wikitext(page_title)
 
         updater = WikiTableDataUpdater()
         return updater.update_wikitable_data(

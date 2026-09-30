@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from collections.abc import Sequence
 
 import wikitextparser as wtp
 
-from ..config import SECTION_TO_CATEGORY, Settings
-from ..parsing import LinkExtractor
+from ..config import Settings
+from ..parsing.links import LinkExtractor
 from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 
@@ -33,6 +33,32 @@ class SubPages:
     # Subpage discovery
     # ------------------------------------------------------------------
 
+    def discover_subpages(
+        self,
+        page_title: str,
+        section_names: Sequence[str],
+    ) -> set[str]:
+        """
+        Collect application subpage names for the given sections / categories.
+
+        Section names that start with ``Category:`` (or appear in
+        ``settings.section_to_category``) are resolved via the category API;
+        otherwise the page wikitext is parsed for links under that heading.
+        """
+        full_wikitext = self.wiki.get_page_wikitext(page_title)
+        found: set[str] = set()
+
+        for section_title in section_names:
+            for sub in self._subpages_for_section(full_wikitext, section_title):
+                found.add(sub)
+
+        # Fallback to default subpage parsing
+        if not found:
+            # Fallback: every subpage link on the page
+            found = self._all_subpage_links(full_wikitext)
+
+        logger.info("Total subpages collected: %s", len(found))
+        return found
 
     def _subpages_for_section(
         self,

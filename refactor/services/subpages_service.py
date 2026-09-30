@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
+
 import wikitextparser as wtp
-from ..parsing.links import LinkExtractor
+
 from ..config import Settings
+from ..parsing.links import LinkExtractor
 from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 
@@ -50,6 +52,7 @@ class SubPages:
             for sub in self._subpages_for_section(full_wikitext, section_title):
                 found.add(sub)
 
+        # Fallback to default subpage parsing
         if not found:
             # Fallback: every subpage link on the page
             found = self._all_subpage_links(full_wikitext)
@@ -62,7 +65,7 @@ class SubPages:
         full_wikitext: str,
         section_title: str,
     ) -> list[str]:
-    # If the caller passed a full category name, use it directly
+        # If the caller passed a full category name, use it directly
         base = self.settings.base_page
 
         # Direct category name

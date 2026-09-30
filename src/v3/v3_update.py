@@ -15,12 +15,9 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 import logging
 
-from ..config import BASE_PAGE, load_credentials
-from ..models import TABLE_HEADERS_TO_ROW_KEY
-from ..parsing import update_wikitable_data
-from ..services.subpages_service import _subpages_for_section, _all_subpage_links
+from ..config import load_credentials
+from ..services.hdp_service import HdpService
 from ..wiki.client import WikiClient
-from .worker import load_rows
 
 logger = logging.getLogger(__name__)
 
@@ -48,55 +45,19 @@ def update(
     load_recent_editcounts: bool = True,
     load_last_edits: bool = False,
 ) -> str:
-    """
-    Updates and saves the wikitable data for a specified Wikipedia page or its subpages.
-
-    This function authenticates with Meta Wiki using credentials loaded from a .env file,
-    retrieves the wikitext of the specified page, and determines the relevant subpages
-    either by specific section/category names or by default parsing. It then loads the
-    tabular data from these subpages, updates the wikitable within the page's wikitext,
-    and saves the resulting text to a local output file.
-    """
     api = get_api()
 
     if not api:
         logger.error("Failed to connect to Meta Wiki")
         return ""
 
-    full_wikitext = api.get_page_wikitext(page_title)
-    all_subpages: set[str] = set()
-
-    if section_names:
-        for section_title in section_names:
-            _subpages = _subpages_for_section(api._site, full_wikitext, BASE_PAGE, section_title=section_title)
-            for sp in _subpages:
-                all_subpages.add(sp)
-
-    # Fallback to default subpage parsing
-    if not all_subpages:
-        all_subpages = _all_subpage_links(full_wikitext, BASE_PAGE)
-
-    logger.info(f"Total subpages collected: {len(all_subpages)}")
-
-    rows = load_rows(
-        api,
-        all_subpages,
-        unknown_placeholder=unknown_placeholder,
+    return HdpService(api).update(
+        page_title,
+        section_names,
         load_recent_editcounts=load_recent_editcounts,
         load_last_edits=load_last_edits,
-        base_page=BASE_PAGE,
+        unknown=unknown_placeholder,
     )
-
-    if load_last_edits:
-        TABLE_HEADERS_TO_ROW_KEY["Last edit"] = "last_edit"
-
-    page_updated_text = update_wikitable_data(
-        rows,
-        full_wikitext,
-        TABLE_HEADERS_TO_ROW_KEY,
-        replace_values=False,
-    )
-    return page_updated_text
 
 
 __all__ = [

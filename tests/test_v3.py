@@ -1,4 +1,3 @@
-
 from src.services.tables_builder import build_wikitable
 
 
