@@ -11,8 +11,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src import setup_logging
+from src.logging_setup import setup_logging
 from src.v3 import main
+
+from .src.config import BASE_PAGE, DEFAULT_SECTION_NAMES
 
 setup_logging(level=logging.DEBUG)
 
@@ -23,17 +25,6 @@ except Exception:
 
 logger = logging.getLogger(__name__)
 
-SECTION_HEADINGS = [
-    # "Updated as of May 1st 2026",
-    # "Messaged to update application",
-    # "Draft requests",
-    # "Current donation requests",
-    # "Approved requests not yet delivered",
-    "Category:Hardware donation program open requests",
-    "Category:Hardware donation program approved requests",
-    "Category:Hardware donation program drafts",
-]
-BASE_PAGE = "Hardware donation program"
 
 OUTPUT_DIR = Path(__file__).parent / "data"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -44,7 +35,7 @@ def run() -> None:
         page_title=BASE_PAGE,
         unknown_placeholder="unknown",
         load_recent_editcounts=True,
-        section_names=SECTION_HEADINGS,
+        section_names=DEFAULT_SECTION_NAMES,
     )
 
     if full_text_table:

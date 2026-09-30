@@ -1,5 +1,4 @@
 import logging
-import os
 import re
 from datetime import datetime
 
@@ -32,23 +31,6 @@ _users_redirects = {
 }
 
 users_redirects = {x.lower(): y for x, y in _users_redirects.items()}
-
-
-def load_credentials() -> tuple[str | None, str | None]:
-    """
-    Load credentials from .env file.
-
-    Returns:
-        Tuple of (username, password) or (None, None) if not found
-    """
-    username = os.getenv("WIKIPEDIA_BOT_USERNAME")
-    password = os.getenv("WIKIPEDIA_BOT_PASSWORD")
-
-    if not username or not password:
-        logger.error("WIKIPEDIA_BOT_USERNAME and/or WIKIPEDIA_BOT_PASSWORD not found in .env file")
-        return None, None
-
-    return username, password
 
 
 def calculate_age(registration: str) -> str:

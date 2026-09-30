@@ -14,10 +14,10 @@ from .api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
+from .config import BASE_PAGE, load_credentials
 from .load_subpages import get_subpages_for_section
-from .utils import load_credentials, users_redirects
+from .utils import users_redirects
 
-BASE_PAGE = "Hardware donation program"
 OUTPUT_FILE_TABLE = Path(__file__).parent.parent / "data/table.wiki"
 
 logger = logging.getLogger(__name__)

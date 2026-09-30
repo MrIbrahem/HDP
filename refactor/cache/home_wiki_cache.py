@@ -7,20 +7,15 @@ instances — this module never opens HTTP connections itself beyond those calls
 
 from __future__ import annotations
 
-import json
 import logging
-import os
 import time
-from datetime import date, timedelta
 from pathlib import Path
-from typing import Any
 
 from tqdm import tqdm
 
-from ..config import RECENT_DAYS
 from ..models import UserInfo
 from ..wiki.client import WikiClient
-from ..xtools.client import XToolsClient
+from .json_cache import JsonCache
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +82,7 @@ class HomeWikiCache:
             new_count,
         )
         return result
+
 
 __all__ = [
     "HomeWikiCache",

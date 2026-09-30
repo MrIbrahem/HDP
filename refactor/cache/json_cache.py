@@ -10,17 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-import time
-from datetime import date, timedelta
 from pathlib import Path
-from typing import Any
-
-from tqdm import tqdm
-
-from ..config import RECENT_DAYS
-from ..models import UserInfo
-from ..wiki.client import WikiClient
-from ..xtools.client import XToolsClient
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +42,7 @@ class JsonCache:
         with tmp.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, sort_keys=True, ensure_ascii=False)
         os.replace(tmp, self.path)
+
 
 __all__ = [
     "JsonCache",

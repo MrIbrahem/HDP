@@ -19,12 +19,10 @@ from ..api.mwclient_req import (
     MwclientApi,
     connect_to_meta,
 )
+from ..config import BASE_PAGE, load_credentials
 from ..load_subpages import get_subpages, get_subpages_for_section
 from ..parsing import update_wikitable_data
-from ..utils import load_credentials
 from .worker import load_rows
-
-BASE_PAGE = "Hardware donation program"
 
 logger = logging.getLogger(__name__)
 
