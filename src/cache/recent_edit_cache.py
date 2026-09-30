@@ -162,10 +162,9 @@ class RecentEditCache:
         original function's contract).
         """
         meta = cache[META_KEY].get(username)
-        user_counts = cache.setdefault(username, {})
+        user_counts: dict[str, int] = cache.setdefault(username, {})
 
         if meta is not None:
-            cached_start = date.fromisoformat(meta["start"])
             cached_start = date.fromisoformat(meta["start"])
             cached_end = date.fromisoformat(meta["end"])
             req_start = date.fromisoformat(start)
@@ -185,25 +184,28 @@ class RecentEditCache:
 
             if not gap_after and not gap_before:
                 # Overlapping or adjacent ranges: only fetch what's missing.
-                fetch_start = cached_end + timedelta(days=1) if req_end > cached_end else None
-                fetch_start_front = req_start if req_start < cached_start else None
-
-                if fetch_start_front is not None:
-                    new_days = self._xtools.recent_editcount_by_day(
-                        username, fetch_start_front.isoformat(), (cached_start - timedelta(days=1).isoformat())
+                if req_start < cached_start:
+                    new_var = (cached_start - timedelta(days=1)).isoformat()
+                    front = self._xtools.recent_editcount_by_day(
+                        username,
+                        req_start.isoformat(),
+                        new_var,
                     )
-                    user_counts.update(new_days)
+                    user_counts.update(front)
 
-                if fetch_start is not None:
-                    new_days = self._xtools.recent_editcount_by_day(username, fetch_start.isoformat(), end)
-                    user_counts.update(new_days)
+                if req_end > cached_end:
+                    tail = self._xtools.recent_editcount_by_day(
+                        username,
+                        (cached_end + timedelta(days=1)).isoformat(),
+                        end,
+                    )
+                    user_counts.update(tail)
 
-                new_start = min(cached_start, req_start)
-                new_end = max(cached_end, req_end)
-                cache[META_KEY][username] = {"start": new_start.isoformat(), "end": new_end.isoformat()}
-
-                total = self._sum_in_range(user_counts, start, end)
-                return total
+                cache[META_KEY][username] = {
+                    "start": min(cached_start, req_start).isoformat(),
+                    "end": max(cached_end, req_end).isoformat(),
+                }
+                return self._sum_in_range(user_counts, start, end)
 
         # No cache entry, or a real gap between cached and requested ranges:
         # fetch the full range fresh.

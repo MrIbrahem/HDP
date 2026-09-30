@@ -35,8 +35,7 @@ class XToolsClient:
         today = datetime.now(UTC).date()
         yesterday = today - timedelta(days=1)
         start = yesterday - timedelta(days=recent_days)
-        start_s, end_s = start.isoformat(), yesterday.isoformat()
-        return start_s, end_s
+        return start.isoformat(), yesterday.isoformat()
 
     # ------------------------------------------------------------------
     # Recent edits
