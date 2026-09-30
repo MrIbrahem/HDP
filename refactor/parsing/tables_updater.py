@@ -1,4 +1,8 @@
-""" """
+"""
+Wikitext table column management and data updates.
+"""
+
+from __future__ import annotations
 
 import logging
 import re
@@ -7,9 +11,13 @@ from typing import Any
 import wikitextparser as wtp
 from wikitextparser._cell import Cell
 
-from .wtp_table_manager import WikiTableColumnManager
+from .tables_manager import WikiTableColumnManager
 
 logger = logging.getLogger(__name__)
+
+# ===========================================================================
+# Data updater — fill cells from a rows dict
+# ===========================================================================
 
 
 class WikiTableDataUpdater:
@@ -66,17 +74,15 @@ class WikiTableDataUpdater:
             return None
 
         # Cell('\n| [[Hardware donation program/Ibjaja055]] ')
-        first_cell: Cell = row[0]
-        first_cell_value: str = first_cell.value
-        match_links = re.search(r"\[\[(.*?)\]\]", first_cell_value)
-
-        if not match_links:
+        first_value: str = row[0].value
+        match = re.search(r"\[\[(.*?)\]\]", first_value)
+        if not match:
             return None
 
         # Clean the link name to match the dictionary keys
-        match_link = match_links.group(1).split("|")[0].strip().replace("_", " ")
+        link = match.group(1).split("|")[0].strip().replace("_", " ")
 
-        return rows.get(match_link)
+        return rows.get(link)
 
     def _update_row_cells(
         self,
@@ -134,6 +140,11 @@ class WikiTableDataUpdater:
 
         # Return the updated string representation of the parsed wikitext
         return parsed.string
+
+
+# ---------------------------------------------------------------------------
+# Module-level convenience (matches old public API)
+# ---------------------------------------------------------------------------
 
 
 def update_wikitable_data(

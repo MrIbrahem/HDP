@@ -1,7 +1,8 @@
-#!/usr/bin/python3
 """
 Module for processing Wikitext tables and dynamically adding missing columns.
 """
+
+from __future__ import annotations
 
 import logging
 
@@ -10,27 +11,32 @@ from wikitextparser._cell import Cell
 
 logger = logging.getLogger(__name__)
 
-# ==============================================================================
+
+# ===========================================================================
 # PART 1: Structural Manager (Adds Column Header and Default Cells Only)
-# ==============================================================================
+# ===========================================================================
 
 
 class WikiTableColumnManager:
     """
-    Handles checking, verifying, and inserting column structures into Wikitext tables.
+    Check, verify, and insert column structures into wikitext tables.
     """
 
-    def load_table_cells(self, table: wtp.Table, span: bool = True) -> list[list[Cell]] | None:
+    def load_table_cells(
+        self,
+        table: wtp.Table,
+        span: bool = True,
+    ) -> list[list[Cell]] | None:
         """
         Safely retrieve cells from a wikitext table.
 
-        span=False by default: structural operations must work on the literal
-        cell grid, not the flattened grid produced by colspan/rowspan duplication.
+        ``span=False`` is required for structural edits so the literal cell
+        grid is used (not the colspan/rowspan-flattened view).
         """
         try:
             return table.cells(span=span)
         except Exception as exc:
-            logger.error(f"Error getting table cells: {exc}")
+            logger.error("Error getting table cells: %s", exc)
             return None
 
     def _get_header_row(self, table: wtp.Table) -> list[Cell]:
@@ -58,15 +64,14 @@ class WikiTableColumnManager:
         header_row = self._get_header_row(table)
         target = col_name.strip().lower()
 
-        for numb, cell in enumerate(header_row, start=1):
+        for idx, cell in enumerate(header_row, start=1):
             if cell.value.strip().lower() == target:
-                logger.info(f"header has {col_name}: in column {numb}")
+                logger.info("Header has %r in column %s", col_name, idx)
                 return True
-
         return False
 
     def get_header_index(self, table: wtp.Table) -> dict[str, int]:
-        """Maps header text (lowercase, stripped) to its 0-based column index."""
+        """Map header text (lowercase, stripped) → 0-based column index."""
         header_row = self._get_header_row(table)
         return {cell.value.strip().lower(): idx for idx, cell in enumerate(header_row)}
 
@@ -98,12 +103,12 @@ class WikiTableColumnManager:
                 continue
 
             # Filter valid cells in current row
-            valid_cells = [c for c in row if c is not None]
-            if not valid_cells:
+            valid = [c for c in row if c is not None]
+            if not valid:
                 continue
 
             count += 1
-            is_header = valid_cells[0].is_header
+            is_header = valid[0].is_header
 
             # Format cell string depending on whether it is a header or data row
             if is_header:
@@ -113,10 +118,10 @@ class WikiTableColumnManager:
                 cell_str = f"\n|{formatted_val}"
 
             # Pick target cell to attach the new column delimiter
-            target_cell = valid_cells[0] if position == "after_first" else valid_cells[-1]
-            target_cell.value = target_cell.value + cell_str
+            target = valid[0] if position == "after_first" else valid[-1]
+            target.value = target.value + cell_str
 
-        logger.info(f"Added column '{col_name}' across {count} rows.")
+        logger.info("Added column %r across %s rows", col_name, count)
 
         # NOTE: Adding new cell delimiters (\n! or \n|) directly into the cell value
         # alters the table structure dynamically. We must re-assign 'table.string'
@@ -141,7 +146,10 @@ class WikiTableColumnManager:
         position: str = "after_first",
         default_value: str = "",
     ) -> bool:
-        """Verifies column presence and injects its structure if missing."""
+        """
+        Verifies column presence and injects its structure if missing.
+        Return True if the column was added, False if it already existed.
+        """
         if self.has_column(table, col_name):
             return False
         return self.add_column(
@@ -159,7 +167,10 @@ class WikiTableColumnManager:
         position: str = "after_first",
         default_value: str = "",
     ) -> None:
-        """Verifies column presence and injects its structure if missing."""
+        """
+        Verifies column presence and injects its structure if missing.
+        """
+        # Reverse so insertion order after_first preserves intended sequence
         for col_name in reversed(cols_name):
             if not self.has_column(table, col_name):
                 self.add_column(

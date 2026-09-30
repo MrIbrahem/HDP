@@ -1,13 +1,23 @@
-""" """
+"""Wikitext parsing: links, sections, and tables."""
 
-from .wtp_links import (
+from .links import (
+    LinkExtractor,
     extract_subpage_links,
     get_section_by_heading,
 )
-from .wtp_tables import update_wikitable_data
+from .tables_manager import (
+    WikiTableColumnManager,
+)
+from .tables_updater import (
+    WikiTableDataUpdater,
+    update_wikitable_data,
+)
 
 __all__ = [
+    "LinkExtractor",
     "get_section_by_heading",
     "extract_subpage_links",
+    "WikiTableColumnManager",
+    "WikiTableDataUpdater",
     "update_wikitable_data",
 ]
