@@ -12,7 +12,7 @@ import colorlog
 
 def setup_logging(
     level: str | int = "WARNING",
-    name: str = "hdp",
+    name: str = "src",
 ) -> None:
     """
     Configure logging for the HDP package namespace only.
@@ -24,6 +24,7 @@ def setup_logging(
     project_logger.setLevel(numeric_level)
     project_logger.propagate = False
 
+    # Prevent duplicate handlers
     if any(isinstance(h, logging.StreamHandler) for h in project_logger.handlers):
         project_logger.debug("Logging already configured for %r", name)
         return
@@ -41,4 +42,6 @@ def setup_logging(
     project_logger.debug("Setting up logging for %r with level %r", name, level)
 
 
-__all__ = ["setup_logging"]
+__all__ = [
+    "setup_logging",
+]

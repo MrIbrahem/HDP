@@ -17,110 +17,14 @@ from typing import Any
 
 from tqdm import tqdm
 
-from .config import RECENT_DAYS
-from .models import UserInfo
-from .wiki.client import WikiClient
-from .xtools.client import XToolsClient
+from ..config import RECENT_DAYS
+from ..models import UserInfo
+from ..wiki.client import WikiClient
+from ..xtools.client import XToolsClient
 
 logger = logging.getLogger(__name__)
 
 META_KEY = "_meta"
-
-
-# ---------------------------------------------------------------------------
-# Shared JSON store
-# ---------------------------------------------------------------------------
-
-
-class JsonCache:
-    """Atomic load / save of a JSON object."""
-
-    def __init__(self, path: str | Path):
-        self.path = Path(path)
-
-    def load(self, default: dict | None = None) -> dict:
-        if not self.path.exists():
-            return {} if default is None else dict(default)
-        try:
-            with self.path.open(encoding="utf-8") as f:
-                data = json.load(f)
-            return data if isinstance(data, dict) else ({} if default is None else dict(default))
-        except (json.JSONDecodeError, OSError) as e:
-            logger.warning("Could not read %s (%s); starting fresh", self.path, e)
-            return {} if default is None else dict(default)
-
-    def save(self, data: dict) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(self.path.suffix + ".tmp")
-        with tmp.open("w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, sort_keys=True, ensure_ascii=False)
-        os.replace(tmp, self.path)
-
-
-# ---------------------------------------------------------------------------
-# Home wiki cache
-# ---------------------------------------------------------------------------
-
-
-class HomeWikiCache:
-    """
-    Persistent cache of CentralAuth home wiki + registration date.
-
-    File layout::
-
-        {
-          "SomeUser": {"home": "enwiki", "registration": "2008-07-24T01:18:05Z"},
-          ...
-        }
-    """
-
-    def __init__(self, path: str | Path, wiki: WikiClient):
-        self._store = JsonCache(path)
-        self._wiki = wiki
-
-    def get_many(
-        self,
-        users: list[str],
-        *,
-        save_every: int = 5,
-    ) -> dict[str, UserInfo]:
-        cache = self._store.load()
-        result: dict[str, UserInfo] = {}
-        new_count = 0
-
-        for username in tqdm(users, desc="Fetching home wiki", unit="user"):
-            if username in cache:
-                entry = cache[username]
-                result[username] = UserInfo(
-                    username=username,
-                    home_wiki=entry.get("home", ""),
-                    registration=entry.get("registration", ""),
-                )
-                continue
-
-            info = self._wiki.get_global_userinfo(username)
-            entry = {
-                "home": info.get("home", ""),
-                "registration": info.get("registration", ""),
-            }
-            cache[username] = entry
-            result[username] = UserInfo.from_globaluserinfo(username, info)
-            new_count += 1
-            time.sleep(0.1)
-
-            if new_count % save_every == 0:
-                self._store.save(cache)
-
-        if new_count:
-            self._store.save(cache)
-
-        logger.info(
-            "Home wiki cache: %s cached, %s fetched",
-            len(users) - new_count,
-            new_count,
-        )
-        return result
-
 
 # ---------------------------------------------------------------------------
 # Recent edit-count cache
@@ -260,7 +164,5 @@ class RecentEditCache:
 
 
 __all__ = [
-    "JsonCache",
-    "HomeWikiCache",
     "RecentEditCache",
 ]

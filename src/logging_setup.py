@@ -1,3 +1,9 @@
+"""
+Project-scoped logging configuration.
+"""
+
+from __future__ import annotations
+
 import logging
 import sys
 
@@ -9,7 +15,9 @@ def setup_logging(
     name: str = "src",
 ) -> None:
     """
-    Configure logging for the entire project namespace only.
+    Configure logging for the HDP package namespace only.
+
+    Safe to call multiple times — duplicate stream handlers are skipped.
     """
     project_logger = logging.getLogger(name)
     numeric_level = getattr(logging, level.upper(), logging.INFO) if isinstance(level, str) else level
@@ -18,11 +26,11 @@ def setup_logging(
 
     # Prevent duplicate handlers
     if any(isinstance(h, logging.StreamHandler) for h in project_logger.handlers):
-        project_logger.debug("Logging already configured for '%s'", name)
+        project_logger.debug("Logging already configured for %r", name)
         return
 
     console_formatter = colorlog.ColoredFormatter(
-        fmt="%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(funcName)s:%(lineno)d] - %(message)s",
+        fmt=("%(asctime)s - %(name)s - %(log_color)s%(levelname)-s %(reset)s- [%(funcName)s:%(lineno)d] - %(message)s"),
         datefmt="%H:%M:%S",
     )
 
@@ -31,4 +39,9 @@ def setup_logging(
     console_handler.setLevel(numeric_level)
     project_logger.addHandler(console_handler)
 
-    project_logger.debug("Setting up logging for '%s' with level '%s'", name, level)
+    project_logger.debug("Setting up logging for %r with level %r", name, level)
+
+
+__all__ = [
+    "setup_logging",
+]

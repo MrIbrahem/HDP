@@ -1,17 +1,18 @@
-
 # Cache
 
 ## Goal
+
 One place for all on-disk caches (home wiki, recent edit counts, and any future caches).
 
 ## Target file
+
 `src/hdp/cache.py`
 
 ## Mapping from current code
 
-| Old | Responsibility that moves here |
-|-----|--------------------------------|
-| `src/api/home_wiki_cached.py` | Load/save + “fetch only missing users” |
+| Old                                      | Responsibility that moves here                       |
+| ---------------------------------------- | ---------------------------------------------------- |
+| `src/api/home_wiki_cached.py`            | Load/save + “fetch only missing users”               |
 | `src/api/xtools_cached.py` (cache layer) | Load/save, `_meta` range tracking, merge of new days |
 
 ## Suggested surface
@@ -33,13 +34,15 @@ def get_recent_editcounts_offline(users, recent_days=90, cache_path=..., set_zer
 ```
 
 ## Internal design
-- Keep the existing cache file layouts so current `data/*.json` files keep working:
-  - Home wiki: `{ username: { "home", "registration" } }`
-  - Edit counts: `{ "_meta": { user: {start, end} }, username: { "YYYY-MM-DD": count } }`
-- Atomic save (write `.tmp` then `os.replace`) stays mandatory.
-- Network functions are *injected* or imported from `wiki` / `xtools`; the cache module must not open HTTP connections itself beyond calling those helpers.
+
+-   Keep the existing cache file layouts so current `data/*.json` files keep working:
+    -   Home wiki: `{ username: { "home", "registration" } }`
+    -   Edit counts: `{ "_meta": { user: {start, end} }, username: { "YYYY-MM-DD": count } }`
+-   Atomic save (write `.tmp` then `os.replace`) stays mandatory.
+-   Network functions are _injected_ or imported from `wiki` / `xtools`; the cache module must not open HTTP connections itself beyond calling those helpers.
 
 ## Migration steps
+
 1. Create `cache.py` with shared load/save helpers.
 2. Port home-wiki cached logic first (simpler).
 3. Port XTools range-merge logic second.
