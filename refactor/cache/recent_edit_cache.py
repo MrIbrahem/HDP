@@ -47,7 +47,7 @@ class RecentEditCache:
         path: str | Path,
         xtools: XToolsClient,
         recent_days: int = RECENT_DAYS,
-    ):
+    ) -> None:
         self._store = JsonCache(path)
         self._xtools = xtools
         self._recent_days = recent_days
@@ -80,6 +80,17 @@ class RecentEditCache:
         set_zero: bool = False,
         save_every: int = 5,
     ) -> dict[str, int]:
+        """
+        Cached, JSON-file-backed version of get_recent_editcounts.
+
+        On first run, fetches everything from XTools like the original.
+        On subsequent runs, only fetches the days not already covered by the
+        cache file at `cache_path`, then merges and re-saves it.
+
+        `save_every` controls how often the cache is flushed to disk while
+        processing a long user list, so a crash partway through doesn't lose
+        everything already fetched.
+        """
         cache = self._store.load()
         cache.setdefault(META_KEY, {})
         start_s, end_s = XToolsClient.load_dates(self._recent_days)
@@ -94,8 +105,10 @@ class RecentEditCache:
             elif count is not None:
                 results[username] = count
 
+            # Only throttle when we actually hit the network for this user.
             if not was_cached:
                 time.sleep(0.3)
+
             if i % save_every == 0:
                 self._store.save(cache)
 
@@ -103,13 +116,19 @@ class RecentEditCache:
         return results
 
     def _offline(self, users: list[str], *, set_zero: bool) -> dict[str, int]:
+        """
+        Return cached-only edit counts for each user. Never hits the API.
+        """
         cache = self._store.load()
+        cache.setdefault(META_KEY, {})
+
         start_s, end_s = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
         for username in tqdm(users, desc="Reading cached edits", unit="user"):
             user_counts = cache.get(username)
             if not user_counts:
                 continue
+
             count = self._sum_in_range(user_counts, start_s, end_s)
             if set_zero or username in self._xtools.users_not_exists:
                 results[username] = count or 0
