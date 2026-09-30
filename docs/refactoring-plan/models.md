@@ -1,26 +1,30 @@
 # Models & Config
 
 ## Goal
+
 Separate constants, configuration, and data models from business logic.
 
 ## Target files
-- `src/hdp/config.py`
-- `src/hdp/models.py`
-- `src/hdp/logging_setup.py`
+
+-   `src/hdp/config.py`
+-   `src/hdp/models.py`
+-   `src/hdp/logging_setup.py`
 
 ## What moves from the current codebase
 
 ### From `src/utils.py` (and related)
-| Item | Destination |
-|------|-------------|
-| `USER_AGENT` | `config.py` |
-| `BASE_PAGE` | `config.py` |
+
+| Item                     | Destination                                          |
+| ------------------------ | ---------------------------------------------------- |
+| `USER_AGENT`             | `config.py`                                          |
+| `BASE_PAGE`              | `config.py`                                          |
 | `users_redirects` (dict) | `config.py` or load from `data/users_redirects.json` |
-| `load_credentials()` | `config.py` |
-| `calculate_age()` | `models.py` (or a small helper used by services) |
-| `extract_country()` | Prefer `parsing/` (it operates on wikitext) |
+| `load_credentials()`     | `config.py`                                          |
+| `calculate_age()`        | `models.py` (or a small helper used by services)     |
+| `extract_country()`      | Prefer `parsing/` (it operates on wikitext)          |
 
 ### Additional constants
+
 ```python
 # config.py
 BASE_PAGE = "Hardware donation program"
@@ -65,9 +69,11 @@ class ApplicationRow:
 ```
 
 ## Logging
+
 Move `setup_logging()` from `src/__init__.py` into `logging_setup.py` unchanged (or with a slightly clearer name). Keep the project logger namespace as `"hdp"` or `"src.hdp"`.
 
 ## Migration notes
+
 1. Create the three files with the constants and dataclasses first.
 2. Update imports in the old code gradually so both layouts can coexist.
 3. Do not put network or parsing logic in these modules.

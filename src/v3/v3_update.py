@@ -13,6 +13,8 @@ Run this every few months (e.g. via cron) to keep the table current.
 
 """
 
+from __future__ import annotations
+
 import logging
 
 from ..config import load_credentials
