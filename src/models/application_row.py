@@ -171,8 +171,12 @@ class ApplicationRow:
             "last_update": self.last_update,
             "user_link": self.user_link,
             "country": self.country,
+
             "editcount_str": self.editcount_str,
             "recent_editcount_str": self.recent_editcount_str,
+            "wikidata_editcount_str": self.wikidata_editcount_str,
+            "global_without_wikidata_str": self.global_without_wikidata_str,
+
             "age": self.age,
             "home_wiki": self.home_wiki,
             "last_edit": self.last_edit,
