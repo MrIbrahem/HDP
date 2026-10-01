@@ -383,13 +383,14 @@ class WikiClient(WikiClientLoader):
         user_agent: str = USER_AGENT,
         host: str = METAWIKI_HOST,
         login: bool = True,
+        do_init: bool = True,
     ) -> WikiClient | None:
         """
         Log in to Meta Wiki and return a client, or ``None`` on failure.
         """
         try:
             logger.info("Connecting to %s ...", host)
-            site = Site(host, clients_useragent=user_agent)
+            site = Site(host, clients_useragent=user_agent, do_init=do_init)
             if login:
                 logger.info("Logging in as %s ...", credentials.username)
                 site.login(credentials.username, credentials.password)

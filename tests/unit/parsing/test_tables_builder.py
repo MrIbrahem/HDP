@@ -6,7 +6,8 @@ Classes to test: TableRow, TableObject
 
 import wikitextparser as wtp
 
-from src.parsing.tables_builder import TableRow, TableObject
+from src.parsing.tables_builder import TableObject, TableRow
+
 
 class TestCreateTable:
     def test_create(self):
@@ -15,8 +16,10 @@ class TestCreateTable:
 
         assert result == ""
 
+
 class TestTableRow:
     """Tests for TableRow class methods."""
+
     def test_build(self):
         """Test build method."""
         row = TableRow([])
@@ -24,8 +27,10 @@ class TestTableRow:
 
         assert result == ""
 
+
 class TestTableObject:
     """Tests for TableObject class methods."""
+
     def test_create(self):
         """Test create method."""
         table = TableObject.load()

@@ -1,7 +1,7 @@
-"""
-"""
+""" """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 from .application_row import ApplicationRow
@@ -61,6 +61,7 @@ class ApplicationTable:
         rows: list[ApplicationRow] | None = None,
     ) -> ApplicationTable:
         return cls(rows=rows or [])
+
 
 __all__ = [
     "ApplicationTable",

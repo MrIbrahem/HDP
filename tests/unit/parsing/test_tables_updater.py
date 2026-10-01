@@ -1,4 +1,3 @@
-# ruff: noqa: F401
 """
 Unit tests for src/parsing/tables_updater.py module.
 
@@ -29,6 +28,7 @@ def update_table(
         replace_values=replace_values,
         add_missing_headers=add_missing_headers,
     )
+
 
 class TestUpdate:
 

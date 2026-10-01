@@ -50,6 +50,7 @@ class LinkExtractor:
                     seen.append(name)
         return seen
 
+
 __all__ = [
     "LinkExtractor",
 ]

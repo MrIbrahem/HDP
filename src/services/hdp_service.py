@@ -14,8 +14,8 @@ from collections.abc import Sequence
 from ..cache import HomeWikiCache, RecentEditCache
 from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
 from ..models import (
-    ApplicationTable,
     ApplicationRow,
+    ApplicationTable,
     UserInfo,
 )
 from ..parsing import WikiTableDataUpdater
@@ -39,6 +39,7 @@ class HdpService:
         self,
         wiki: WikiClient,
         settings: Settings | None = None,
+        wd_client: WikiClient | None = None,
         *,
         category: CategoryService | None = None,
         users: UserResolver | None = None,
@@ -49,6 +50,7 @@ class HdpService:
     ) -> None:
         self.offline = offline
         self.wiki = wiki
+        self.wd_client = wd_client if wd_client is not None else WikiClient.load(host="www.wikidata.org")
         self.settings = settings if settings is not None else Settings.from_env()
         self.category = category or CategoryService(wiki.site)
 
@@ -137,10 +139,9 @@ class HdpService:
         logger.info("Loaded %s global edit counts", len(editcounts))
 
         wikidata_editcounts = {}
-        wd_client = WikiClient.load(host="www.wikidata.org")
 
-        if wd_client and not self.offline:
-            wikidata_editcounts = wd_client.get_editcounts(users)
+        if not self.offline:
+            wikidata_editcounts = self.wd_client.get_editcounts(users)  # pyright: ignore[reportOptionalMemberAccess]
             logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
 
         # 5. Recent edit counts

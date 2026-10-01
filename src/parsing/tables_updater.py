@@ -141,6 +141,7 @@ class WikiTableDataUpdater:
         # Return the updated string representation of the parsed wikitext
         return parsed.string
 
+
 __all__ = [
     "WikiTableDataUpdater",
 ]

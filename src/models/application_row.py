@@ -5,7 +5,7 @@ Domain data models for the Hardware Donation Program tools.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from .user_info import UserInfo
@@ -48,6 +48,7 @@ def extract_country(wikitext: str) -> str:
     value = value.splitlines()[0]
     # Remove trailing carriage return if present
     return value.strip().rstrip("\r").strip()
+
 
 # ---------------------------------------------------------------------------
 # ApplicationRow

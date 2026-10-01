@@ -10,8 +10,10 @@ from unittest.mock import MagicMock
 
 from src.parsing.links import LinkExtractor
 
+
 class TestGetSection:
-    """ Test the get_section method of the LinkExtractor class. """
+    """Test the get_section method of the LinkExtractor class."""
+
     def test_get_section_by_heading(self):
         wikitext = "== Section 1 ==\nBody 1\n== Section 2 ==\nBody 2"
         section = LinkExtractor().get_section(wikitext, "Section 1")
@@ -19,8 +21,9 @@ class TestGetSection:
         assert section.title.strip() == "Section 1"
         assert "Body 1" in section.string
 
+
 class TestExtractSubPages:
-    """ Test the extract_subpages method of the LinkExtractor class. """
+    """Test the extract_subpages method of the LinkExtractor class."""
 
     def test_extract_subpage_links(self):
 
@@ -35,7 +38,6 @@ class TestExtractSubPages:
 
         subpages = LinkExtractor().extract_subpages("Base", section)
         assert subpages == ["Sub1", "Sub2"]
-
 
     def test_extract_subpage_links_underscores(self):
 
