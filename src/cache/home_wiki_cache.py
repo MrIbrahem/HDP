@@ -22,6 +22,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+from ..config import TQDM_DISABLE
 from ..models import UserInfo
 from ..wiki.client import WikiClient
 from .json_cache import JsonCache
@@ -82,7 +83,7 @@ class HomeWikiCache:
         result: dict[str, UserInfo] = {}
         new_count = 0
 
-        for username in tqdm(users, desc="Fetching home wiki", unit="user"):
+        for username in tqdm(users, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             if username in cache:
                 result[username] = UserInfo.from_globaluserinfo(username, cache[username])
                 continue

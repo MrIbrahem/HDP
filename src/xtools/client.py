@@ -12,7 +12,12 @@ from urllib.parse import quote, urlencode
 import requests
 from tqdm import tqdm
 
-from ..config import RECENT_DAYS, USER_AGENT, XTOOLS_GLOBALCONTRIBS_URL
+from ..config import (
+    RECENT_DAYS,
+    TQDM_DISABLE,
+    USER_AGENT,
+    XTOOLS_GLOBALCONTRIBS_URL,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +147,7 @@ class XToolsClient:
         """
         start, end = self.load_dates(recent_days)
         results: dict[str, int] = {}
-        for username in tqdm(users, desc="Fetching recent edits", unit="user"):
+        for username in tqdm(users, desc="Fetching recent edits", unit="user", disable=TQDM_DISABLE):
 
             count = self.recent_editcount(username, start, end)
             if count is not None:
@@ -192,7 +197,7 @@ class XToolsClient:
         """
         results: dict[str, str] = {}
 
-        for username in tqdm(users, desc="Fetching last edit dates", unit="user"):
+        for username in tqdm(users, desc="Fetching last edit dates", unit="user", disable=TQDM_DISABLE):
             ts = self.last_edit_timestamp(username)
             if ts is not None:
                 results[username] = ts

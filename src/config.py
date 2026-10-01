@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -14,6 +15,8 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
+
+TQDM_DISABLE = not sys.stderr.isatty()
 
 # ---------------------------------------------------------------------------
 # Header ↔ row-key mapping used when updating existing wikitables
@@ -197,6 +200,7 @@ class Credentials:
 
 
 __all__ = [
+    "TQDM_DISABLE",
     "Credentials",
     "Settings",
     "TABLE_HEADERS_TO_ROW_KEY",

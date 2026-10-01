@@ -12,6 +12,8 @@ import mwclient.errors
 from mwclient.client import Site
 from tqdm import tqdm
 
+from ..config import TQDM_DISABLE
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,7 +104,7 @@ class CategoryService:
         max_delay = 8.0
 
         # Initialize tqdm with the total expected items
-        with tqdm(total=limit, desc="Fetching members", unit="item") as pbar:
+        with tqdm(total=limit, desc="Fetching members", unit="item", disable=TQDM_DISABLE) as pbar:
             while first or cmcontinue is not None:
                 first = False
                 if max_items is not None and len(all_titles) >= max_items:

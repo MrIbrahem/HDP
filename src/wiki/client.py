@@ -16,7 +16,7 @@ import mwclient.errors
 from mwclient.client import Site
 from tqdm import tqdm
 
-from ..config import USER_AGENT, Credentials, Settings
+from ..config import TQDM_DISABLE, USER_AGENT, Credentials, Settings
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class WikiClientLoader:
         result: dict[str, str] = {}
 
         batchs = range(0, len(titles), batch_size)
-        for i in tqdm(batchs, desc="Fetching wikitext", unit="batch"):
+        for i in tqdm(batchs, desc="Fetching wikitext", unit="batch", disable=TQDM_DISABLE):
             batch = titles[i : i + batch_size]
             logger.debug(
                 "Fetching wikitext for batch %s (%s pages) ...",
@@ -187,7 +187,7 @@ class WikiClientLoader:
         result: dict[str, int] = dict.fromkeys(users, 0)
 
         batchs = range(0, len(users), batch_size)
-        for i in tqdm(batchs, desc="Fetching edit counts", unit="batch"):
+        for i in tqdm(batchs, desc="Fetching edit counts", unit="batch", disable=TQDM_DISABLE):
             batch = users[i : i + batch_size]
             params = {
                 "list": "users",
@@ -235,7 +235,7 @@ class WikiClientLoader:
         logger.info("Fetching global edit counts for %s users ...", len(users))
 
         batchs = range(0, len(users), batch_size)
-        for i in tqdm(batchs, desc="Fetching global edit counts", unit="batch"):
+        for i in tqdm(batchs, desc="Fetching global edit counts", unit="batch", disable=TQDM_DISABLE):
             batch = users[i : i + batch_size]
             params = {
                 "list": "globalusers",
@@ -301,7 +301,7 @@ class WikiClientLoader:
         Returns ``{username: {"home": ..., "registration": ...}}``.
         """
         home_wikis: dict[str, dict[str, str]] = {}
-        for username in tqdm(users, desc="Fetching home wiki", unit="user"):
+        for username in tqdm(users, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self.get_global_userinfo(username)
             # API schema: {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
             home_wikis[username] = {
@@ -323,7 +323,7 @@ class WikiClientLoader:
         result: dict[str, str] = {}
 
         batchs = range(0, len(pages), batch_size)
-        for i in tqdm(batchs, desc="Resolve redirects for pages", unit="batch"):
+        for i in tqdm(batchs, desc="Resolve redirects for pages", unit="batch", disable=TQDM_DISABLE):
             group = pages[i : i + batch_size]
             logger.debug(
                 "Fetching redirects %s – %s ...",
