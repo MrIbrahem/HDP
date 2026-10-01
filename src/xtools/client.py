@@ -108,13 +108,13 @@ class XToolsClient:
                 logger.error("XTools request failed for %s: %s", username, e)
                 if total_by_day:
                     # We got partial data before the failure; treat as a lower bound.
-                    logger.info(
+                    logger.debug(
                         "Returning partial data for %s. excluded contribs: %s", username, f"{excluded_contribs:,}"
                     )
                     return total_by_day
 
                 if delay >= max_delay:
-                    logger.info(
+                    logger.debug(
                         "Giving up on %s after %s attempts. excluded contribs: %s",
                         username,
                         page_num,
@@ -129,7 +129,7 @@ class XToolsClient:
             if "error" in data or "status" in data:
                 # XTools error responses follow RFC 7807 (status/title/details).
                 logger.warning("XTools error for %s: %s", username, data)
-                logger.info("excluded contribs: %s", f"{excluded_contribs:,}")
+                logger.debug("excluded contribs: %s", f"{excluded_contribs:,}")
                 return total_by_day
 
             for contrib in data.get("globalcontribs") or []:
@@ -151,7 +151,7 @@ class XToolsClient:
         else:
             logger.warning("Hit max_pages cap for %s", username)
 
-        logger.info(
+        logger.debug(
             "Returning %s edit counts for %s. excluded contribs: %s",
             f"{len(total_by_day):,}",
             username,
