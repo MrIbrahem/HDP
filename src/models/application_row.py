@@ -63,30 +63,36 @@ class ApplicationRow:
     Field names match the keys used by the table builder / updater so the
     same object can be passed straight through to wikitext generation.
     """
-
+    user_info: UserInfo
     full_title: str
     sub: str
-    page_link: str = ""
-    last_update: str = ""
     user_link: str = "unknown"
     country: str = ""
 
-    editcount_str: str = "unknown"
+    global_editcount_str: str = "unknown"
     global_without_wikidata_str: str = ""
     recent_editcount_str: str = "unknown"
     wikidata_editcount_str: str = "unknown"
 
     age: str = ""
     home_wiki: str = "unknown"
-    last_edit: str = "unknown"
     username: str = ""
 
-    def __post_init__(self) -> None:
-        if not self.page_link and self.full_title:
-            self.page_link = f"[[{self.full_title}]]"
+    @property
+    def last_edit(self) -> str | None:
+        return self.user_info.last_edit
 
-        if not self.last_update and self.full_title:
-            self.last_update = f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{self.full_title}}}}}}}}}"
+    @property
+    def page_link(self) -> str:
+        if self.full_title:
+            return f"[[{self.full_title}]]"
+        return ""
+
+    @property
+    def last_update(self) -> str:
+        if self.full_title:
+            return f"{{{{#time:Y-m-d|{{{{REVISIONTIMESTAMP:{self.full_title}}}}}}}}}"
+        return ""
 
     # ------------------------------------------------------------------
     # Factory
@@ -104,51 +110,55 @@ class ApplicationRow:
         """Create a minimal row from a subpage name (before enrichment)."""
         sub = sub.replace("_", " ")
         full_title = f"{base_page}/{sub}"
-        user_link = f"[[User:{username}]]" if username else unknown
+        user_info = UserInfo(username=username)
         return cls(
             full_title=full_title,
             sub=sub,
             username=username,
-            user_link=user_link,
-            editcount_str=unknown,
+            user_link=user_info.user_link or unknown,
+            global_editcount_str=unknown,
             recent_editcount_str=unknown,
             home_wiki=unknown,
-            last_edit=unknown,
+            user_info=user_info,
         )
+
+    def update_username(self, username: str) -> None:
+        self.username = username
+        self.user_info.username = username
 
     def apply_user_info(
         self,
-        info: UserInfo,
-        *,
-        unknown: str = "unknown",
+        user_info: UserInfo,
     ) -> ApplicationRow:
-        """Fill user-related columns from a ``UserInfo`` snapshot."""
-        self.username = info.username
-        self.user_link = f"[[User:{info.username}]]" if info.username else unknown
-        self.home_wiki = info.home_wiki or unknown
-        self.age = info.age
+        """
+        Fill user-related columns from a ``UserInfo`` snapshot.
+        self.age
+        self.global_editcount_str
+        self.global_without_wikidata_str
+        self.home_wiki
+        self.last_edit
+        self.recent_editcount_str
+        self.user_link
+        self.username
+        self.wikidata_editcount_str
+        """
+        self.user_info = user_info
+        self.username = user_info.username
 
-        if isinstance(info.global_editcount, int):
-            self.editcount_str = f"{info.global_editcount:,}"
-        else:
-            self.editcount_str = unknown
+        self.user_link = self.user_info.user_link
+        self.home_wiki = user_info.home_wiki
+        self.age = user_info.age
 
-        if info.recent_editcount is not None:
-            self.recent_editcount_str = f"{info.recent_editcount:,}"
-        else:
-            self.recent_editcount_str = unknown
+        if user_info.global_editcount is not None:
+            self.global_editcount_str = f"{user_info.global_editcount:,}"
 
-        if info.wikidata_count is not None:
-            self.wikidata_editcount_str = f"{info.wikidata_count:,}"
-        else:
-            self.wikidata_editcount_str = unknown
+        if user_info.recent_editcount is not None:
+            self.recent_editcount_str = f"{user_info.recent_editcount:,}"
 
-        if info.last_edit:
-            self.last_edit = info.last_edit
-        else:
-            self.last_edit = unknown
+        if user_info.wikidata_count is not None:
+            self.wikidata_editcount_str = f"{user_info.wikidata_count:,}"
 
-        self.global_without_wikidata_str = info.global_without_wikidata_str
+        self.global_without_wikidata_str = user_info.global_without_wikidata_str
 
         return self
 
@@ -161,7 +171,7 @@ class ApplicationRow:
     # Table / export helpers
     # ------------------------------------------------------------------
 
-    def to_table_dict(self) -> dict[str, str]:
+    def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
         Dict of header-key → cell value expected by ``WikiTableDataUpdater``
         and ``ApplicationTable.build_wikitable``.
@@ -169,15 +179,15 @@ class ApplicationRow:
         return {
             "page_link": self.page_link,
             "last_update": self.last_update,
-            "user_link": self.user_link,
             "country": self.country,
-            "editcount_str": self.editcount_str,
-            "recent_editcount_str": self.recent_editcount_str,
-            "wikidata_editcount_str": self.wikidata_editcount_str,
-            "global_without_wikidata_str": self.global_without_wikidata_str,
-            "age": self.age,
-            "home_wiki": self.home_wiki,
-            "last_edit": self.last_edit,
+            "global_editcount_str": self.global_editcount_str or unknown,
+            "recent_editcount_str": self.recent_editcount_str or unknown,
+            "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
+            "global_without_wikidata_str": self.user_info.global_without_wikidata_str,
+            "user_link": self.user_info.user_link or unknown,
+            "age": self.user_info.age,
+            "home_wiki": self.user_info.home_wiki or unknown,
+            "last_edit": self.user_info.last_edit or unknown,
         }
 
     def to_json(self) -> dict[str, Any]:
@@ -188,19 +198,19 @@ class ApplicationRow:
         lines = ["|-"]
         lines.append(f"| {self.page_link}")
         lines.append(f"| {self.last_update}")
-        lines.append(f"| {self.user_link}")
+        lines.append(f"| {self.user_info.user_link}")
         lines.append(f"| {self.country}")
-        # lines.append(f"| {self.editcount_str}")
+        # lines.append(f"| {self.global_editcount_str}")
 
-        lines.append(f"| {self.global_without_wikidata_str}")
+        lines.append(f"| {self.user_info.global_without_wikidata_str}")
         lines.append(f"| {self.wikidata_editcount_str}")
 
         lines.append(f"| {self.recent_editcount_str}")
-        lines.append(f"| {self.age}")
-        lines.append(f"| {self.home_wiki}")
+        lines.append(f"| {self.user_info.age}")
+        lines.append(f"| {self.user_info.home_wiki}")
 
         if add_last_edit:
-            lines.append(f"| {self.last_edit}")
+            lines.append(f"| {self.user_info.last_edit}")
 
         lines.append("| ")
         return lines

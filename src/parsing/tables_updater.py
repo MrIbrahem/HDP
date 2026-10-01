@@ -42,7 +42,7 @@ class WikiTableDataUpdater:
     ) -> None:
         """
         rows keys:
-            (page_link, last_update, user_link, editcount_str, recent_editcount_str, age, home_wiki)
+            (page_link, last_update, user_link, global_editcount_str, recent_editcount_str, age, home_wiki)
         """
         all_rows = table.cells()
         if not all_rows:

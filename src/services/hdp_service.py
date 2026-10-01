@@ -140,7 +140,7 @@ class HdpService:
         live_redirects = self.users.resolve_batch(usernames)
         for row in rows:
             if row.username in live_redirects:
-                row.username = live_redirects[row.username]
+                row.update_username(live_redirects[row.username])
                 row.user_link = f"[[User:{row.username}]]"
 
         # 3. Application wikitext (country)
@@ -158,7 +158,7 @@ class HdpService:
         # process rows
         rows = self._process_rows_users(rows, unknown=unknown)
 
-        return ApplicationTable.load(rows)
+        return ApplicationTable.load(rows, unknown=unknown)
 
     def _process_rows_users(self, rows: list[ApplicationRow], unknown: str = "unknown") -> list[ApplicationRow]:
         users = [r.username for r in rows if r.username]
@@ -193,7 +193,7 @@ class HdpService:
                 last_edit=last_edits.get(username),
                 wikidata_count=wikidata_editcounts.get(username),
             )
-            row.apply_user_info(user_info, unknown=unknown)
+            row.apply_user_info(user_info)
 
         return rows
 

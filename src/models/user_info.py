@@ -102,7 +102,7 @@ def _as_optional_int(value: Any) -> int | None:
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
+@dataclass  # (frozen=True)
 class UserInfo:
     """
     Immutable snapshot of a Wikimedia user's global account data.
@@ -119,6 +119,10 @@ class UserInfo:
     recent_editcount: int | None = None
     wikidata_count: int | None = None
     last_edit: str | None = None  # Y-m-d
+
+    @property
+    def user_link(self) -> str:
+        return f"[[User:{self.username}]]" if self.username else None
 
     @property
     def age(self) -> str:

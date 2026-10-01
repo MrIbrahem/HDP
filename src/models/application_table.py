@@ -14,6 +14,7 @@ from .application_row import ApplicationRow
 @dataclass
 class ApplicationTable:
     rows: list[ApplicationRow]
+    unknown: str = ""
 
     def build_wikitable(
         self,
@@ -53,14 +54,15 @@ class ApplicationTable:
         Convert rows to the dict shape the table updater expects
         """
         # Convert rows to the dict shape the table updater expects
-        return {row.full_title: row.to_table_dict() for row in self.rows}
+        return {row.full_title: row.to_table_dict(self.unknown) for row in self.rows}
 
     @classmethod
     def load(
         cls,
         rows: list[ApplicationRow] | None = None,
+        unknown: str = "",
     ) -> ApplicationTable:
-        return cls(rows=rows or [])
+        return cls(rows=rows or [], unknown=unknown)
 
 
 __all__ = [
