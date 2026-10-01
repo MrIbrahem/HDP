@@ -280,7 +280,7 @@ class HdpService:
             rows=row_dicts,
             wikitext=full_wikitext,
             table_headers_to_row_key=header_map,
-            replace_values=False,
+            replace_values=True,
         )
 
 
