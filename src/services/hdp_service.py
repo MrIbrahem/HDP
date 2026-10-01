@@ -266,7 +266,7 @@ class HdpService:
         Returns the full updated page wikitext.
         """
         full_wikitext = self.wiki.get_page_wikitext(page_title)
-        subpages = self.subpages.discover_subpages(page_title, section_names)
+        subpages = self.subpages.discover_subpages(page_title, section_names, full_wikitext)
 
         table = self.load_rows(subpages, unknown=unknown)
 
