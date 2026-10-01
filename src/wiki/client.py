@@ -25,6 +25,7 @@ METAWIKI_HOST: str = "meta.wikimedia.org"
 
 class WikiClientLoader:
     """ """
+
     DEFAULT_BATCH_SIZE = 50
     HIGH_LIMIT_BATCH_SIZE = 500
     HIGH_LIMIT_RIGHT = "apihighlimits"
@@ -45,10 +46,14 @@ class WikiClientLoader:
         # 1) Use the rights cached by mwclient (populated on login / site init)
         #  self._site.rights: ['apihighlimits', 'read', ...]
         if self.HIGH_LIMIT_RIGHT in self._site.rights:
-            logger.info("User has %s right, using high limit batch size: %s", self.HIGH_LIMIT_RIGHT, self.HIGH_LIMIT_BATCH_SIZE)
+            logger.info(
+                "User has %s right, using high limit batch size: %s", self.HIGH_LIMIT_RIGHT, self.HIGH_LIMIT_BATCH_SIZE
+            )
             return self.HIGH_LIMIT_BATCH_SIZE
 
-        logger.info("User does not have %s right, using default batch size: %s", self.HIGH_LIMIT_RIGHT, self.DEFAULT_BATCH_SIZE)
+        logger.info(
+            "User does not have %s right, using default batch size: %s", self.HIGH_LIMIT_RIGHT, self.DEFAULT_BATCH_SIZE
+        )
         return self.DEFAULT_BATCH_SIZE
 
     # ------------------------------------------------------------------
