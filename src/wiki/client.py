@@ -52,9 +52,10 @@ class WikiClientLoader:
         """
         result: dict[str, str] = {}
 
-        for i in range(0, len(titles), batch_size):
+        batchs = range(0, len(titles), batch_size)
+        for i in tqdm(batchs, desc="Fetching wikitext", unit="batch"):
             batch = titles[i : i + batch_size]
-            logger.info(
+            logger.debug(
                 "Fetching wikitext for batch %s (%s pages) ...",
                 i // batch_size + 1,
                 len(batch),
