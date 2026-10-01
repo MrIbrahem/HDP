@@ -58,7 +58,7 @@ class WikiClientLoader:
         batch_size = self.batch_size
 
         batchs = range(0, len(titles), batch_size)
-        for i in tqdm(batchs, desc="Fetching wikitext", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Fetching wikitext", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             batch = titles[i : i + batch_size]
             logger.debug(
                 "Fetching wikitext for batch %s (%s pages) ...",
@@ -193,7 +193,7 @@ class WikiClientLoader:
         result: dict[str, int] = dict.fromkeys(users, 0)
 
         batchs = range(0, len(users), batch_size)
-        for i in tqdm(batchs, desc="Fetching edit counts", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Fetching edit counts", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             batch = users[i : i + batch_size]
             params = {
                 "list": "users",
@@ -242,7 +242,7 @@ class WikiClientLoader:
         logger.info("Fetching global edit counts for %s users ...", len(users))
 
         batchs = range(0, len(users), batch_size)
-        for i in tqdm(batchs, desc="Fetching global edit counts", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Fetching global edit counts", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             batch = users[i : i + batch_size]
             params = {
                 "list": "globalusers",
@@ -331,7 +331,7 @@ class WikiClientLoader:
         result: dict[str, str] = {}
 
         batchs = range(0, len(pages), batch_size)
-        for i in tqdm(batchs, desc="Resolve redirects for pages", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Resolve redirects for pages", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             group = pages[i : i + batch_size]
             logger.debug(
                 "Fetching redirects %s – %s ...",
