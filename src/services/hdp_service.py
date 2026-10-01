@@ -143,7 +143,6 @@ class HdpService:
         # 3. Application wikitext (country)
         # Batch-fetch application page wikitexts to extract country
         app_texts = self.wiki.get_pages_wikitext([r.full_title for r in rows])
-        logger.info("Fetched wikitext for %s application pages", len(app_texts))
 
         # 9. Apply country
         for row in rows:
