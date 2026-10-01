@@ -37,7 +37,7 @@ class SubPages:
         self,
         page_title: str,
         section_names: Sequence[str],
-        full_wikitext: str,
+        full_wikitext: str | None = None,
     ) -> set[str]:
         """
         Collect application subpage names for the given sections / categories.
