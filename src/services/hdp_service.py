@@ -54,14 +54,15 @@ class HdpService:
         self.category = category or CategoryService(wiki.site)
 
         self.users = users or UserResolver(wiki, self.settings.users_redirects)
-        self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
         self.home_cache = home_cache or HomeWikiCache(self.settings.home_wiki_cache_path, wiki)
+        self.subpages = SubPages(wiki, self.settings, category=self.category)
+
+        self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
         self.recent_cache = recent_cache or RecentEditCache(
             self.settings.edit_counts_cache_path,
             self.xtools,
             recent_days=self.settings.recent_days,
         )
-        self.subpages = SubPages(wiki, self.settings, category=self.category)
 
     def set_args(self, args: argparse.Namespace) -> None:
         self.offline = args.offline

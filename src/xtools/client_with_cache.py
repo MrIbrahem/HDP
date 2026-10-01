@@ -242,6 +242,7 @@ class XToolsClientWithCache:
 
         return results
 
+
 __all__ = [
     "XToolsClientWithCache",
 ]

@@ -240,6 +240,7 @@ class XToolsClient:
 
         return results
 
+
 __all__ = [
     "XToolsClient",
 ]
