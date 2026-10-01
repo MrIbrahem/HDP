@@ -128,7 +128,7 @@ class XToolsClient:
 
         return total_by_day
 
-    def recent_editcount(self, username: str, start: str, end: str) -> int | None:
+    def get_recent_editcount(self, username: str, start: str, end: str) -> int | None:
         """
         Sum of per-day counts, or ``None`` when no data was returned.
         """
@@ -149,7 +149,7 @@ class XToolsClient:
         results: dict[str, int] = {}
         for username in tqdm(users, desc="Fetching recent edits", unit="user", disable=TQDM_DISABLE):
 
-            count = self.recent_editcount(username, start, end)
+            count = self.get_recent_editcount(username, start, end)
             if count is not None:
                 results[username] = count
             time.sleep(0.3)

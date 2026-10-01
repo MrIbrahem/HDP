@@ -141,12 +141,17 @@ class TestLoad:
         mock_from_settings.return_value = mock_wiki
 
         settings = _make_settings()
-        result = HdpService.load(settings=settings)
+        result = HdpService.load(settings=settings, login=False, do_init=False)
 
         assert result is not None
         assert isinstance(result, HdpService)
         assert result.wiki is mock_wiki
-        mock_from_settings.assert_called_once_with(settings)
+        mock_from_settings.assert_called_with(
+            settings=settings,
+            host="www.wikidata.org",
+            login=False,
+            do_init=False,
+        )
 
 
 # ===========================================================================

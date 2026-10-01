@@ -77,15 +77,32 @@ class HdpService:
     # ------------------------------------------------------------------
 
     @classmethod
-    def load(cls, settings: Settings | None = None) -> HdpService | None:
+    def load(
+        cls,
+        settings: Settings | None = None,
+        login: bool = True,
+        do_init: bool = True,
+    ) -> HdpService | None:
         """
         Wire a fully configured service from env / defaults. ``None`` on login failure.
         """
         settings = settings or Settings.from_env()
-        wiki = WikiClient.from_settings(settings)
+        wiki = WikiClient.from_settings(
+            settings=settings,
+            login=login,
+            do_init=do_init,
+        )
+
         if wiki is None:
             return None
-        return cls(wiki=wiki, settings=settings)
+
+        wd_client = WikiClient.from_settings(
+            settings=settings,
+            host="www.wikidata.org",
+            login=login,
+            do_init=do_init,
+        )
+        return cls(wiki=wiki, wd_client=wd_client, settings=settings)
 
     # ------------------------------------------------------------------
     # Row building
@@ -162,8 +179,8 @@ class HdpService:
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
 
         # 8. Assemble
-        rows: list[ApplicationRow] = []
-        for row in draft:
+        rows: list[ApplicationRow] = draft
+        for row in rows:
             username = row.username
             if username:
                 user_info = home_wikis.get(username) or UserInfo(username=username)
@@ -183,9 +200,7 @@ class HdpService:
             if wikitext:
                 row.apply_country(wikitext)
 
-            rows.append(row)
-
-        return ApplicationTable.load(draft)
+        return ApplicationTable.load(rows)
 
     # ------------------------------------------------------------------
     # Table generation / update

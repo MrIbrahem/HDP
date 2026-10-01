@@ -412,6 +412,7 @@ class WikiClient(WikiClientLoader):
         settings: Settings | None = None,
         host: str = METAWIKI_HOST,
         login: bool = True,
+        do_init: bool = True,
     ) -> WikiClient | None:
         """
         Convenience: load credentials from env and connect.
@@ -429,6 +430,7 @@ class WikiClient(WikiClientLoader):
             user_agent=settings.user_agent,
             host=host,
             login=login,
+            do_init=do_init,
         )
 
     @classmethod
@@ -437,12 +439,14 @@ class WikiClient(WikiClientLoader):
         settings: Settings,
         host: str = METAWIKI_HOST,
         login: bool = True,
+        do_init: bool = True,
     ) -> WikiClient | None:
         """Convenience: load credentials from env and connect."""
         return cls.load(
             settings=settings,
             host=host,
             login=login,
+            do_init=do_init,
         )
 
 
