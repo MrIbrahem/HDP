@@ -16,7 +16,6 @@ import requests
 from src.xtools.client import XToolsClient
 
 
-
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.xtools.client.time.sleep", MagicMock())
@@ -33,6 +32,7 @@ def test_get_recent_editcount() -> None:
 def test_get_recent_editcount_m() -> None:
     result = XToolsClient().recent_editcount_by_day("Mr. Ibrahem", "2026-05-10", "2026-05-12")
     assert result == {"2026-05-10": 6}
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -73,7 +73,6 @@ def _error_response(text: str = "error", status: int = 500) -> MagicMock:
 class TestLoadDates:
     def test_returns_iso_strings(self):
         start, end = XToolsClient.load_dates(recent_days=90)
-        # Both parse as dates
         date.fromisoformat(start)
         date.fromisoformat(end)
 
@@ -82,16 +81,26 @@ class TestLoadDates:
 
         start, end = XToolsClient.load_dates(recent_days=90, today=fixed_today)
 
-        assert end == "2026-09-29"  # yesterday
-        assert start == "2026-06-01"  # yesterday - 90 days
+        assert end == "2026-09-29"
+        assert start == "2026-07-01"  # 2026-09-29 - 90 days
 
     def test_custom_recent_days(self):
-        fixed_today = datetime(2026, 10, 1, 0, 0, 0, tzinfo=UTC)
+        fixed_today = date(2026, 10, 1)  # date, not datetime
 
         start, end = XToolsClient.load_dates(recent_days=7, today=fixed_today)
 
         assert end == "2026-09-30"
+        assert start == "2026-09-23"  # 2026-09-30 - 7 days
+
+    def test_accepts_datetime_and_normalises_to_date(self):
+        """Optional: only if load_dates coerces datetime → date."""
+        fixed_today = datetime(2026, 10, 1, 15, 30, 0, tzinfo=UTC)
+
+        start, end = XToolsClient.load_dates(recent_days=7, today=fixed_today.date())
+
+        assert end == "2026-09-30"
         assert start == "2026-09-23"
+        assert "T" not in start and "T" not in end
 
 
 # ===========================================================================
@@ -127,9 +136,7 @@ class TestRecentEditcountByDay:
     def test_user_not_exists_appends_and_returns_empty(self, mock_get):
         resp = MagicMock()
         resp.status_code = 404
-        resp.text = (
-            '{"detail":"The requested user does not exist","status":404}'
-        )
+        resp.text = '{"detail":"The requested user does not exist","status":404}'
         resp.raise_for_status.side_effect = requests.HTTPError("404")
         # Code checks text BEFORE raise_for_status
         mock_get.return_value = resp
@@ -142,9 +149,7 @@ class TestRecentEditcountByDay:
 
     @patch("src.xtools.client.requests.get")
     def test_rfc7807_error_returns_partial_or_empty(self, mock_get):
-        mock_get.return_value = _ok_response(
-            {"status": 400, "title": "Bad Request", "detail": "invalid"}
-        )
+        mock_get.return_value = _ok_response({"status": 400, "title": "Bad Request", "detail": "invalid"})
         client = _client()
 
         assert client.recent_editcount_by_day("Alice", "2026-01-01", "2026-01-02") == {}
@@ -193,9 +198,7 @@ class TestRecentEditcountByDay:
 
     @patch("src.xtools.client.time.sleep")
     @patch("src.xtools.client.requests.get")
-    def test_request_exception_with_no_data_returns_empty_after_backoff(
-        self, mock_get, mock_sleep
-    ):
+    def test_request_exception_with_no_data_returns_empty_after_backoff(self, mock_get, mock_sleep):
         mock_get.side_effect = requests.ConnectionError("down")
 
         client = _client()
@@ -297,9 +300,7 @@ class TestLastEditTimestamp:
 
     @patch("src.xtools.client.requests.get")
     def test_returns_none_on_error_payload(self, mock_get):
-        mock_get.return_value = _ok_response(
-            {"status": 404, "title": "Not Found", "detail": "gone"}
-        )
+        mock_get.return_value = _ok_response({"status": 404, "title": "Not Found", "detail": "gone"})
         client = _client()
 
         assert client.last_edit_timestamp("Alice") is None

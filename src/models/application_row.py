@@ -136,7 +136,7 @@ class ApplicationRow:
             "page_link": self.page_link,
             "last_update": self.last_update,
             "country": self.country,
-            **self.user_info.to_table_dict(unknown=unknown)
+            **self.user_info.to_table_dict(unknown=unknown),
         }
         return data
 
