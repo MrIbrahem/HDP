@@ -60,7 +60,9 @@ class Cli:
     # ------------------------------------------------------------------
 
     def _cmd_generate(self, service: HdpService, args: argparse.Namespace) -> int:
+        logger.info("Starting generate script")
         section_names = args.sections or list(DEFAULT_SECTION_NAMES)
+
         text = service.generate(
             page_title=args.page or self.settings.base_page,
             section_names=section_names,
@@ -79,13 +81,15 @@ class Cli:
         page_title = args.page
         output = args.output
 
+        section_names = args.sections or list(DEFAULT_SECTION_NAMES)
         if args.test:
             page_title = "User:Mr. Ibrahem/test"
+            section_names = []
 
+        logger.info("Starting update script, page_title: %s", page_title)
         if args.test and output == "Mr._Ibrahem_hdp.wiki":
             output = "test.wiki"
 
-        section_names = args.sections or list(DEFAULT_SECTION_NAMES)
         text = service.update(
             page_title=page_title,
             section_names=section_names,
