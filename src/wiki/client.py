@@ -16,73 +16,22 @@ import mwclient.errors
 from mwclient.client import Site
 from tqdm import tqdm
 
-from ..config import USER_AGENT, Credentials, Settings
+from ..config import TQDM_DISABLE, USER_AGENT, Credentials, Settings
 
 logger = logging.getLogger(__name__)
 
+METAWIKI_HOST: str = "meta.wikimedia.org"
 
-class WikiClient:
-    """
-    Thin, injectable wrapper around a logged-in ``mwclient.Site``.
-    """
+
+class WikiClientLoader:
+    """ """
 
     def __init__(self, site: Site) -> None:
         self._site = site
 
-    # ------------------------------------------------------------------
-    # Construction
-    # ------------------------------------------------------------------
-
-    @classmethod
-    def connect(
-        cls,
-        credentials: Credentials,
-        *,
-        user_agent: str = USER_AGENT,
-        host: str = "meta.wikimedia.org",
-    ) -> WikiClient | None:
-        """
-        Log in to Meta Wiki and return a client, or ``None`` on failure.
-        """
-        try:
-            logger.info("Connecting to %s ...", host)
-            site = Site(host, clients_useragent=user_agent)
-
-            logger.info("Logging in as %s ...", credentials.username)
-            site.login(credentials.username, credentials.password)
-
-            logger.info("Successfully connected and logged in")
-            return cls(site)
-        except mwclient.errors.LoginError as err:
-            logger.error("Login failed: %s", err)
-            return None
-        except Exception as err:
-            logger.exception("Failed to connect to %s: %s", host, err)
-            return None
-
-    @classmethod
-    def connect_by_user(
-        cls,
-        username: str,
-        password: str,
-        *,
-        user_agent: str = USER_AGENT,
-        host: str = "meta.wikimedia.org",
-    ) -> WikiClient | None:
-        return cls.connect(Credentials(username, password), user_agent=user_agent, host=host)
-
-    @classmethod
-    def from_settings(cls, settings: Settings) -> WikiClient | None:
-        """Convenience: load credentials from env and connect."""
-        credentials = Credentials.from_env()
-        if not credentials:
-            logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
-            return None
-        return cls.connect(credentials, user_agent=settings.user_agent)
-
     @property
-    def site(self) -> Site:
-        return self._site
+    def batch_size(self) -> int:
+        return 50
 
     # ------------------------------------------------------------------
     # Page content
@@ -99,17 +48,19 @@ class WikiClient:
             logger.error("API request failed for %s: %s", page_title, e)
             return ""
 
-    def get_pages_wikitext(self, titles: list[str], batch_size: int = 50) -> dict[str, str]:
+    def get_pages_wikitext(self, titles: list[str]) -> dict[str, str]:
         """
         Fetch wikitext for many pages in batches of up to ``batch_size``.
 
         Missing pages are omitted from the result.
         """
         result: dict[str, str] = {}
+        batch_size = self.batch_size
 
-        for i in range(0, len(titles), batch_size):
+        batchs = range(0, len(titles), batch_size)
+        for i in tqdm(batchs, desc="Fetching wikitext", unit="batch", disable=TQDM_DISABLE):
             batch = titles[i : i + batch_size]
-            logger.info(
+            logger.debug(
                 "Fetching wikitext for batch %s (%s pages) ...",
                 i // batch_size + 1,
                 len(batch),
@@ -140,6 +91,7 @@ class WikiClient:
 
             time.sleep(0.1)
 
+        logger.info("Fetched wikitext for %s pages", len(result))
         return result
 
     def page_last_edit_timestamp(self, page_title: str) -> str | None:
@@ -176,6 +128,8 @@ class WikiClient:
         pages = data.get("query", {}).get("pages", [])
         if pages and "revisions" in pages[0]:
             return pages[0]["revisions"][0]["timestamp"]
+
+        logger.info("Page %s is missing or has no revisions", page_title)
         return None
 
     def get_page_creator(self, page_title: str) -> str | None:
@@ -220,25 +174,26 @@ class WikiClient:
     # Users
     # ------------------------------------------------------------------
 
-    def get_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
-        """Fetches edit counts on Wikidata (www.wikidata.org) for a list of users.
+    def get_editcounts(self, users: list[str]) -> dict[str, int]:
+        """
+        Fetches edit counts for a list of users.
 
         Args:
             users (list[str]): A list of usernames.
-            site (Site | None): Optional mwclient.Site instance for Wikidata.
-                If None, connects to 'www.wikidata.org'.
 
         Returns:
-            dict[str, int]: Mapping from username to their Wikidata edit count.
+            dict[str, int]: Mapping from username to their edit count.
         """
         if not users:
+            logger.debug("No users provided, returning empty dict")
             return {}
 
-        logger.info(f"Fetching Wikidata edit count for {len(users)} users...")
-        batch_size = 50
+        logger.info(f"Fetching edit count for {len(users)} users...")
+        batch_size = self.batch_size
         result: dict[str, int] = dict.fromkeys(users, 0)
 
-        for i in range(0, len(users), batch_size):
+        batchs = range(0, len(users), batch_size)
+        for i in tqdm(batchs, desc="Fetching edit counts", unit="batch", disable=TQDM_DISABLE):
             batch = users[i : i + batch_size]
             params = {
                 "list": "users",
@@ -248,6 +203,7 @@ class WikiClient:
                 "format": "json",
             }
             try:
+                # API schema: "query": { "users": [{"userid":000,"name":"User","editcount":1000} ]}
                 data = self._site.get("query", **params)
                 user_list = data.get("query", {}).get("users", [])
                 for user_info in user_list:
@@ -255,8 +211,9 @@ class WikiClient:
                     if name:
                         result[name] = user_info.get("editcount", 0)
             except Exception as e:
-                logger.error(f"API request failed for Wikidata editcounts batch {i}: {e}")
+                logger.error(f"API request failed for editcounts batch {i}: {e}")
 
+        logger.info("Received edit counts for %s users", len(result))
         return result
 
     def get_global_editcounts(self, users: list[str]) -> dict[str, int]:
@@ -277,27 +234,39 @@ class WikiClient:
                 but does not re-raise them.
         """
         if not users:
+            logger.debug("No users provided, returning empty dict")
             return {}
 
+        batch_size = self.batch_size
+        result: dict[str, int] = dict.fromkeys(users, 0)
         logger.info("Fetching global edit counts for %s users ...", len(users))
-        params = {
-            "list": "globalusers",
-            "gusprop": "editcount|registration",
-            "gususers": "|".join(users),
-            "formatversion": 2,
-            "format": "json",
-        }
-        try:
-            data = self._site.get("query", **params)
-        except Exception as e:
-            logger.error("API request failed: %s", e)
-            return {}
 
-        result = data.get("query", {}).get("globalusers", [])
-        # [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
+        batchs = range(0, len(users), batch_size)
+        for i in tqdm(batchs, desc="Fetching global edit counts", unit="batch", disable=TQDM_DISABLE):
+            batch = users[i : i + batch_size]
+            params = {
+                "list": "globalusers",
+                "gusprop": "editcount|registration",
+                "gususers": "|".join(batch),
+                "formatversion": 2,
+                "format": "json",
+            }
+            try:
+                data = self._site.get("query", **params)
 
-        logger.info("Received edit counts for %s users", len(result))
-        return {x["name"]: x.get("editcount", 0) for x in result}
+                user_list = data.get("query", {}).get("globalusers", [])
+                # API schema: [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
+
+                logger.debug("Received edit counts for %s users", len(user_list))
+                batch_data = {x["name"]: x.get("editcount", 0) for x in user_list}
+
+                result.update(batch_data)
+
+            except Exception as e:
+                logger.error(f"API request failed for editcounts batch {i}: {e}")
+
+        logger.info("Loaded %s global edit counts", len(result))
+        return result
 
     def get_global_userinfo(self, username: str) -> dict[str, Any]:
         """
@@ -323,8 +292,11 @@ class WikiClient:
             logger.error("API request failed for %s: %s", username, e)
             return {}
 
-        # { "globaluserinfo": { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
-        return data.get("query", {}).get("globaluserinfo", {}) or {}
+        # API schema: {"globaluserinfo":{"home":"enwiki","id":000,"registration":...}
+        globaluserinfo = data.get("query", {}).get("globaluserinfo", {}) or {}
+
+        logger.debug("Fetched globaluserinfo for %s: %s", username, globaluserinfo)
+        return globaluserinfo
 
     def get_home_wikis_and_registration(
         self,
@@ -336,29 +308,32 @@ class WikiClient:
         Returns ``{username: {"home": ..., "registration": ...}}``.
         """
         home_wikis: dict[str, dict[str, str]] = {}
-        for username in tqdm(users, desc="Fetching home wiki", unit="user"):
+        for username in tqdm(users, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self.get_global_userinfo(username)
-            # info = { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
+            # API schema: {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
             home_wikis[username] = {
                 "home": info.get("home", ""),
                 "registration": info.get("registration", ""),
             }
             time.sleep(0.1)
 
+        logger.info("Resolved %s home wikis", len(home_wikis))
         return home_wikis
 
-    def solve_pages_redirects(self, pages: list[str], batch_size: int = 50) -> dict[str, str]:
+    def solve_pages_redirects(self, pages: list[str]) -> dict[str, str]:
         """
         Resolve redirects for a list of page titles.
 
         Returns ``{redirect_title: target_title}``.
         """
         logger.info("Fetching redirects for %s pages ...", len(pages))
+        batch_size = self.batch_size
         result: dict[str, str] = {}
 
-        for i in range(0, len(pages), batch_size):
+        batchs = range(0, len(pages), batch_size)
+        for i in tqdm(batchs, desc="Resolve redirects for pages", unit="batch", disable=TQDM_DISABLE):
             group = pages[i : i + batch_size]
-            logger.info(
+            logger.debug(
                 "Fetching redirects %s – %s ...",
                 i,
                 min(i + batch_size, len(pages)),
@@ -389,6 +364,99 @@ class WikiClient:
 
         logger.info("Resolved %s redirects", len(result))
         return result
+
+
+class WikiClient(WikiClientLoader):
+    """
+    Thin, injectable wrapper around a logged-in ``mwclient.Site``.
+    """
+
+    def __init__(self, site: Site) -> None:
+        self._site = site
+        super().__init__(site)
+
+    @property
+    def site(self) -> Site:
+        return self._site
+
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def connect(
+        cls,
+        credentials: Credentials,
+        *,
+        user_agent: str = USER_AGENT,
+        host: str = METAWIKI_HOST,
+        login: bool = True,
+        do_init: bool = True,
+    ) -> WikiClient | None:
+        """
+        Log in to Meta Wiki and return a client, or ``None`` on failure.
+        """
+        try:
+            logger.info("Connecting to %s ...", host)
+            site = Site(host, clients_useragent=user_agent, do_init=do_init)
+            if credentials:
+                if login:
+                    logger.info("Logging in as %s ...", credentials.username)
+                    site.login(credentials.username, credentials.password)
+                else:
+                    site.credentials = (credentials.username, credentials.password, None)
+
+            logger.info("Successfully connected and logged in")
+            return cls(site)
+        except mwclient.errors.LoginError as err:
+            logger.error("Login failed: %s", err)
+            return None
+        except Exception as err:
+            logger.exception("Failed to connect to %s: %s", host, err)
+            return None
+
+    @classmethod
+    def load(
+        cls,
+        settings: Settings | None = None,
+        host: str = METAWIKI_HOST,
+        login: bool = True,
+        do_init: bool = True,
+    ) -> WikiClient | None:
+        """
+        Convenience: load credentials from env and connect.
+        """
+        credentials = Credentials.from_env()
+        if not credentials and login:
+            logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
+            return None
+
+        if not settings:
+            settings = Settings.from_env()
+
+        return cls.connect(
+            credentials=credentials,
+            user_agent=settings.user_agent,
+            host=host,
+            login=login,
+            do_init=do_init,
+        )
+
+    @classmethod
+    def from_settings(
+        cls,
+        settings: Settings,
+        host: str = METAWIKI_HOST,
+        login: bool = True,
+        do_init: bool = True,
+    ) -> WikiClient | None:
+        """Convenience: load credentials from env and connect."""
+        return cls.load(
+            settings=settings,
+            host=host,
+            login=login,
+            do_init=do_init,
+        )
 
 
 __all__ = [

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -88,12 +88,21 @@ def calculate_age(registration: str) -> str:
         return registration
 
 
+def _as_optional_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 # ---------------------------------------------------------------------------
 # UserInfo
 # ---------------------------------------------------------------------------
 
 
-@dataclass(frozen=True)
+@dataclass  # (frozen=True)
 class UserInfo:
     """
     Immutable snapshot of a Wikimedia user's global account data.
@@ -104,12 +113,21 @@ class UserInfo:
     """
 
     username: str
+    refirect_username: str = ""
     home_wiki: str = ""
     registration: str = ""  # ISO timestamp from CentralAuth
     global_editcount: int | None = None
     recent_editcount: int | None = None
     wikidata_count: int | None = None
     last_edit: str | None = None  # Y-m-d
+
+    def update_username(self, username: str) -> None:
+        self.refirect_username = self.username
+        self.username = username
+
+    @property
+    def user_link(self) -> str:
+        return f"[[User:{self.username}]]" if self.username else None
 
     @property
     def age(self) -> str:
@@ -121,51 +139,90 @@ class UserInfo:
             global_without_wikidata = max(0, self.global_editcount - self.wikidata_count)
             return f"{global_without_wikidata:,}"
 
-    def with_editcounts(
+        return ""
+
+    @property
+    def global_editcount_str(self) -> str:
+        if self.global_editcount is not None:
+            return f"{self.global_editcount:,}"
+        return ""
+
+    @property
+    def recent_editcount_str(self) -> str:
+        if self.recent_editcount is not None:
+            return f"{self.recent_editcount:,}"
+        return ""
+
+    @property
+    def wikidata_editcount_str(self) -> str:
+        if self.wikidata_count is not None:
+            return f"{self.wikidata_count:,}"
+        return ""
+
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
+    def update(
         self,
         *,
+        globaluser_data: Mapping[str, Any],
         global_editcount: int | None = None,
         recent_editcount: int | None = None,
         wikidata_count: int | None = None,
         last_edit: str | None = None,
     ) -> UserInfo:
         """Return a new instance with updated edit-count fields."""
-        return UserInfo(
-            username=self.username,
-            home_wiki=self.home_wiki,
-            registration=self.registration,
-            global_editcount=(global_editcount if global_editcount is not None else self.global_editcount),
-            recent_editcount=(recent_editcount if recent_editcount is not None else self.recent_editcount),
-            wikidata_count=(wikidata_count if wikidata_count is not None else self.wikidata_count),
-            last_edit=last_edit if last_edit is not None else self.last_edit,
-        )
+        globaluser_data = globaluser_data or {}
 
-    @classmethod
-    def from_globaluserinfo(cls, username: str, info: Mapping[str, Any]) -> UserInfo:
+        home_wiki = str(globaluser_data.get("home") or "")
+        if home_wiki:
+            self.home_wiki = home_wiki
+
+        registration = str(globaluser_data.get("registration") or "")
+        if registration:
+            self.registration = registration
+
+        global_editcount = global_editcount or globaluser_data.get("editcount")
+
+        if global_editcount and global_editcount is not None:
+            self.global_editcount = _as_optional_int(global_editcount)
+
+        if recent_editcount is not None:
+            self.recent_editcount = recent_editcount
+
+        if wikidata_count is not None:
+            self.wikidata_count = wikidata_count
+
+        if last_edit is not None:
+            self.last_edit = last_edit
+
+        return self
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
+    # ------------------------------------------------------------------
+    # Table / export helpers
+    # ------------------------------------------------------------------
+
+    def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
-        Build from the dict returned by ``meta=globaluserinfo``.
-
-        info example:
-        { "home": "enwiki", "id": 26378, "registration": "2008-07-24T01:18:05Z", "name": "Doc James", "editcount": 2066486 }
+        Dict of header-key → cell value expected by ``WikiTableDataUpdater``
+        and ``ApplicationTable.build_wikitable``.
         """
-        return cls(
-            username=username,
-            home_wiki=str(info.get("home") or ""),
-            registration=str(info.get("registration") or ""),
-            global_editcount=_as_optional_int(info.get("editcount")),
-        )
-
-
-def _as_optional_int(value: Any) -> int | None:
-    if value is None:
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
+        return {
+            "global_editcount_str": self.global_editcount_str or unknown,
+            "recent_editcount_str": self.recent_editcount_str or unknown,
+            "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
+            "global_without_wikidata_str": self.global_without_wikidata_str,
+            "user_link": self.user_link or unknown,
+            "age": self.age,
+            "home_wiki": self.home_wiki or unknown,
+            "last_edit": self.last_edit or unknown,
+        }
 
 
 __all__ = [
     "UserInfo",
-    "calculate_age",
 ]

@@ -1,3 +1,9 @@
+"""
+Unit tests for src/parsing/tables_manager.py module.
+
+Classes to test: WikiTableColumnManager
+"""
+
 import pytest
 import wikitextparser as wtp
 

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-from pathlib import Path
 
 from .config import DEFAULT_SECTION_NAMES, Settings
 from .logging_setup import setup_logging
@@ -36,16 +35,22 @@ class Cli:
 
         setup_logging(level=args.log_level)
 
-        service = HdpService.from_settings(self.settings)
-        if service is None:
+        hdp_service = HdpService.load(
+            settings=self.settings,
+        )
+
+        if hdp_service is None:
             logger.error("Could not connect to Meta Wiki — aborting")
             return 1
 
+        # set (offline/no_recent/last_edits) args in HdpService
+        hdp_service.set_args(args)
+
         if args.command == "generate":
-            return self._cmd_generate(service, args)
+            return self._cmd_generate(hdp_service, args)
 
         if args.command == "update":
-            return self._cmd_update(service, args)
+            return self._cmd_update(hdp_service, args)
 
         parser.print_help()
         return 2
@@ -55,22 +60,20 @@ class Cli:
     # ------------------------------------------------------------------
 
     def _cmd_generate(self, service: HdpService, args: argparse.Namespace) -> int:
+        logger.info("Starting generate script")
         section_names = args.sections or list(DEFAULT_SECTION_NAMES)
+
         text = service.generate(
             page_title=args.page or self.settings.base_page,
             section_names=section_names,
-            load_recent_editcounts=not args.no_recent,
-            load_last_edits=args.last_edits,
             unknown=args.unknown,
         )
         if not text:
             logger.error("generate produced empty output")
             return 1
 
-        out = Path(args.output)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(text, encoding="utf-8")
-        logger.info("Saved to %s", out.resolve())
+        self.settings.write_to_cache_dir(args.output, text)
+
         return 0
 
     def _cmd_update(self, service: HdpService, args: argparse.Namespace) -> int:
@@ -78,40 +81,43 @@ class Cli:
         page_title = args.page
         output = args.output
 
+        section_names = args.sections or list(DEFAULT_SECTION_NAMES)
         if args.test:
             page_title = "User:Mr. Ibrahem/test"
+            section_names = []
 
-        if args.test and output == "Mr. Ibrahem_hdp.wiki":
+        logger.info("Starting update script, page_title: %s", page_title)
+        if args.test and output == "Mr._Ibrahem_hdp.wiki":
             output = "test.wiki"
 
-        section_names = args.sections or list(DEFAULT_SECTION_NAMES)
         text = service.update(
             page_title=page_title,
             section_names=section_names,
-            load_recent_editcounts=not args.no_recent,
-            load_last_edits=args.last_edits,
             unknown=args.unknown,
         )
         if not text:
             logger.error("update produced empty output")
             return 1
 
-        out = Path(output)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(text, encoding="utf-8")
-        logger.info("Saved to %s", out.resolve())
+        self.settings.write_to_cache_dir(output, text)
         return 0
 
     # ------------------------------------------------------------------
     # Argument parser
     # ------------------------------------------------------------------
 
-    def add_shared_args(self, com) -> None:
+    def add_shared_args(self, com: argparse.ArgumentParser) -> None:
         com.add_argument(
             "--sections",
             nargs="+",
             default=None,
             help="Section headings or Category: names to include",
+        )
+        com.add_argument(
+            "--offline",
+            action="store_true",
+            default=False,
+            help="Skip All network calls; use offline cache only",
         )
         com.add_argument(
             "--no-recent",
@@ -150,7 +156,7 @@ class Cli:
         )
         gen.add_argument(
             "--output",
-            default="data/table.wiki",
+            default="table.wiki",
             help="Output file path (default: data/table.wiki)",
         )
         gen.add_argument(
@@ -177,7 +183,7 @@ class Cli:
         )
         upd.add_argument(
             "--output",
-            default="data/Mr. Ibrahem_hdp.wiki",
+            default="Mr._Ibrahem_hdp.wiki",
             help="Output file path",
         )
         upd.add_argument(

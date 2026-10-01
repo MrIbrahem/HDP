@@ -15,7 +15,7 @@ from typing import Any
 
 from tqdm import tqdm
 
-from ..config import RECENT_DAYS
+from ..config import RECENT_DAYS, TQDM_DISABLE
 from ..xtools.client import XToolsClient
 from .json_cache import JsonCache
 
@@ -96,7 +96,9 @@ class RecentEditCache:
         start_s, end_s = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
 
-        for i, username in enumerate(tqdm(users, desc="Fetching recent edits", unit="user"), start=1):
+        for i, username in enumerate(
+            tqdm(users, desc="Fetching recent edits", unit="user", disable=TQDM_DISABLE), start=1
+        ):
             was_cached = username in cache.get(META_KEY, {})
             count = self._get_one(username, start_s, end_s, cache)
 
@@ -124,7 +126,7 @@ class RecentEditCache:
 
         start_s, end_s = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
-        for username in tqdm(users, desc="Reading cached edits", unit="user"):
+        for username in tqdm(users, desc="Reading cached edits", unit="user", disable=TQDM_DISABLE):
             user_counts = cache.get(username)
             if not user_counts:
                 continue

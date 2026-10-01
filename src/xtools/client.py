@@ -6,13 +6,18 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from urllib.parse import quote, urlencode
 
 import requests
 from tqdm import tqdm
 
-from ..config import RECENT_DAYS, USER_AGENT, XTOOLS_GLOBALCONTRIBS_URL
+from ..config import (
+    RECENT_DAYS,
+    TQDM_DISABLE,
+    USER_AGENT,
+    XTOOLS_GLOBALCONTRIBS_URL,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +33,13 @@ class XToolsClient:
     # ------------------------------------------------------------------
     # Date window
     # ------------------------------------------------------------------
-
     @staticmethod
-    def load_dates(recent_days: int = RECENT_DAYS) -> tuple[str, str]:
-        """Return ``(start, end)`` ISO dates covering the last ``recent_days`` days ending yesterday."""
-        today = datetime.now(UTC).date()
+    def load_dates(recent_days: int = RECENT_DAYS, today: date | None = None) -> tuple[str, str]:
+        if today is None:
+            today = datetime.now(UTC).date()
+        elif isinstance(today, datetime):
+            today = today.date()
+
         yesterday = today - timedelta(days=1)
         start = yesterday - timedelta(days=recent_days)
         return start.isoformat(), yesterday.isoformat()
@@ -86,6 +93,7 @@ class XToolsClient:
 
                 if "The requested user does not exist" in response.text:
                     self.users_not_exists.append(username)
+                    logger.debug("User %s does not exist", username)
                     return {}
 
                 response.raise_for_status()
@@ -123,7 +131,7 @@ class XToolsClient:
 
         return total_by_day
 
-    def recent_editcount(self, username: str, start: str, end: str) -> int | None:
+    def get_recent_editcount(self, username: str, start: str, end: str) -> int | None:
         """
         Sum of per-day counts, or ``None`` when no data was returned.
         """
@@ -142,9 +150,9 @@ class XToolsClient:
         """
         start, end = self.load_dates(recent_days)
         results: dict[str, int] = {}
-        for username in tqdm(users, desc="Fetching recent edits", unit="user"):
+        for username in tqdm(users, desc="Fetching recent edits", unit="user", disable=TQDM_DISABLE):
 
-            count = self.recent_editcount(username, start, end)
+            count = self.get_recent_editcount(username, start, end)
             if count is not None:
                 results[username] = count
             time.sleep(0.3)
@@ -185,14 +193,14 @@ class XToolsClient:
         # "timestamp": "2024-08-16T13:18:02Z" -> "2024-08-16"
         return contribs[0]["timestamp"].split("T")[0]
 
-    def last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
+    def get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
         """
         Fetch the last-edit timestamp for each user. Returns a dict mapping
         username -> date string (Y-m-d). Users with no data are omitted.
         """
         results: dict[str, str] = {}
 
-        for username in tqdm(users, desc="Fetching last edit dates", unit="user"):
+        for username in tqdm(users, desc="Fetching last edit dates", unit="user", disable=TQDM_DISABLE):
             ts = self.last_edit_timestamp(username)
             if ts is not None:
                 results[username] = ts

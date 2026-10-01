@@ -4,12 +4,37 @@ Configuration, credentials, and project-wide constants for the HDP tools.
 
 from __future__ import annotations
 
+import logging
 import os
+import sys
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
+
+
+TQDM_DISABLE = not sys.stderr.isatty()
+
+# ---------------------------------------------------------------------------
+# Header ↔ row-key mapping used when updating existing wikitables
+# ---------------------------------------------------------------------------
+
+TABLE_HEADERS_TO_ROW_KEY: dict[str, str] = {
+    "Page": "page_link",
+    "Last edited to application": "last_update",
+    "User": "user_link",
+    "Country": "country",
+    "Global edits": "global_editcount_str",
+    "Global edits without wikidata": "global_without_wikidata_str",
+    "Wikidata edits": "wikidata_editcount_str",
+    "Edits in last 3 months": "recent_editcount_str",
+    "Age of account": "age",
+    "Home Wiki": "home_wiki",
+    "Last edit": "last_edit",
+}
 
 # ---------------------------------------------------------------------------
 # Constants (rarely overridden)
@@ -78,6 +103,10 @@ class Settings:
     def users_redirects_path(self) -> Path:
         return self.cache_dir / "users_redirects.json"
 
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
     @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> Settings:
         """
@@ -111,6 +140,13 @@ class Settings:
             users_redirects=redirects,
         )
 
+    def write_to_cache_dir(self, path: str, text: str) -> None:
+        out = self.cache_dir / path
+        out.parent.mkdir(parents=True, exist_ok=True)
+
+        out.write_text(text, encoding="utf-8")
+        logger.info("Saved to %s", out.resolve())
+
 
 def _load_users_redirects(path: Path) -> dict[str, str]:
     """Load a JSON object of lowercase-name → canonical-name mappings."""
@@ -120,9 +156,11 @@ def _load_users_redirects(path: Path) -> dict[str, str]:
         with path.open(encoding="utf-8") as f:
             data = json.load(f)
         if not isinstance(data, dict):
+            logger.warning("users_redirects.json is not a JSON object, type: %s", type(data))
             return {}
         return {str(k).lower(): str(v) for k, v in data.items()}
     except (OSError, json.JSONDecodeError, TypeError):
+        logger.warning("Failed to load users redirects from %s", path)
         return {}
 
 
@@ -141,6 +179,10 @@ class Credentials:
     def __bool__(self) -> bool:
         return bool(self.username and self.password)
 
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
     @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> Credentials | None:
         """
@@ -157,3 +199,12 @@ class Credentials:
         if not username or not password:
             return None
         return cls(username=username, password=password)
+
+
+__all__ = [
+    "TQDM_DISABLE",
+    "Credentials",
+    "Settings",
+    "TABLE_HEADERS_TO_ROW_KEY",
+    "DEFAULT_USERS_REDIRECTS",
+]

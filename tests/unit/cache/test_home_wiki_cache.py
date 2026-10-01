@@ -1,21 +1,22 @@
+"""
+Unit tests for src/cache/home_wiki_cache.py module.
+
+Classes to test: HomeWikiCache
+
+TODO: write tests
+"""
+
 import os
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.cache.home_wiki_cache import HomeWikiCache
-from src.cache.json_cache import JsonCache
 
 
-def get_many(
-    api,
-    users: list[str],
-    cache_path: str = "",
-    save_every: int = 5,
-) -> dict[str, dict[str, str]]:
-    return HomeWikiCache(cache_path, api).get_many(
-        users,
-        save_every=save_every,
-    )
+@pytest.fixture(autouse=True)
+def mock_sleep(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr("src.cache.home_wiki_cache.time.sleep", MagicMock())
 
 
 class TestGetHomeWikisCached:
@@ -40,7 +41,8 @@ class TestGetHomeWikisCached:
         cache_path = str(tmp_path / "cache.json")
         users = ["Alice", "Bob", "Carol"]
 
-        result = get_many(mock_api, users, cache_path=cache_path)
+        client = HomeWikiCache(cache_path, mock_api)
+        result = client.get_many(users)
 
         assert len(result) == 3
         assert mock_api.calls == users
@@ -49,15 +51,16 @@ class TestGetHomeWikisCached:
 
     @pytest.mark.skip(reason="get_many returns a dict[str, UserInfo] now.")
     def test_cached_users_skipped(self, tmp_path, mock_api):
-        cache_path = str(tmp_path / "cache.json")
-
-        # Pre-populate the cache with Alice
-        JsonCache(cache_path).save(
-            {"Alice": {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"}},
-        )
+        cache_path = str(tmp_path / "cache1.json")
 
         users = ["Alice", "Bob"]
-        result = get_many(mock_api, users, cache_path=cache_path)
+        client = HomeWikiCache(cache_path, mock_api)
+
+        # Populate the cache with Alice
+        client._store.save(
+            {"Alice": {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"}},
+        )
+        result = client.get_many(users)
 
         # Alice should come from cache, only Bob fetched
         assert mock_api.calls == ["Bob"]
@@ -66,24 +69,27 @@ class TestGetHomeWikisCached:
 
     @pytest.mark.skip(reason="get_many returns a dict[str, UserInfo] now.")
     def test_all_cached_no_api_calls(self, tmp_path, mock_api):
-        cache_path = str(tmp_path / "cache.json")
+        cache_path = str(tmp_path / "cache2.json")
         preloaded = {
             "Alice": {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"},
             "Bob": {"home": "frwiki", "registration": "2015-06-15T12:00:00Z"},
         }
-        JsonCache(cache_path).save(preloaded)
 
-        result = get_many(mock_api, ["Alice", "Bob"], cache_path=cache_path)
+        client = HomeWikiCache(cache_path, mock_api)
+        client._store.save(preloaded)
+
+        result = client.get_many(["Alice", "Bob"])
 
         assert mock_api.calls == []
         assert result == preloaded
 
     def test_cache_persisted_after_run(self, tmp_path, mock_api):
-        cache_path = str(tmp_path / "cache.json")
+        cache_path = str(tmp_path / "cache3.json")
 
-        get_many(mock_api, ["Alice"], cache_path=cache_path)
+        client = HomeWikiCache(cache_path, mock_api)
+        client.get_many(["Alice"])
 
         # Load the cache independently and verify Alice is there
-        cache = JsonCache(cache_path).load()
+        cache = client._store.load()
         assert "Alice" in cache
         assert cache["Alice"]["home"] == "alicewiki"

@@ -66,7 +66,7 @@ class WikiTableColumnManager:
 
         for idx, cell in enumerate(header_row, start=1):
             if cell.value.strip().lower() == target:
-                logger.info("Header has %r in column %s", col_name, idx)
+                logger.debug("Header has %r in column %s", col_name, idx)
                 return True
         return False
 

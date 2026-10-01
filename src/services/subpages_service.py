@@ -37,6 +37,7 @@ class SubPages:
         self,
         page_title: str,
         section_names: Sequence[str],
+        full_wikitext: str | None = None,
     ) -> set[str]:
         """
         Collect application subpage names for the given sections / categories.
@@ -45,7 +46,9 @@ class SubPages:
         ``settings.section_to_category``) are resolved via the category API;
         otherwise the page wikitext is parsed for links under that heading.
         """
-        full_wikitext = self.wiki.get_page_wikitext(page_title)
+        if not full_wikitext:
+            full_wikitext = self.wiki.get_page_wikitext(page_title)
+
         found: set[str] = set()
 
         for section_title in section_names:

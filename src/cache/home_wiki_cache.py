@@ -18,11 +18,13 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 from tqdm import tqdm
 
-from ..models import UserInfo
+from ..config import TQDM_DISABLE
 from ..wiki.client import WikiClient
 from .json_cache import JsonCache
 
@@ -45,16 +47,28 @@ class HomeWikiCache:
         }
     """
 
-    def __init__(self, path: str | Path, wiki: WikiClient):
+    def __init__(self, path: str | Path, wiki: WikiClient) -> None:
         self._store = JsonCache(path)
         self._wiki = wiki
+
+    def _get_cached_user_data(self, users: list[str], cache: dict) -> dict[str, Any]:
+        cached_result = {}
+        for username in users:
+            if username not in cache:
+                continue
+
+            data = self.validate_user_entry(cache[username])
+            if data:
+                cached_result[username] = data
+
+        return cached_result
 
     def get_many(
         self,
         users: list[str],
         *,
         save_every: int = 5,
-    ) -> dict[str, UserInfo]:
+    ) -> dict[str, Mapping[str, Any]]:
         """
         Retrieve global user information for multiple users.
 
@@ -69,8 +83,7 @@ class HomeWikiCache:
                 the cache is automatically saved to the store. Defaults to 5.
 
         Returns:
-            dict[str, UserInfo]: A dictionary mapping usernames to their corresponding
-                `UserInfo` objects.
+            dict[str, Mapping[str, Any]]: A dictionary mapping usernames to their informations
 
         Side Effects:
             - Sleeps for 0.1 seconds between fetching new users to avoid rate limiting.
@@ -79,21 +92,33 @@ class HomeWikiCache:
             - Logs the number of cached and newly fetched users.
         """
         cache = self._store.load()
-        result: dict[str, UserInfo] = {}
         new_count = 0
 
-        for username in tqdm(users, desc="Fetching home wiki", unit="user"):
-            if username in cache:
-                result[username] = UserInfo.from_globaluserinfo(username, cache[username])
+        result: dict[str, Mapping[str, Any]] = {}
+        cached_result = self._get_cached_user_data(users, cache)
+
+        result.update(cached_result)
+
+        remain = [username for username in users if username not in cache]
+        logger.info(
+            "Home wiki cache: %s cached, %s to fetch",
+            len(cached_result),
+            len(remain),
+        )
+
+        if not remain:
+            return result
+
+        for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
+            info = self._wiki.get_global_userinfo(username)
+
+            user_entry = self.validate_user_entry(info, True)
+            if not user_entry:
+                logger.warning("Failed to fetch home wiki for %s", username)
                 continue
 
-            info = self._wiki.get_global_userinfo(username)
-            entry = {
-                "home": info.get("home", ""),
-                "registration": info.get("registration", ""),
-            }
-            cache[username] = entry
-            result[username] = UserInfo.from_globaluserinfo(username, info)
+            cache[username] = user_entry
+            result[username] = user_entry
             new_count += 1
 
             time.sleep(0.1)
@@ -105,11 +130,25 @@ class HomeWikiCache:
             self._store.save(cache)
 
         logger.info(
-            "Home wiki cache: %s cached, %s fetched",
-            len(users) - new_count,
+            "Home wiki cache: %s cached, %s fetched, all records: %s",
+            len(cached_result),
             new_count,
+            len(result),
         )
         return result
+
+    @staticmethod
+    def validate_user_entry(entry: dict[str, Any], get_editcount: bool = False) -> dict[str, Any]:
+        if entry and entry.get("home") and entry.get("registration"):
+            data = {
+                "home": entry["home"],
+                "registration": entry["registration"],
+            }
+            if get_editcount and entry.get("editcount"):
+                data["editcount"] = entry["editcount"]
+            return data
+
+        return {}
 
 
 __all__ = [

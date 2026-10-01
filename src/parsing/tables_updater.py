@@ -42,7 +42,7 @@ class WikiTableDataUpdater:
     ) -> None:
         """
         rows keys:
-            (page_link, last_update, user_link, editcount_str, recent_editcount_str, age, home_wiki)
+            (page_link, last_update, user_link, global_editcount_str, recent_editcount_str, age, home_wiki)
         """
         all_rows = table.cells()
         if not all_rows:
@@ -142,31 +142,6 @@ class WikiTableDataUpdater:
         return parsed.string
 
 
-# ---------------------------------------------------------------------------
-# Module-level convenience (matches old public API)
-# ---------------------------------------------------------------------------
-
-
-def update_wikitable_data(
-    rows: dict[str, Any],
-    wikitext: str,
-    table_headers_to_row_key: dict[str, str],
-    replace_values: bool = False,
-    add_missing_headers: bool = True,
-) -> str:
-    """rows: list of rows data."""
-    manager = WikiTableDataUpdater()
-
-    return manager.update_wikitable_data(
-        rows=rows,
-        wikitext=wikitext,
-        table_headers_to_row_key=table_headers_to_row_key,
-        replace_values=replace_values,
-        add_missing_headers=add_missing_headers,
-    )
-
-
 __all__ = [
     "WikiTableDataUpdater",
-    "update_wikitable_data",
 ]
