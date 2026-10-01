@@ -30,6 +30,7 @@ class JsonCache:
         Load the cache file, returning an empty dict if it doesn't exist.
         """
         if not self.path.exists():
+            logger.warning("Cache file %s does not exist", self.path)
             return {} if default is None else dict(default)
 
         try:

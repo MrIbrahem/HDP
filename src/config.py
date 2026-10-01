@@ -156,9 +156,11 @@ def _load_users_redirects(path: Path) -> dict[str, str]:
         with path.open(encoding="utf-8") as f:
             data = json.load(f)
         if not isinstance(data, dict):
+            logger.warning("users_redirects.json is not a JSON object, type: %s", type(data))
             return {}
         return {str(k).lower(): str(v) for k, v in data.items()}
     except (OSError, json.JSONDecodeError, TypeError):
+        logger.warning("Failed to load users redirects from %s", path)
         return {}
 
 

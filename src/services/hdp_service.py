@@ -122,7 +122,7 @@ class HdpService:
         base = self.settings.base_page
 
         # 1. Initial rows + username normalisation
-        draft: list[ApplicationRow] = []
+        rows: list[ApplicationRow] = []
 
         for sub in subpages:
             username = self.users.normalize(sub)
@@ -133,58 +133,56 @@ class HdpService:
                 unknown=unknown,
             )
 
-            draft.append(row)
+            rows.append(row)
 
         # 2. Live User: redirects
-        usernames = [r.username for r in draft if r.username]
+        usernames = [r.username for r in rows if r.username]
         live_redirects = self.users.resolve_batch(usernames)
-        for row in draft:
+        for row in rows:
             if row.username in live_redirects:
                 row.username = live_redirects[row.username]
                 row.user_link = f"[[User:{row.username}]]"
 
-        users = [r.username for r in draft if r.username]
-
         # 3. Application wikitext (country)
         # Batch-fetch application page wikitexts to extract country
-        titles = [r.full_title for r in draft]
-        app_texts = self.wiki.get_pages_wikitext(titles)
+        app_texts = self.wiki.get_pages_wikitext([r.full_title for r in rows])
         logger.info("Fetched wikitext for %s application pages", len(app_texts))
+
+        # 9. Apply country
+        for row in rows:
+            wikitext = app_texts.get(row.full_title, "")
+            # Extract country from application page wikitext
+            if wikitext:
+                row.apply_country(wikitext)
+
+        # process rows
+        rows = self._process_rows_users(rows, unknown=unknown)
+
+        return ApplicationTable.load(rows)
+
+    def _process_rows_users(self, rows: list[ApplicationRow], unknown: str = "unknown") -> list[ApplicationRow]:
+        users = [r.username for r in rows if r.username]
 
         # 4. Global edit counts
         editcounts = self.wiki.get_global_editcounts(users)
-        logger.info("Loaded %s global edit counts", len(editcounts))
-
-        wikidata_editcounts = {}
-
-        if not self.offline:
-            wikidata_editcounts = self.wd_client.get_editcounts(users)  # pyright: ignore[reportOptionalMemberAccess]
-            logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
 
         # 5. Recent edit counts
-        if self.load_recent_editcounts and not self.offline:
-            recent = self.recent_cache.get_many(users, set_zero=True)
-        else:
-            recent = self.recent_cache.get_many(users, offline=True, set_zero=True)
-        logger.info("Loaded %s recent edit counts", len(recent))
+        wikidata_editcounts = self._fetch_wikidata_editcounts(users)
 
-        # 6. Home wiki + registration
+        # 6. Recent edit counts
+        recent = self._fetch_recent_edit_counts(users)
+
+        # 7. Home wiki + registration
         home_wikis = self.home_cache.get_many(users)
-        logger.info("Loaded %s home-wiki records", len(home_wikis))
 
-        # 7. Optional last-edit timestamps
-        last_edits: dict[str, str] = {}
-        if self.load_last_edits and not self.offline:
-            last_edits = self.xtools.last_edit_timestamps(users)
-            logger.info("Loaded %s last-edit timestamps", len(last_edits))
+        # 8. Optional last-edit timestamps
+        last_edits = self._get_last_edit_timestamps(users)
 
-        # 8. Assemble
-        rows: list[ApplicationRow] = draft
+        # 9. Assemble
         for row in rows:
             username = row.username
             if username:
-                user_info = home_wikis.get(username) or UserInfo(username=username)
-
+                user_info = UserInfo.from_globaluserinfo(username, home_wikis.get(username) or {})
                 user_info = user_info.with_editcounts(
                     global_editcount=editcounts.get(username),
                     recent_editcount=recent.get(username),
@@ -195,12 +193,36 @@ class HdpService:
             else:
                 logger.warning("Username not found for %s", row.full_title)
 
-            wikitext = app_texts.get(row.full_title, "")
-            # Extract country from application page wikitext
-            if wikitext:
-                row.apply_country(wikitext)
+        return rows
 
-        return ApplicationTable.load(rows)
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _fetch_recent_edit_counts(self, users: list[str]) -> dict[str, int]:
+        if self.load_recent_editcounts and not self.offline:
+            recent = self.recent_cache.get_many(users, set_zero=True)
+        else:
+            recent = self.recent_cache.get_many(users, offline=True, set_zero=True)
+        logger.info("Loaded %s recent edit counts", len(recent))
+        return recent
+
+    def _fetch_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
+        wikidata_editcounts = {}
+
+        if not self.offline:
+            wikidata_editcounts = self.wd_client.get_editcounts(users)  # pyright: ignore[reportOptionalMemberAccess]
+            logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
+
+        return wikidata_editcounts
+
+    def _get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
+        last_edits: dict[str, str] = {}
+        if self.load_last_edits and not self.offline:
+            last_edits = self.xtools.get_last_edit_timestamps(users)
+            logger.info("Loaded %s last-edit timestamps", len(last_edits))
+
+        return last_edits
 
     # ------------------------------------------------------------------
     # Table generation / update

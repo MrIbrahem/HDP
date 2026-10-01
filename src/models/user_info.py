@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Any
 
@@ -170,6 +170,8 @@ class UserInfo:
             last_edit=last_edit if last_edit is not None else self.last_edit,
         )
 
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
 
 __all__ = [
     "UserInfo",

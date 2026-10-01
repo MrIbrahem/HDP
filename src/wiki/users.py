@@ -60,6 +60,7 @@ class UserResolver:
         """
         titles = [f"User:{u}" for u in usernames if u]
         if not titles:
+            logger.debug("No usernames provided, returning empty dict")
             return {}
 
         live_redirects = self._wiki.solve_pages_redirects(titles)

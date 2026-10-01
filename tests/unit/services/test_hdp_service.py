@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -71,7 +72,7 @@ def _make_service(
 
     home_cache.get_many.return_value = {}
     recent_cache.get_many.return_value = {}
-    xtools.last_edit_timestamps.return_value = {}
+    xtools.get_last_edit_timestamps.return_value = {}
 
     if subpages_return is not None:
         subpages_svc._subpages_for_section.return_value = list(subpages_return)
@@ -109,7 +110,7 @@ def _make_service(
     return service, mocks
 
 
-def _sample_user_info(username: str = "Alice") -> UserInfo:
+def _sample_user_info(username: str = "Alice") -> dict[str, Any]:
     return UserInfo(
         username=username,
         home_wiki="enwiki",
@@ -118,7 +119,7 @@ def _sample_user_info(username: str = "Alice") -> UserInfo:
         recent_editcount=42,
         wikidata_count=100,
         last_edit="2026-09-01",
-    )
+    ).to_json()
 
 
 # ===========================================================================
@@ -271,11 +272,11 @@ class TestLoadRows:
     def test_last_edits_fetched_only_when_enabled(self):
         service, mocks = _make_service(load_last_edits=True, offline=False)
         mocks["users"].normalize.return_value = "Alice"
-        mocks["xtools"].last_edit_timestamps.return_value = {"Alice": "2026-09-01"}
+        mocks["xtools"].get_last_edit_timestamps.return_value = {"Alice": "2026-09-01"}
 
         service.load_rows(["Alice"])
 
-        mocks["xtools"].last_edit_timestamps.assert_called_once()
+        mocks["xtools"].get_last_edit_timestamps.assert_called_once()
 
     def test_last_edits_skipped_when_disabled(self):
         service, mocks = _make_service(load_last_edits=False)
@@ -283,7 +284,7 @@ class TestLoadRows:
 
         service.load_rows(["Alice"])
 
-        mocks["xtools"].last_edit_timestamps.assert_not_called()
+        mocks["xtools"].get_last_edit_timestamps.assert_not_called()
 
     def test_returns_application_table(self):
         service, mocks = _make_service()
@@ -323,8 +324,8 @@ class TestLoadRows:
         assert len(table.rows) == 1
         row = table.rows[0]
         # After the bug is fixed these should pass:
-        # assert row.country == "Kenya"
-        # assert "1,000" in row.editcount_str or row.editcount_str == "1,000"
+        assert row.country == "Kenya"
+        assert "1,000" in row.editcount_str or row.editcount_str == "1,000"
         # For now at least username and title are set
         assert row.username == "Alice"
         assert "Alice" in row.full_title

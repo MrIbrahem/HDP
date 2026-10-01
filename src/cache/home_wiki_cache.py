@@ -16,14 +16,15 @@ Cache file layout (JSON)::
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
 import time
 from pathlib import Path
+from typing import Any
 
 from tqdm import tqdm
 
 from ..config import TQDM_DISABLE
-from ..models import UserInfo
 from ..wiki.client import WikiClient
 from .json_cache import JsonCache
 
@@ -55,7 +56,7 @@ class HomeWikiCache:
         users: list[str],
         *,
         save_every: int = 5,
-    ) -> dict[str, UserInfo]:
+    ) -> dict[str, Mapping[str, Any]]:
         """
         Retrieve global user information for multiple users.
 
@@ -70,8 +71,7 @@ class HomeWikiCache:
                 the cache is automatically saved to the store. Defaults to 5.
 
         Returns:
-            dict[str, UserInfo]: A dictionary mapping usernames to their corresponding
-                `UserInfo` objects.
+            dict[str, Mapping[str, Any]]: A dictionary mapping usernames to their informations
 
         Side Effects:
             - Sleeps for 0.1 seconds between fetching new users to avoid rate limiting.
@@ -80,21 +80,32 @@ class HomeWikiCache:
             - Logs the number of cached and newly fetched users.
         """
         cache = self._store.load()
-        result: dict[str, UserInfo] = {}
         new_count = 0
 
-        for username in tqdm(users, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
-            if username in cache:
-                result[username] = UserInfo.from_globaluserinfo(username, cache[username])
-                continue
+        result: dict[str, Mapping[str, Any]] = {
+            username : cache[username] for username in users if username in cache
+        }
+        cached_result = len(result)
 
+        remain = [username for username in users if username not in cache]
+        logger.info(
+            "Home wiki cache: %s cached, %s to fetch",
+            cached_result,
+            len(remain),
+        )
+
+        for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self._wiki.get_global_userinfo(username)
             entry = {
                 "home": info.get("home", ""),
                 "registration": info.get("registration", ""),
             }
+            if not info or not (entry["home"] and entry["registration"]):
+                logger.warning("Failed to fetch home wiki for %s", username)
+                continue
+
             cache[username] = entry
-            result[username] = UserInfo.from_globaluserinfo(username, info)
+            result[username] = info
             new_count += 1
 
             time.sleep(0.1)
@@ -106,9 +117,10 @@ class HomeWikiCache:
             self._store.save(cache)
 
         logger.info(
-            "Home wiki cache: %s cached, %s fetched",
-            len(users) - new_count,
+            "Home wiki cache: %s cached, %s fetched, all records: %s",
+            cached_result,
             new_count,
+            len(result)
         )
         return result
 

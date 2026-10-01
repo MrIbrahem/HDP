@@ -180,6 +180,7 @@ class WikiClientLoader:
             dict[str, int]: Mapping from username to their edit count.
         """
         if not users:
+            logger.debug("No users provided, returning empty dict")
             return {}
 
         logger.info(f"Fetching edit count for {len(users)} users...")
@@ -228,6 +229,7 @@ class WikiClientLoader:
                 but does not re-raise them.
         """
         if not users:
+            logger.debug("No users provided, returning empty dict")
             return {}
 
         batch_size = 50
@@ -258,7 +260,7 @@ class WikiClientLoader:
             except Exception as e:
                 logger.error(f"API request failed for editcounts batch {i}: {e}")
 
-        logger.info("Resolved %s global edit counts", len(result))
+        logger.info("Loaded %s global edit counts", len(result))
         return result
 
     def get_global_userinfo(self, username: str) -> dict[str, Any]:

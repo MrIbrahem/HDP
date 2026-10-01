@@ -91,6 +91,7 @@ class XToolsClient:
 
                 if "The requested user does not exist" in response.text:
                     self.users_not_exists.append(username)
+                    logger.debug("User %s does not exist", username)
                     return {}
 
                 response.raise_for_status()
@@ -190,7 +191,7 @@ class XToolsClient:
         # "timestamp": "2024-08-16T13:18:02Z" -> "2024-08-16"
         return contribs[0]["timestamp"].split("T")[0]
 
-    def last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
+    def get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
         """
         Fetch the last-edit timestamp for each user. Returns a dict mapping
         username -> date string (Y-m-d). Users with no data are omitted.
