@@ -399,11 +399,12 @@ class WikiClient(WikiClientLoader):
         try:
             logger.info("Connecting to %s ...", host)
             site = Site(host, clients_useragent=user_agent, do_init=do_init)
-            if login:
-                logger.info("Logging in as %s ...", credentials.username)
-                site.login(credentials.username, credentials.password)
-            else:
-                site.credentials = (credentials.username, credentials.password, None)
+            if credentials:
+                if login:
+                    logger.info("Logging in as %s ...", credentials.username)
+                    site.login(credentials.username, credentials.password)
+                else:
+                    site.credentials = (credentials.username, credentials.password, None)
 
             logger.info("Successfully connected and logged in")
             return cls(site)
