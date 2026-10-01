@@ -7,11 +7,12 @@ TODO: write tests
 """
 
 import os
+from unittest.mock import MagicMock
 
 import pytest
 
-from unittest.mock import MagicMock
 from src.cache.home_wiki_cache import HomeWikiCache
+
 
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch: pytest.MonkeyPatch):

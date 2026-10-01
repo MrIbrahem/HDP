@@ -6,8 +6,11 @@ Classes to test: CategoryService
 
 TODO: write tests
 """
-import pytest
+
 from unittest.mock import MagicMock
+
+import pytest
+
 from src.wiki.category import CategoryService
 
 

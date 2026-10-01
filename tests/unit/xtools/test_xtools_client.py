@@ -4,14 +4,17 @@ Unit tests for src/xtools/client.py module.
 Classes to test: XToolsClient
 """
 
+from unittest.mock import MagicMock
+
 import pytest
 
-from unittest.mock import MagicMock
 from src.xtools.client import XToolsClient
+
 
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.xtools.client.time.sleep", MagicMock())
+
 
 @pytest.mark.network
 def test_get_recent_editcount() -> None:

@@ -10,9 +10,10 @@ Classes under test:
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
-import pytest
 
 import mwclient.errors
+import pytest
+
 from src.config import Credentials, Settings
 from src.wiki.client import METAWIKI_HOST, WikiClient, WikiClientLoader
 
@@ -20,6 +21,7 @@ from src.wiki.client import METAWIKI_HOST, WikiClient, WikiClientLoader
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("src.wiki.client.time.sleep", MagicMock())
+
 
 @pytest.fixture
 def mock_site_cls(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -308,6 +310,7 @@ class TestGetEditCount:
         assert res["User54"] == 10
         assert mock_site.get.call_count == 2
 
+
 class TestGetEditcounts:
     def test_empty_users_returns_empty(self):
         loader, _ = _loader()
@@ -544,6 +547,7 @@ class TestWikiClientInit:
 
         assert client.get_page_wikitext("X") == "hi"
 
+
 class TestConnect:
     def test_connect_success_with_login(self, mock_site_cls):
         mock_site = mock_site_cls.return_value
@@ -593,12 +597,11 @@ class TestConnect:
             do_init=False,
         )
 
+
 class TestLoad:
     @patch.object(WikiClient, "connect")
     @patch.object(Credentials, "from_env")
-    def test_load_returns_none_when_no_credentials_and_login_required(
-        self, mock_creds, mock_connect
-    ):
+    def test_load_returns_none_when_no_credentials_and_login_required(self, mock_creds, mock_connect):
         mock_creds.return_value = None
 
         result = WikiClient.load(login=True)
@@ -609,9 +612,7 @@ class TestLoad:
     @patch.object(WikiClient, "connect")
     @patch.object(Credentials, "from_env")
     @patch.object(Settings, "from_env")
-    def test_load_calls_connect_with_credentials(
-        self, mock_settings_env, mock_creds, mock_connect
-    ):
+    def test_load_calls_connect_with_credentials(self, mock_settings_env, mock_creds, mock_connect):
         creds = Credentials(username="bot", password="secret")
         mock_creds.return_value = creds
         settings = MagicMock()
@@ -630,9 +631,7 @@ class TestLoad:
 
     @patch.object(WikiClient, "connect")
     @patch.object(Credentials, "from_env")
-    def test_load_without_login_allows_missing_credentials(
-        self, mock_creds, mock_connect
-    ):
+    def test_load_without_login_allows_missing_credentials(self, mock_creds, mock_connect):
         mock_creds.return_value = None
         settings = MagicMock()
         settings.user_agent = "UA"

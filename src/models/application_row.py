@@ -63,6 +63,7 @@ class ApplicationRow:
     Field names match the keys used by the table builder / updater so the
     same object can be passed straight through to wikitext generation.
     """
+
     user_info: UserInfo
     full_title: str
     sub: str
