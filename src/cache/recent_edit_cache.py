@@ -47,10 +47,12 @@ class RecentEditCache:
         path: str | Path,
         xtools: XToolsClient,
         recent_days: int = RECENT_DAYS,
+        request_delay: float = 0.3,
     ) -> None:
         self._store = JsonCache(path)
-        self._xtools = xtools
+        self._client = xtools
         self._recent_days = recent_days
+        self._request_delay = request_delay
 
     # -- public ----------------------------------------------------------
 
@@ -63,9 +65,9 @@ class RecentEditCache:
         save_every: int = 5,
     ) -> dict[str, int]:
         if offline:
-            return self._offline(users, set_zero=set_zero)
+            return self._get_offline(users, set_zero=set_zero)
 
-        return self.get_online(
+        return self._get_online(
             users=users,
             set_zero=set_zero,
             save_every=save_every,
@@ -73,7 +75,7 @@ class RecentEditCache:
 
     # -- internals -------------------------------------------------------
 
-    def get_online(
+    def _get_online(
         self,
         users: list[str],
         *,
@@ -93,7 +95,7 @@ class RecentEditCache:
         """
         cache = self._store.load()
         cache.setdefault(META_KEY, {})
-        start_s, end_s = XToolsClient.load_dates(self._recent_days)
+        start, end = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
 
         for i, username in enumerate(
@@ -106,16 +108,16 @@ class RecentEditCache:
             start=1,
         ):
             was_cached = username in cache.get(META_KEY, {})
-            count = self._get_one(username, start_s, end_s, cache)
+            count = self._get_one(username, start, end, cache)
 
-            if set_zero or username in self._xtools.users_not_exists:
+            if set_zero or username in self._client.users_not_exists:
                 results[username] = count or 0
             elif count is not None:
                 results[username] = count
 
             # Only throttle when we actually hit the network for this user.
             if not was_cached:
-                time.sleep(0.3)
+                time.sleep(self._request_delay)
 
             if i % save_every == 0:
                 self._store.save(cache)
@@ -123,22 +125,23 @@ class RecentEditCache:
         self._store.save(cache)
         return results
 
-    def _offline(self, users: list[str], *, set_zero: bool) -> dict[str, int]:
+    def _get_offline(self, users: list[str], *, set_zero: bool) -> dict[str, int]:
         """
         Return cached-only edit counts for each user. Never hits the API.
         """
         cache = self._store.load()
         cache.setdefault(META_KEY, {})
 
-        start_s, end_s = XToolsClient.load_dates(self._recent_days)
+        start, end = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
+
         for username in tqdm(users, desc="Reading cached edits", unit="user", disable=TQDM_DISABLE):
             user_counts = cache.get(username)
             if not user_counts:
                 continue
 
-            count = self._sum_in_range(user_counts, start_s, end_s)
-            if set_zero or username in self._xtools.users_not_exists:
+            count = self._sum_in_range(user_counts, start, end)
+            if set_zero or username in self._client.users_not_exists:
                 results[username] = count or 0
             else:
                 results[username] = count
@@ -182,29 +185,30 @@ class RecentEditCache:
                 # Fully covered already -- no API call needed.
                 return self._sum_in_range(user_counts, start, end)
 
+            one_day = timedelta(days=1)
             # Figure out if the ranges are contiguous/overlapping (the common
             # case: same start, end has moved forward by ~a week) so we only
             # need to fetch the new tail. Also handle the (rarer) case where
             # the window start has moved forward and we could fetch a new tail
             # on the front, though this is less common.
-            gap_after = req_start > cached_end + timedelta(days=1)
-            gap_before = req_end < cached_start - timedelta(days=1)
+            gap_after = req_start > cached_end + one_day
+            gap_before = req_end < cached_start - one_day
 
             if not gap_after and not gap_before:
                 # Overlapping or adjacent ranges: only fetch what's missing.
                 if req_start < cached_start:
-                    new_var = (cached_start - timedelta(days=1)).isoformat()
-                    front = self._xtools.recent_editcount_by_day(
+                    new_front_end = (cached_start - one_day).isoformat()
+                    front = self._client.recent_editcount_by_day(
                         username,
                         req_start.isoformat(),
-                        new_var,
+                        new_front_end,
                     )
                     user_counts.update(front)
 
                 if req_end > cached_end:
-                    tail = self._xtools.recent_editcount_by_day(
+                    tail = self._client.recent_editcount_by_day(
                         username,
-                        (cached_end + timedelta(days=1)).isoformat(),
+                        (cached_end + one_day).isoformat(),
                         end,
                     )
                     user_counts.update(tail)
@@ -215,9 +219,8 @@ class RecentEditCache:
                 }
                 return self._sum_in_range(user_counts, start, end)
 
-        # No cache entry, or a real gap between cached and requested ranges:
-        # fetch the full range fresh.
-        fetched = self._xtools.recent_editcount_by_day(username, start, end)
+        # No cache entry, or a real gap: fetch the full range fresh.
+        fetched = self._client.recent_editcount_by_day(username, start, end)
 
         if not fetched and meta is None:
             # Genuine failure/no-data case; don't record bogus meta so we

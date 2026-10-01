@@ -3,6 +3,8 @@ Domain orchestration for the Hardware Donation Program tools.
 
 ``HdpService`` is the single entry point used by the CLI: discover subpages,
 build enriched rows, generate or update wikitables.
+
+// src/services/hdp_service.py
 """
 
 from __future__ import annotations
@@ -11,7 +13,7 @@ import argparse
 import logging
 from collections.abc import Sequence
 
-from ..cache import HomeWikiCache, RecentEditCache
+from ..cache import HomeWikiCache, XtoolsRecentEditCache
 from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
 from ..models import (
     ApplicationRow,
@@ -22,6 +24,7 @@ from ..wiki.category import CategoryService
 from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
+from .recent_edits_provider import RecentEditCountsProvider
 from .subpages_service import SubPages
 
 logger = logging.getLogger(__name__)
@@ -43,7 +46,8 @@ class HdpService:
         category: CategoryService | None = None,
         users: UserResolver | None = None,
         home_cache: HomeWikiCache | None = None,
-        recent_cache: RecentEditCache | None = None,
+        recent_cache: XtoolsRecentEditCache | None = None,
+        recent_provider: RecentEditCountsProvider | None = None,
         xtools: XToolsClient | None = None,
         offline: bool = False,
     ) -> None:
@@ -58,11 +62,14 @@ class HdpService:
         self.subpages = SubPages(wiki, self.settings, category=self.category)
 
         self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
-        self.recent_cache = recent_cache or RecentEditCache(
-            self.settings.edit_counts_cache_path,
-            self.xtools,
-            recent_days=self.settings.recent_days,
-        )
+
+        if recent_provider is None:
+            recent_provider = RecentEditCountsProvider(
+                client=self.xtools,
+                cache=recent_cache or XtoolsRecentEditCache(self.settings.edit_counts_cache_path),
+                recent_days=self.settings.recent_days,
+            )
+        self.recent_provider = recent_provider
 
     def set_args(self, args: argparse.Namespace) -> None:
         self.offline = args.offline
@@ -198,7 +205,7 @@ class HdpService:
 
     def _fetch_recent_edit_counts(self, users: list[str]) -> dict[str, int]:
         is_offline = not self.load_recent_editcounts or self.offline
-        recent = self.recent_cache.get_many(users, offline=is_offline, set_zero=True)
+        recent = self.recent_provider.get_many(users, offline=is_offline, set_zero=True)
         logger.info("Loaded %s recent edit counts", len(recent))
         return recent
 
