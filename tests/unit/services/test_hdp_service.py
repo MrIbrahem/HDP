@@ -324,7 +324,9 @@ class TestLoadRows:
         row = table.rows[0]
         # After the bug is fixed these should pass:
         assert row.country == "Kenya"
-        assert "1,000" in row.global_editcount_str or row.global_editcount_str == "1,000"
+
+        assert row.user_info.global_editcount_str == "1,000"
+
         # For now at least username and title are set
         assert row.username == "Alice"
         assert "Alice" in row.full_title

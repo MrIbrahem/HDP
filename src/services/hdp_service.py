@@ -16,7 +16,6 @@ from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
 from ..models import (
     ApplicationRow,
     ApplicationTable,
-    UserInfo,
 )
 from ..parsing import WikiTableDataUpdater
 from ..wiki.category import CategoryService
@@ -130,7 +129,6 @@ class HdpService:
                 sub,
                 base_page=base,
                 username=username,
-                unknown=unknown,
             )
 
             rows.append(row)
@@ -140,8 +138,7 @@ class HdpService:
         live_redirects = self.users.resolve_batch(usernames)
         for row in rows:
             if row.username in live_redirects:
-                row.update_username(live_redirects[row.username])
-                row.user_link = f"[[User:{row.username}]]"
+                row.user_info.update_username(live_redirects[row.username])
 
         # 3. Application wikitext (country)
         # Batch-fetch application page wikitexts to extract country
@@ -185,15 +182,13 @@ class HdpService:
                 continue
 
             username = row.username
-            user_info = UserInfo.load(
-                username=username,
-                globaluserinfo_data=home_wikis.get(username),
+            row.user_info.update(
+                globaluser_data=home_wikis.get(username),
                 global_editcount=editcounts.get(username),
                 recent_editcount=recent.get(username),
                 last_edit=last_edits.get(username),
                 wikidata_count=wikidata_editcounts.get(username),
             )
-            row.apply_user_info(user_info)
 
         return rows
 
