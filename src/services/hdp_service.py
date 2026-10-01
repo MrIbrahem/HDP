@@ -196,10 +196,8 @@ class HdpService:
     # ------------------------------------------------------------------
 
     def _fetch_recent_edit_counts(self, users: list[str]) -> dict[str, int]:
-        if self.load_recent_editcounts and not self.offline:
-            recent = self.recent_cache.get_many(users, set_zero=True)
-        else:
-            recent = self.recent_cache.get_many(users, offline=True, set_zero=True)
+        is_offline = not self.load_recent_editcounts or self.offline
+        recent = self.recent_cache.get_many(users, offline=is_offline, set_zero=True)
         logger.info("Loaded %s recent edit counts", len(recent))
         return recent
 
