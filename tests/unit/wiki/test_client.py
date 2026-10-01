@@ -128,7 +128,7 @@ class TestGetPagesWikitext:
             }
         }
 
-        result = loader.get_pages_wikitext(["Page A", "Page B"], batch_size=50)
+        result = loader.get_pages_wikitext(["Page A", "Page B"])
 
         assert result == {"Page A": "text-a", "Page B": "text-b"}
         site.get.assert_called_once()
@@ -178,8 +178,8 @@ class TestGetPagesWikitext:
         loader, site = _loader()
         site.get.return_value = {"query": {"pages": []}}
 
-        titles = [f"P{i}" for i in range(5)]
-        loader.get_pages_wikitext(titles, batch_size=2)
+        titles = [f"P{i}" for i in range(100)]
+        loader.get_pages_wikitext(titles)
 
         # 5 titles / batch_size 2 → 3 batches
         assert site.get.call_count == 3
@@ -524,7 +524,7 @@ class TestSolvePagesRedirects:
         site.get.return_value = {"query": {"pages": []}}
 
         pages = [f"User:U{i}" for i in range(120)]
-        loader.solve_pages_redirects(pages, batch_size=50)
+        loader.solve_pages_redirects(pages)
 
         assert site.get.call_count == 3
 

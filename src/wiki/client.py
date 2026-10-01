@@ -29,6 +29,9 @@ class WikiClientLoader:
     def __init__(self, site: Site) -> None:
         self._site = site
 
+    def batch_size(self) -> int:
+        return 50
+
     # ------------------------------------------------------------------
     # Page content
     # ------------------------------------------------------------------
@@ -44,13 +47,14 @@ class WikiClientLoader:
             logger.error("API request failed for %s: %s", page_title, e)
             return ""
 
-    def get_pages_wikitext(self, titles: list[str], batch_size: int = 50) -> dict[str, str]:
+    def get_pages_wikitext(self, titles: list[str]) -> dict[str, str]:
         """
         Fetch wikitext for many pages in batches of up to ``batch_size``.
 
         Missing pages are omitted from the result.
         """
         result: dict[str, str] = {}
+        batch_size = self.batch_size
 
         batchs = range(0, len(titles), batch_size)
         for i in tqdm(batchs, desc="Fetching wikitext", unit="batch", disable=TQDM_DISABLE):
@@ -184,7 +188,7 @@ class WikiClientLoader:
             return {}
 
         logger.info(f"Fetching edit count for {len(users)} users...")
-        batch_size = 50
+        batch_size = self.batch_size
         result: dict[str, int] = dict.fromkeys(users, 0)
 
         batchs = range(0, len(users), batch_size)
@@ -232,7 +236,7 @@ class WikiClientLoader:
             logger.debug("No users provided, returning empty dict")
             return {}
 
-        batch_size = 50
+        batch_size = self.batch_size
         result: dict[str, int] = dict.fromkeys(users, 0)
         logger.info("Fetching global edit counts for %s users ...", len(users))
 
@@ -315,13 +319,14 @@ class WikiClientLoader:
         logger.info("Resolved %s home wikis", len(home_wikis))
         return home_wikis
 
-    def solve_pages_redirects(self, pages: list[str], batch_size: int = 50) -> dict[str, str]:
+    def solve_pages_redirects(self, pages: list[str]) -> dict[str, str]:
         """
         Resolve redirects for a list of page titles.
 
         Returns ``{redirect_title: target_title}``.
         """
         logger.info("Fetching redirects for %s pages ...", len(pages))
+        batch_size = self.batch_size
         result: dict[str, str] = {}
 
         batchs = range(0, len(pages), batch_size)
