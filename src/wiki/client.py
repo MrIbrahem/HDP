@@ -85,6 +85,7 @@ class WikiClientLoader:
 
             time.sleep(0.1)
 
+        logger.info("Fetched wikitext for %s pages", len(result))
         return result
 
     def page_last_edit_timestamp(self, page_title: str) -> str | None:
@@ -121,6 +122,8 @@ class WikiClientLoader:
         pages = data.get("query", {}).get("pages", [])
         if pages and "revisions" in pages[0]:
             return pages[0]["revisions"][0]["timestamp"]
+
+        logger.info("Page %s is missing or has no revisions", page_title)
         return None
 
     def get_page_creator(self, page_title: str) -> str | None:
@@ -195,7 +198,6 @@ class WikiClientLoader:
             try:
                 # API schema: "query": { "users": [{"userid":000,"name":"User","editcount":1000} ]}
                 data = self._site.get("query", **params)
-
                 user_list = data.get("query", {}).get("users", [])
                 for user_info in user_list:
                     name = user_info.get("name")
@@ -204,6 +206,7 @@ class WikiClientLoader:
             except Exception as e:
                 logger.error(f"API request failed for editcounts batch {i}: {e}")
 
+        logger.info("Received edit counts for %s users", len(result))
         return result
 
     def get_global_editcounts(self, users: list[str]) -> dict[str, int]:
@@ -246,7 +249,7 @@ class WikiClientLoader:
                 user_list = data.get("query", {}).get("globalusers", [])
                 # API schema: [ { "centralid": 4327653, "name": "Mr. Ibrahem", "editcount": 2017792 }, ... ]
 
-                logger.info("Received edit counts for %s users", len(user_list))
+                logger.debug("Received edit counts for %s users", len(user_list))
                 batch_data = {x["name"]: x.get("editcount", 0) for x in user_list}
 
                 result.update(batch_data)
@@ -254,6 +257,7 @@ class WikiClientLoader:
             except Exception as e:
                 logger.error(f"API request failed for editcounts batch {i}: {e}")
 
+        logger.info("Resolved %s global edit counts", len(result))
         return result
 
     def get_global_userinfo(self, username: str) -> dict[str, Any]:
@@ -281,7 +285,10 @@ class WikiClientLoader:
             return {}
 
         # API schema: {"globaluserinfo":{"home":"enwiki","id":000,"registration":...}
-        return data.get("query", {}).get("globaluserinfo", {}) or {}
+        globaluserinfo = data.get("query", {}).get("globaluserinfo", {}) or {}
+
+        logger.debug("Fetched globaluserinfo for %s: %s", username, globaluserinfo)
+        return globaluserinfo
 
     def get_home_wikis_and_registration(
         self,
@@ -302,6 +309,7 @@ class WikiClientLoader:
             }
             time.sleep(0.1)
 
+        logger.info("Resolved %s home wikis", len(home_wikis))
         return home_wikis
 
     def solve_pages_redirects(self, pages: list[str], batch_size: int = 50) -> dict[str, str]:
@@ -313,9 +321,10 @@ class WikiClientLoader:
         logger.info("Fetching redirects for %s pages ...", len(pages))
         result: dict[str, str] = {}
 
-        for i in range(0, len(pages), batch_size):
+        batchs = range(0, len(pages), batch_size)
+        for i in tqdm(batchs, desc="Resolve redirects for pages", unit="batch"):
             group = pages[i : i + batch_size]
-            logger.info(
+            logger.debug(
                 "Fetching redirects %s – %s ...",
                 i,
                 min(i + batch_size, len(pages)),
