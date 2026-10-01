@@ -5,7 +5,7 @@ Domain data models for the Hardware Donation Program tools.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Any
 
 from .user_info import UserInfo
@@ -48,7 +48,6 @@ def extract_country(wikitext: str) -> str:
     value = value.splitlines()[0]
     # Remove trailing carriage return if present
     return value.strip().rstrip("\r").strip()
-
 
 # ---------------------------------------------------------------------------
 # ApplicationRow
@@ -164,7 +163,7 @@ class ApplicationRow:
     def to_table_dict(self) -> dict[str, str]:
         """
         Dict of header-key → cell value expected by ``WikiTableDataUpdater``
-        and ``build_wikitable``.
+        and ``ApplicationTable.build_wikitable``.
         """
         return {
             "page_link": self.page_link,
@@ -180,14 +179,9 @@ class ApplicationRow:
             "last_edit": self.last_edit,
         }
 
-    def as_mapping(self) -> dict[str, Any]:
+    def to_json(self) -> dict[str, Any]:
         """Full field dump (useful for debugging / JSON export)."""
-        return {
-            "full_title": self.full_title,
-            "sub": self.sub,
-            "username": self.username,
-            **self.to_table_dict(),
-        }
+        return asdict(self)
 
     def build_row(self, add_last_edit: bool = False) -> list[str]:
         lines = ["|-"]

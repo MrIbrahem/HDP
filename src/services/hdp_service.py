@@ -7,12 +7,14 @@ build enriched rows, generate or update wikitables.
 
 from __future__ import annotations
 
+import argparse
 import logging
 from collections.abc import Sequence
 
 from ..cache import HomeWikiCache, RecentEditCache
 from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
 from ..models import (
+    ApplicationTable,
     ApplicationRow,
     UserInfo,
 )
@@ -22,7 +24,6 @@ from ..wiki.client import WikiClient
 from ..wiki.users import UserResolver
 from ..xtools.client import XToolsClient
 from .subpages_service import SubPages
-from .tables_builder import build_wikitable
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,9 @@ class HdpService:
         home_cache: HomeWikiCache | None = None,
         recent_cache: RecentEditCache | None = None,
         xtools: XToolsClient | None = None,
+        offline: bool = False,
     ) -> None:
+        self.offline = offline
         self.wiki = wiki
         self.settings = settings if settings is not None else Settings.from_env()
         self.category = category or CategoryService(wiki.site)
@@ -59,12 +62,20 @@ class HdpService:
         )
         self.subpages = SubPages(wiki, self.settings, category=self.category)
 
+    def set_args(self, args: argparse.Namespace) -> None:
+        self.offline = args.offline
+        self.load_recent_editcounts = not args.no_recent
+        self.load_last_edits = args.last_edits
+
+        if self.offline:
+            logger.info("Running in offline mode")
+
     # ------------------------------------------------------------------
     # Factory
     # ------------------------------------------------------------------
 
     @classmethod
-    def from_settings(cls, settings: Settings | None = None) -> HdpService | None:
+    def load(cls, settings: Settings | None = None) -> HdpService | None:
         """
         Wire a fully configured service from env / defaults. ``None`` on login failure.
         """
@@ -82,10 +93,8 @@ class HdpService:
         self,
         subpages: set[str] | Sequence[str],
         *,
-        load_recent_editcounts: bool = True,
-        load_last_edits: bool = False,
         unknown: str = "unknown",
-    ) -> dict[str, ApplicationRow]:
+    ) -> ApplicationTable:
         """
         Build an enriched ``ApplicationRow`` for every application subpage.
 
@@ -95,6 +104,7 @@ class HdpService:
 
         # 1. Initial rows + username normalisation
         draft: list[ApplicationRow] = []
+
         for sub in subpages:
             username = self.users.normalize(sub)
             row = ApplicationRow.from_subpage(
@@ -128,12 +138,13 @@ class HdpService:
 
         wikidata_editcounts = {}
         wd_client = WikiClient.load(host="www.wikidata.org")
-        if wd_client:
+
+        if wd_client and not self.offline:
             wikidata_editcounts = wd_client.get_editcounts(users)
             logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
 
         # 5. Recent edit counts
-        if load_recent_editcounts:
+        if self.load_recent_editcounts and not self.offline:
             recent = self.recent_cache.get_many(users, set_zero=True)
         else:
             recent = self.recent_cache.get_many(users, offline=True, set_zero=True)
@@ -145,13 +156,12 @@ class HdpService:
 
         # 7. Optional last-edit timestamps
         last_edits: dict[str, str] = {}
-        if load_last_edits:
+        if self.load_last_edits and not self.offline:
             last_edits = self.xtools.last_edit_timestamps(users)
-
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
 
         # 8. Assemble
-        rows: dict[str, ApplicationRow] = {}
+        rows: list[ApplicationRow] = []
         for row in draft:
             username = row.username
             if username:
@@ -172,30 +182,19 @@ class HdpService:
             if wikitext:
                 row.apply_country(wikitext)
 
-            rows[row.full_title] = row
+            rows.append(row)
 
-        return rows
+        return ApplicationTable.load(draft)
 
     # ------------------------------------------------------------------
     # Table generation / update
     # ------------------------------------------------------------------
-
-    def build_wikitable(
-        self,
-        rows: dict[str, ApplicationRow],
-        *,
-        add_last_edit: bool = False,
-    ) -> str:
-        """Render a fresh MediaWiki table from rows."""
-        return build_wikitable(rows, add_last_edit=add_last_edit)
 
     def generate(
         self,
         page_title: str,
         section_names: Sequence[str],
         *,
-        load_recent_editcounts: bool = True,
-        load_last_edits: bool = False,
         unknown: str = "unknown",
     ) -> str:
         """
@@ -209,14 +208,13 @@ class HdpService:
         for section_title in section_names:
             subpages = self.subpages._subpages_for_section(full_wikitext, section_title)
             logger.info("Section %r: %s subpages", section_title, len(subpages))
-            rows = self.load_rows(
+            table = self.load_rows(
                 subpages,
-                load_recent_editcounts=load_recent_editcounts,
-                load_last_edits=load_last_edits,
                 unknown=unknown,
             )
-            table = self.build_wikitable(rows, add_last_edit=load_last_edits)
-            parts.append(f"=== {section_title} ===\n\n{table}\n")
+            table_str = table.build_wikitable(self.load_last_edits)
+
+            parts.append(f"=== {section_title} ===\n\n{table_str}\n")
 
         return "".join(parts)
 
@@ -225,8 +223,6 @@ class HdpService:
         page_title: str,
         section_names: Sequence[str],
         *,
-        load_recent_editcounts: bool = True,
-        load_last_edits: bool = False,
         unknown: str = "",
     ) -> str:
         """
@@ -236,19 +232,14 @@ class HdpService:
         """
         full_wikitext = self.wiki.get_page_wikitext(page_title)
         subpages = self.subpages.discover_subpages(page_title, section_names)
-        rows = self.load_rows(
-            subpages,
-            load_recent_editcounts=load_recent_editcounts,
-            load_last_edits=load_last_edits,
-            unknown=unknown,
-        )
+
+        table = self.load_rows(subpages, unknown=unknown)
 
         header_map = dict(TABLE_HEADERS_TO_ROW_KEY)
-        if not load_last_edits:
+        if not self.load_last_edits:
             header_map.pop("Last edit", None)
 
-        # Convert rows to the dict shape the table updater expects
-        row_dicts = {title: row.to_table_dict() for title, row in rows.items()}
+        row_dicts = table.as_row_dicts()
 
         updater = WikiTableDataUpdater()
         return updater.update_wikitable_data(

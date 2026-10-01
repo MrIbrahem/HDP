@@ -50,22 +50,6 @@ class LinkExtractor:
                     seen.append(name)
         return seen
 
-
-# ---------------------------------------------------------------------------
-# Module-level helpers (same signatures as the old wtp_links API)
-# ---------------------------------------------------------------------------
-
-
-def get_section_by_heading(wikitext: str, heading: str):
-    return LinkExtractor().get_section(wikitext, heading)
-
-
-def extract_subpage_links(base_page: str, section: Any) -> list[str]:
-    return LinkExtractor().extract_subpages(base_page, section)
-
-
 __all__ = [
     "LinkExtractor",
-    "get_section_by_heading",
-    "extract_subpage_links",
 ]

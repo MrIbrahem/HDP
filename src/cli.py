@@ -35,16 +35,22 @@ class Cli:
 
         setup_logging(level=args.log_level)
 
-        service = HdpService.from_settings(self.settings)
-        if service is None:
+        hdp_service = HdpService.load(
+            settings=self.settings,
+        )
+
+        if hdp_service is None:
             logger.error("Could not connect to Meta Wiki — aborting")
             return 1
 
+        # set (offline/no_recent/last_edits) args in HdpService
+        hdp_service.set_args(args)
+
         if args.command == "generate":
-            return self._cmd_generate(service, args)
+            return self._cmd_generate(hdp_service, args)
 
         if args.command == "update":
-            return self._cmd_update(service, args)
+            return self._cmd_update(hdp_service, args)
 
         parser.print_help()
         return 2
@@ -58,8 +64,6 @@ class Cli:
         text = service.generate(
             page_title=args.page or self.settings.base_page,
             section_names=section_names,
-            load_recent_editcounts=not args.no_recent,
-            load_last_edits=args.last_edits,
             unknown=args.unknown,
         )
         if not text:
@@ -85,8 +89,6 @@ class Cli:
         text = service.update(
             page_title=page_title,
             section_names=section_names,
-            load_recent_editcounts=not args.no_recent,
-            load_last_edits=args.last_edits,
             unknown=args.unknown,
         )
         if not text:
@@ -100,12 +102,18 @@ class Cli:
     # Argument parser
     # ------------------------------------------------------------------
 
-    def add_shared_args(self, com) -> None:
+    def add_shared_args(self, com: argparse.ArgumentParser) -> None:
         com.add_argument(
             "--sections",
             nargs="+",
             default=None,
             help="Section headings or Category: names to include",
+        )
+        com.add_argument(
+            "--offline",
+            action="store_true",
+            default=False,
+            help="Skip All network calls; use offline cache only",
         )
         com.add_argument(
             "--no-recent",

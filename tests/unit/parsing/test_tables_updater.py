@@ -5,13 +5,30 @@ Unit tests for src/parsing/tables_updater.py module.
 Classes to test: WikiTableDataUpdater
 """
 
+from typing import Any
+
 import pytest
 
-from src.parsing.tables_updater import (
-    WikiTableDataUpdater,
-    update_wikitable_data,
-)
+from src.parsing.tables_updater import WikiTableDataUpdater
 
+
+def update_table(
+    rows: dict[str, Any],
+    wikitext: str,
+    table_headers_to_row_key: dict[str, str],
+    replace_values: bool = False,
+    add_missing_headers: bool = True,
+) -> str:
+    """rows: list of rows data."""
+    manager = WikiTableDataUpdater()
+
+    return manager.update_wikitable_data(
+        rows=rows,
+        wikitext=wikitext,
+        table_headers_to_row_key=table_headers_to_row_key,
+        replace_values=replace_values,
+        add_missing_headers=add_missing_headers,
+    )
 
 class TestUpdate:
 
@@ -45,7 +62,7 @@ class TestUpdate:
         }
 
     def test_update_wikitable_data(self) -> None:
-        retult = update_wikitable_data(
+        retult = update_table(
             self.rows,
             self.wikitext,
             self.table_headers_to_row_key,
@@ -64,7 +81,7 @@ class TestUpdate:
         assert retult.strip() == expected_wikitext
 
     def test_update_wikitable_data_replace_values(self) -> None:
-        retult = update_wikitable_data(
+        retult = update_table(
             self.rows,
             self.wikitext,
             self.table_headers_to_row_key,
@@ -114,7 +131,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         expected = (
             '{| class="wikitable sortable"\n'
             "! Page !! Age of account !! Home Wiki !! Approved\n"
@@ -148,7 +165,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         assert "| 30\n" in result
         assert "| arwiki\n" in result
 
@@ -172,7 +189,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         # Nothing changed because the link is not present in `rows`
         assert result.strip() == wikitext.strip()
 
@@ -196,7 +213,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         # Age of account already has a value (99), so it should not be overwritten
         assert "| 99\n" in result
         # Home Wiki was empty, so it should be filled in
@@ -222,7 +239,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key, replace_values=True)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key, replace_values=True)
         assert "| 25\n" in result
         assert "| 99\n" not in result
 
@@ -246,7 +263,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         assert "| 25\n" in result
         # Home Wiki column remains empty since home_wiki is missing from the data
         assert result.count("|\n") >= 1
@@ -281,7 +298,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         assert "| 10\n" in result
         assert "| enwiki\n" in result
         assert "| 25\n" in result
@@ -317,7 +334,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         assert result.count("| 25\n") == 2
         assert result.count("| test\n") == 2
 
@@ -342,7 +359,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|}"
         )
         # Should not raise any exception
-        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
+        result = update_table(rows, wikitext, self.table_headers_to_row_key)
         assert "Just plain text, no link" in result
 
     def test_unknown_header_in_mapping_is_ignored(self) -> None:
@@ -370,7 +387,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(
+        result = update_table(
             rows,
             wikitext,
             headers_with_bad_entry,
@@ -403,7 +420,7 @@ class TestUpdateWikitableDataEdgeCases:
             "|-\n"
             "|}"
         )
-        result = update_wikitable_data(
+        result = update_table(
             rows,
             wikitext,
             headers_with_bad_entry,
