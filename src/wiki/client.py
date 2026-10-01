@@ -182,7 +182,8 @@ class WikiClientLoader:
         batch_size = 50
         result: dict[str, int] = dict.fromkeys(users, 0)
 
-        for i in range(0, len(users), batch_size):
+        batchs = range(0, len(users), batch_size)
+        for i in tqdm(batchs, desc="Fetching edit counts", unit="batch"):
             batch = users[i : i + batch_size]
             params = {
                 "list": "users",
@@ -229,7 +230,8 @@ class WikiClientLoader:
         result: dict[str, int] = dict.fromkeys(users, 0)
         logger.info("Fetching global edit counts for %s users ...", len(users))
 
-        for i in range(0, len(users), batch_size):
+        batchs = range(0, len(users), batch_size)
+        for i in tqdm(batchs, desc="Fetching global edit counts", unit="batch"):
             batch = users[i : i + batch_size]
             params = {
                 "list": "globalusers",
