@@ -106,6 +106,9 @@ class HomeWikiCache:
             len(remain),
         )
 
+        if not remain:
+            return result
+
         for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self._wiki.get_global_userinfo(username)
 
