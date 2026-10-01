@@ -406,7 +406,7 @@ class WikiClient(WikiClientLoader):
         Convenience: load credentials from env and connect.
         """
         credentials = Credentials.from_env()
-        if not credentials:
+        if not credentials and login:
             logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
             return None
 
