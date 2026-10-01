@@ -5,14 +5,14 @@ tests/
 │
 └── unit/
     ├── cache/
-    │   ├── test_home_wiki_cache.py
     │   ├── test_json_cache.py
+    │   ├── test_home_wiki_cache.py
     │   └── test_recent_edit_cache.py
     │
     ├── models/
-    │   ├── test_application_row.py
     │   ├── test_extract_country.py
-    │   └── test_user_info.py
+    │   ├── test_user_info.py
+    │   └── test_application_row.py
     │
     ├── parsing/
     │   ├── test_links.py
@@ -20,9 +20,9 @@ tests/
     │   └── test_tables_updater.py
     │
     ├── services/
-    │   ├── test_hdp_service.py
     │   ├── test_subpages_service.py
-    │   └── test_tables_builder.py
+    │   ├── test_tables_builder.py
+    │   └── test_hdp_service.py
     │
     ├── wiki/
     │   ├── test_category.py
