@@ -11,17 +11,18 @@ repo/
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── application_row.py
+│   │   ├── application_table.py
 │   │   └── user_info.py
 │   ├── parsing/
 │   │   ├── __init__.py
 │   │   ├── links.py
+│   │   ├── tables_builder.py
 │   │   ├── tables_manager.py
 │   │   └── tables_updater.py
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── hdp_service.py
-│   │   ├── subpages_service.py
-│   │   └── tables_builder.py
+│   │   └── subpages_service.py
 │   ├── wiki/
 │   │   ├── __init__.py
 │   │   ├── category.py
@@ -46,24 +47,23 @@ repo/
 │   │   │   └── test_user_info.py
 │   │   ├── parsing/
 │   │   │   ├── test_links.py
+│   │   │   ├── test_tables_builder.py
 │   │   │   ├── test_tables_manager.py
 │   │   │   └── test_tables_updater.py
 │   │   ├── services/
 │   │   │   ├── test_hdp_service.py
-│   │   │   ├── test_subpages_service.py
-│   │   │   └── test_tables_builder.py
+│   │   │   └── test_subpages_service.py
 │   │   ├── wiki/
 │   │   │   ├── test_category.py
 │   │   │   ├── test_client.py
-│   │   │   ├── test_users.py
-│   │   │   └── test_wikidata_editcounts.py
+│   │   │   └── test_users.py
 │   │   ├── xtools/
 │   │   │   └── test_xtools_client.py
 │   │   ├── test_cli.py
 │   │   ├── test_config.py
 │   │   └── test_logging_setup.py
 │   ├── conftest.py
-│   └── test_v3.py
+│   └── README.md
 ├── AGENTS.md
 ├── pyproject.toml
 ├── pytest.ini
