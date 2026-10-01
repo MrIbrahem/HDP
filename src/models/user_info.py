@@ -132,25 +132,6 @@ class UserInfo:
 
         return ""
 
-    # ------------------------------------------------------------------
-    # Factory
-    # ------------------------------------------------------------------
-
-    @classmethod
-    def from_globaluserinfo(cls, username: str, info: Mapping[str, Any]) -> UserInfo:
-        """
-        Build from the dict returned by ``meta=globaluserinfo``.
-
-        # API schema:
-        # {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
-        """
-        return cls(
-            username=username,
-            home_wiki=str(info.get("home") or ""),
-            registration=str(info.get("registration") or ""),
-            global_editcount=_as_optional_int(info.get("editcount")),
-        )
-
     def with_editcounts(
         self,
         *,
@@ -168,6 +149,49 @@ class UserInfo:
             recent_editcount=(recent_editcount if recent_editcount is not None else self.recent_editcount),
             wikidata_count=(wikidata_count if wikidata_count is not None else self.wikidata_count),
             last_edit=last_edit if last_edit is not None else self.last_edit,
+        )
+
+    # ------------------------------------------------------------------
+    # Factory
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def from_globaluserinfo(cls, username: str, info: Mapping[str, Any]) -> UserInfo:
+        """
+        Build from the dict returned by ``meta=globaluserinfo``.
+
+        # API schema:
+        # {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
+        """
+        if not info:
+            return cls(username=username)
+
+        return cls(
+            username=username,
+            home_wiki=str(info.get("home") or ""),
+            registration=str(info.get("registration") or ""),
+            global_editcount=_as_optional_int(info.get("editcount")),
+        )
+
+    @classmethod
+    def load(
+        cls,
+        username: str,
+        *,
+        globaluserinfo_data: Mapping[str, Any],
+        global_editcount: int | None = None,
+        recent_editcount: int | None = None,
+        wikidata_count: int | None = None,
+        last_edit: str | None = None,
+    ) -> UserInfo:
+        """Return a new instance with updated edit-count fields."""
+        user_info = cls.from_globaluserinfo(username, globaluserinfo_data)
+
+        return user_info.with_editcounts(
+            global_editcount=global_editcount,
+            recent_editcount=recent_editcount,
+            wikidata_count=wikidata_count,
+            last_edit=last_edit,
         )
 
     def to_json(self) -> dict[str, Any]:

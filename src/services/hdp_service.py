@@ -182,8 +182,9 @@ class HdpService:
         for row in rows:
             username = row.username
             if username:
-                user_info = UserInfo.from_globaluserinfo(username, home_wikis.get(username) or {})
-                user_info = user_info.with_editcounts(
+                user_info = UserInfo.load(
+                    username=username,
+                    globaluserinfo_data=home_wikis.get(username),
                     global_editcount=editcounts.get(username),
                     recent_editcount=recent.get(username),
                     last_edit=last_edits.get(username),
