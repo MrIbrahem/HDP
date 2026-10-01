@@ -8,9 +8,8 @@ Functions to test: calculate_age_new, calculate_age
 TODO: write tests
 """
 
-
 from src.models.user_info import (
     UserInfo,
-    calculate_age_new,
     calculate_age,
+    calculate_age_new,
 )

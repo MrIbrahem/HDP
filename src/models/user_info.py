@@ -101,6 +101,7 @@ def _as_optional_int(value: Any) -> int | None:
 # UserInfo
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class UserInfo:
     """

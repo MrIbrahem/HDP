@@ -11,8 +11,9 @@ from src.models.application_row import (
     extract_country,
 )
 
-class TestApplicationRow:
-    ...
+
+class TestApplicationRow: ...
+
 
 class TestExtractCountry:
     def test_standard_format(self):

@@ -7,7 +7,6 @@ Classes to test: RecentEditCache
 TODO: write tests
 """
 
-
 from src.cache.recent_edit_cache import (
     RecentEditCache,
 )

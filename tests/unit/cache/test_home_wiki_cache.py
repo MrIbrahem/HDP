@@ -5,7 +5,9 @@ Classes to test: HomeWikiCache
 
 TODO: write tests
 """
+
 import os
+
 import pytest
 
 from src.cache.home_wiki_cache import (

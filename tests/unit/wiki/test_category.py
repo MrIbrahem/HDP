@@ -7,7 +7,6 @@ Classes to test: CategoryService
 TODO: write tests
 """
 
-
 from src.wiki.category import (
     CategoryService,
 )

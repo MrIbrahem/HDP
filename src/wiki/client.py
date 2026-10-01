@@ -24,8 +24,7 @@ METAWIKI_HOST: str = "meta.wikimedia.org"
 
 
 class WikiClientLoader:
-    """
-    """
+    """ """
 
     def __init__(self, site: Site) -> None:
         self._site = site
@@ -347,7 +346,6 @@ class WikiClientLoader:
         return result
 
 
-
 class WikiClient(WikiClientLoader):
     """
     Thin, injectable wrapper around a logged-in ``mwclient.Site``.
@@ -433,6 +431,7 @@ class WikiClient(WikiClientLoader):
             host=host,
             login=login,
         )
+
 
 __all__ = [
     "WikiClient",

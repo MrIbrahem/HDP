@@ -7,8 +7,7 @@ Classes to test: Settings, Credentials
 TODO: write tests
 """
 
-
 from src.config import (
-    Settings,
     Credentials,
+    Settings,
 )

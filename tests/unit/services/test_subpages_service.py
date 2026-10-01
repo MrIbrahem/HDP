@@ -7,7 +7,6 @@ Classes to test: SubPages
 TODO: write tests
 """
 
-
 from src.services.subpages_service import (
     SubPages,
 )

@@ -9,9 +9,10 @@ TODO: write tests
 
 from src.parsing.links import (
     LinkExtractor,
-    get_section_by_heading,
     extract_subpage_links,
+    get_section_by_heading,
 )
+
 
 def test_get_section_by_heading():
     wikitext = "== Section 1 ==\nBody 1\n== Section 2 ==\nBody 2"

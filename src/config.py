@@ -144,6 +144,7 @@ class Settings:
         out.write_text(text, encoding="utf-8")
         logger.info("Saved to %s", out.resolve())
 
+
 def _load_users_redirects(path: Path) -> dict[str, str]:
     """Load a JSON object of lowercase-name → canonical-name mappings."""
     import json

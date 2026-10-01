@@ -7,7 +7,6 @@ Classes to test: HdpService
 TODO: write tests
 """
 
-
 from src.services.hdp_service import (
     HdpService,
 )

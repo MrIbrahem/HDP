@@ -6,10 +6,12 @@ Classes to test: WikiClient
 TODO: write tests
 """
 
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
 from src.wiki.client import WikiClient
+
 
 class TestRealNetwork:
     @pytest.mark.network
@@ -28,11 +30,11 @@ class TestRealNetwork:
         res = site.get_global_editcounts(["Mr. Ibrahem"])
         assert res["Mr. Ibrahem"] > 1_000
 
+
 class TestGetEditCount:
     def test_get_editcounts_empty(self):
         res = WikiClient({}).get_editcounts([])
         assert res == {}
-
 
     def test_get_editcounts_mocked_site(self):
         mock_site = MagicMock()
@@ -57,7 +59,6 @@ class TestGetEditCount:
             formatversion=2,
             format="json",
         )
-
 
     def test_get_editcounts_batching(self):
         mock_site = MagicMock()

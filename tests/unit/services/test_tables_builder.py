@@ -7,7 +7,6 @@ Functions to test: build_wikitable
 TODO: write tests
 """
 
-
 from src.services.tables_builder import (
     build_wikitable,
 )

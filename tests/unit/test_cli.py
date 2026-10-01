@@ -8,7 +8,6 @@ Functions to test: main
 TODO: write tests
 """
 
-
 from src.cli import (
     Cli,
     main,

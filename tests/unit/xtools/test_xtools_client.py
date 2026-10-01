@@ -12,6 +12,7 @@ from src.xtools.client import (
     XToolsClient,
 )
 
+
 @pytest.mark.network
 def test_get_recent_editcount() -> None:
     start_s, end_s = XToolsClient.load_dates()
