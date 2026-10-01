@@ -153,11 +153,11 @@ class HdpService:
                 row.apply_country(wikitext)
 
         # process rows
-        rows = self._process_rows_users(rows, unknown=unknown)
+        rows = self._process_rows_users(rows)
 
         return ApplicationTable.load(rows, unknown=unknown)
 
-    def _process_rows_users(self, rows: list[ApplicationRow], unknown: str = "unknown") -> list[ApplicationRow]:
+    def _process_rows_users(self, rows: list[ApplicationRow]) -> list[ApplicationRow]:
         users = [r.username for r in rows if r.username]
 
         # 4. Global edit counts
