@@ -29,6 +29,7 @@ class WikiClientLoader:
     def __init__(self, site: Site) -> None:
         self._site = site
 
+    @property
     def batch_size(self) -> int:
         return 50
 

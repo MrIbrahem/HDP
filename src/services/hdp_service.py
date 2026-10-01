@@ -204,21 +204,21 @@ class HdpService:
         return recent
 
     def _fetch_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
-        wikidata_editcounts = {}
 
         if not self.offline:
             wikidata_editcounts = self.wd_client.get_editcounts(users)  # pyright: ignore[reportOptionalMemberAccess]
             logger.info(f"Loaded {len(wikidata_editcounts)} Wikidata editcounts for {len(users)} users")
+            return wikidata_editcounts
 
-        return wikidata_editcounts
+        return {}
 
     def _get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
-        last_edits: dict[str, str] = {}
         if self.load_last_edits and not self.offline:
             last_edits = self.xtools.get_last_edit_timestamps(users)
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
+            return last_edits
 
-        return last_edits
+        return {}
 
     # ------------------------------------------------------------------
     # Table generation / update
