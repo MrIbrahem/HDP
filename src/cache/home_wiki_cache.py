@@ -16,9 +16,9 @@ Cache file layout (JSON)::
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import logging
 import time
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -82,9 +82,7 @@ class HomeWikiCache:
         cache = self._store.load()
         new_count = 0
 
-        result: dict[str, Mapping[str, Any]] = {
-            username : cache[username] for username in users if username in cache
-        }
+        result: dict[str, Mapping[str, Any]] = {username: cache[username] for username in users if username in cache}
         cached_result = len(result)
 
         remain = [username for username in users if username not in cache]
@@ -116,12 +114,7 @@ class HomeWikiCache:
         if new_count:
             self._store.save(cache)
 
-        logger.info(
-            "Home wiki cache: %s cached, %s fetched, all records: %s",
-            cached_result,
-            new_count,
-            len(result)
-        )
+        logger.info("Home wiki cache: %s cached, %s fetched, all records: %s", cached_result, new_count, len(result))
         return result
 
 
