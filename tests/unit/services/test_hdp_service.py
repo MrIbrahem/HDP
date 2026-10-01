@@ -416,7 +416,7 @@ class TestUpdate:
         call_kwargs = mock_updater.update_wikitable_data.call_args[1]
         assert "rows" in call_kwargs
         assert "table_headers_to_row_key" in call_kwargs
-        assert call_kwargs["replace_values"] is False
+        assert call_kwargs["replace_values"] is True
 
     @patch("src.services.hdp_service.WikiTableDataUpdater")
     def test_update_pops_last_edit_header_when_disabled(self, mock_updater_cls):

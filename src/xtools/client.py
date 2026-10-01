@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from urllib.parse import quote, urlencode
 
 import requests
@@ -33,11 +33,13 @@ class XToolsClient:
     # ------------------------------------------------------------------
     # Date window
     # ------------------------------------------------------------------
-
     @staticmethod
-    def load_dates(recent_days: int = RECENT_DAYS) -> tuple[str, str]:
-        """Return ``(start, end)`` ISO dates covering the last ``recent_days`` days ending yesterday."""
-        today = datetime.now(UTC).date()
+    def load_dates(recent_days: int = RECENT_DAYS, today: date | None = None) -> tuple[str, str]:
+        if today is None:
+            today = datetime.now(UTC).date()
+        elif isinstance(today, datetime):
+            today = today.date()
+
         yesterday = today - timedelta(days=1)
         start = yesterday - timedelta(days=recent_days)
         return start.isoformat(), yesterday.isoformat()

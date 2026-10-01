@@ -178,7 +178,7 @@ class TestGetPagesWikitext:
         loader, site = _loader()
         site.get.return_value = {"query": {"pages": []}}
 
-        titles = [f"P{i}" for i in range(100)]
+        titles = [f"P{i}" for i in range(150)]
         loader.get_pages_wikitext(titles)
 
         # 5 titles / batch_size 2 → 3 batches
