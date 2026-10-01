@@ -180,19 +180,20 @@ class HdpService:
 
         # 9. Assemble
         for row in rows:
-            username = row.username
-            if username:
-                user_info = UserInfo.load(
-                    username=username,
-                    globaluserinfo_data=home_wikis.get(username),
-                    global_editcount=editcounts.get(username),
-                    recent_editcount=recent.get(username),
-                    last_edit=last_edits.get(username),
-                    wikidata_count=wikidata_editcounts.get(username),
-                )
-                row.apply_user_info(user_info, unknown=unknown)
-            else:
+            if not row.username:
                 logger.warning("Username not found for %s", row.full_title)
+                continue
+
+            username = row.username
+            user_info = UserInfo.load(
+                username=username,
+                globaluserinfo_data=home_wikis.get(username),
+                global_editcount=editcounts.get(username),
+                recent_editcount=recent.get(username),
+                last_edit=last_edits.get(username),
+                wikidata_count=wikidata_editcounts.get(username),
+            )
+            row.apply_user_info(user_info, unknown=unknown)
 
         return rows
 
