@@ -25,7 +25,11 @@ logger = logging.getLogger(__name__)
 class XToolsClient:
     """Pure HTTP adapter for XTools. Caching belongs in the cache layer."""
 
-    def __init__(self, user_agent: str = USER_AGENT, timeout: int = 15):
+    def __init__(
+        self,
+        user_agent: str = USER_AGENT,
+        timeout: int = 15,
+    ) -> None:
         self._headers = {"User-Agent": user_agent}
         self._timeout = timeout
         self.users_not_exists: list[str] = []
@@ -235,7 +239,6 @@ class XToolsClient:
             # time.sleep(0.3)
 
         return results
-
 
 __all__ = [
     "XToolsClient",
