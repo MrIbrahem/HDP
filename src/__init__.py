@@ -6,7 +6,7 @@ Package layout::
     hdp/
     ├── config.py          # Settings, Credentials
     ├── models.py          # UserInfo, ApplicationRow
-    ├── cache.py           # HomeWikiCache, RecentEditCache
+    ├── cache.py           # HomeWikiCache, XtoolsRecentEditCache
     ├── services.py        # HdpService
     ├── logging_setup.py
     ├── cli.py / __main__.py

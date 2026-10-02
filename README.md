@@ -173,7 +173,7 @@ src/hdp/
 ├── config.py            # Settings, Credentials, constants
 ├── models.py            # UserInfo, ApplicationRow (dataclasses)
 ├── logging_setup.py
-├── cache.py             # JsonCache, HomeWikiCache, RecentEditCache
+├── cache.py             # JsonCache, HomeWikiCache, XtoolsRecentEditCache
 ├── services.py          # HdpService — domain orchestration
 │
 ├── wiki/
@@ -205,7 +205,7 @@ CLI ──► HdpService
             │
             ├── WikiClient / CategoryService / UserResolver
             ├── HomeWikiCache ──► WikiClient
-            ├── RecentEditCache ──► XToolsClient
+            ├── XtoolsRecentEditCache ──► XToolsClient
             └── LinkExtractor / WikiTableDataUpdater
 ```
 

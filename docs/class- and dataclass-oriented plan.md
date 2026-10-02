@@ -185,7 +185,7 @@ class HomeWikiCache:
 
     def get_many(self, users: list[str], save_every: int = 5) -> dict[str, UserInfo]: ...
 
-class RecentEditCache:
+class XtoolsRecentEditCache:
     def __init__(self, path: str, xtools: XToolsClient, recent_days: int = 90):
         self._store = JsonCache(path)
         self._xtools = xtools
@@ -235,7 +235,7 @@ class HdpService:
         category: CategoryService,
         users: UserResolver,
         home_cache: HomeWikiCache,
-        recent_cache: RecentEditCache,
+        recent_cache: XtoolsRecentEditCache,
         xtools: XToolsClient,
         settings: Settings,
         link_extractor: LinkExtractor | None = None,
@@ -305,21 +305,21 @@ class Cli:
 
 ## Migration order (class-first)
 
-1. **Phase 1** — `config.py` + `models.py` + `logging_setup.py`  
+1. **Phase 1** — `config.py` + `models.py` + `logging_setup.py`
    Introduce `Settings`, `Credentials`, `UserInfo`, `ApplicationRow`.
 
-2. **Phase 2** — Wrap existing clients  
-   - Rename/move `MwclientApi` → `WikiClient`  
-   - Add `XToolsClient`  
+2. **Phase 2** — Wrap existing clients
+   - Rename/move `MwclientApi` → `WikiClient`
+   - Add `XToolsClient`
    - Add `CategoryService` and `UserResolver`
 
-3. **Phase 3** — Cache classes  
-   Extract `HomeWikiCache` and `RecentEditCache` on top of the current JSON logic.
+3. **Phase 3** — Cache classes
+   Extract `HomeWikiCache` and `XtoolsRecentEditCache` on top of the current JSON logic.
 
-4. **Phase 4** — Parsing classes (already mostly done)  
+4. **Phase 4** — Parsing classes (already mostly done)
    Clean imports and accept `ApplicationRow` where useful.
 
-5. **Phase 5** — `HdpService`  
+5. **Phase 5** — `HdpService`
    Move `load_rows` / generate / update into the service; inject all clients.
 
 6. **Phase 6** — CLI + delete old entry points
