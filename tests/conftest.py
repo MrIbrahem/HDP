@@ -16,6 +16,7 @@ def setdefault_envs(request):
         os.environ.setdefault("WIKIPEDIA_BOT_USERNAME", "WIKIPEDIA_BOT_USERNAME")
         os.environ.setdefault("WIKIPEDIA_BOT_PASSWORD", "WIKIPEDIA_BOT_PASSWORD")
 
+
 @pytest.fixture(autouse=True)
 def stop_nets(request):
     # Check if 'network' mark is present in the current test item
