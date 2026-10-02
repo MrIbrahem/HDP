@@ -87,17 +87,12 @@ class RecentEditCountsProvider:
             ),
             start=1,
         ):
-            was_cached = self.cache_client.has_coverage(username)
             count = self._get_one(username, start, end)
 
             if set_zero or username in self.xtools_client.users_not_exists:
                 results[username] = count or 0
             elif count is not None:
                 results[username] = count
-
-            # Only throttle when the network may have been hit for this user.
-            if not was_cached:
-                time.sleep(self._request_delay)
 
             if i % save_every == 0:
                 self.cache_client.save()
@@ -159,6 +154,7 @@ class RecentEditCountsProvider:
                 fetched: dict[str, int] = {}
                 if req_start < cached_start:
                     new_front_end = (cached_start - one_day).isoformat()
+                    network_fetched = True
                     front = self.xtools_client.recent_editcount_by_day(
                         username,
                         req_start.isoformat(),
@@ -167,6 +163,7 @@ class RecentEditCountsProvider:
                     fetched.update(front)
 
                 if req_end > cached_end:
+                    network_fetched = True
                     tail = self.xtools_client.recent_editcount_by_day(
                         username,
                         (cached_end + one_day).isoformat(),
@@ -182,12 +179,17 @@ class RecentEditCountsProvider:
                 )
                 return self.cache_client.sum_in_range(username, start, end)
 
+        network_fetched = True
         # No cache entry, or a real gap: fetch the full range fresh.
         fetched = self.xtools_client.recent_editcount_by_day(username, start, end)
 
         if not fetched and coverage is None:
             # Genuine failure / no data: do not record coverage, so we retry next time.
             return None
+
+        # Only throttle when the network may have been hit for this user.
+        if network_fetched:
+            time.sleep(self._request_delay)
 
         self.cache_client.merge(username, fetched, start, end)
         return self.cache_client.sum_in_range(username, start, end)
