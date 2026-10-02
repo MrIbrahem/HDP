@@ -3,6 +3,8 @@ Domain orchestration for the Hardware Donation Program tools.
 
 ``HdpService`` is the single entry point used by the CLI: discover subpages,
 build enriched rows, generate or update wikitables.
+
+// src/services/hdp_service.py
 """
 
 from __future__ import annotations
@@ -11,18 +13,17 @@ import argparse
 import logging
 from collections.abc import Sequence
 
-from ..cache import HomeWikiCache, RecentEditCache
 from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
 from ..models import (
     ApplicationRow,
     ApplicationTable,
 )
 from ..parsing import WikiTableDataUpdater
-from ..wiki.category import CategoryService
-from ..wiki.client import WikiClient
-from ..wiki.users import UserResolver
-from ..xtools.client import XToolsClient
-from .subpages_service import SubPages
+from ..wiki import CategoryService, UserResolver, WikiClient
+from ..xtools import XToolsClient
+from .home_wiki_provider import HomeWikiProvider
+from .recent_edits_provider import RecentEditCountsProvider
+from .subpages_service import SubPagesService
 
 logger = logging.getLogger(__name__)
 
@@ -36,32 +37,37 @@ class HdpService:
 
     def __init__(
         self,
-        wiki: WikiClient,
+        wiki_client: WikiClient,
+        *,
         settings: Settings | None = None,
         wd_client: WikiClient | None = None,
-        *,
-        category: CategoryService | None = None,
-        users: UserResolver | None = None,
-        home_cache: HomeWikiCache | None = None,
-        recent_cache: RecentEditCache | None = None,
-        xtools: XToolsClient | None = None,
+        category_service: CategoryService | None = None,
+        users_resolver: UserResolver | None = None,
+        home_wiki_provider: HomeWikiProvider | None = None,
+        recent_provider: RecentEditCountsProvider | None = None,
+        xtools_client: XToolsClient | None = None,
         offline: bool = False,
     ) -> None:
         self.offline = offline
-        self.wiki = wiki
+        self.wiki_client = wiki_client
         self.wd_client = wd_client if wd_client is not None else WikiClient.load(host="www.wikidata.org")
         self.settings = settings if settings is not None else Settings.from_env()
-        self.category = category or CategoryService(wiki.site)
+        self.category_service = category_service or CategoryService(wiki_client.site)
 
-        self.users = users or UserResolver(wiki, self.settings.users_redirects)
-        self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
-        self.home_cache = home_cache or HomeWikiCache(self.settings.home_wiki_cache_path, wiki)
-        self.recent_cache = recent_cache or RecentEditCache(
-            self.settings.edit_counts_cache_path,
-            self.xtools,
-            recent_days=self.settings.recent_days,
+        self.users_resolver = users_resolver or UserResolver(wiki_client, self.settings.users_redirects)
+        self.home_wiki_provider = home_wiki_provider or HomeWikiProvider(
+            wiki_client=wiki_client, settings=self.settings
         )
-        self.subpages = SubPages(wiki, self.settings, category=self.category)
+        self.subpages = SubPagesService(
+            wiki_client=wiki_client, settings=self.settings, category_service=self.category_service
+        )
+
+        self.xtools_client = xtools_client or XToolsClient(user_agent=self.settings.user_agent)
+
+        self.recent_provider = recent_provider or RecentEditCountsProvider(
+            settings=self.settings,
+            xtools_client=self.xtools_client,
+        )
 
     def set_args(self, args: argparse.Namespace) -> None:
         self.offline = args.offline
@@ -101,7 +107,7 @@ class HdpService:
             login=login,
             do_init=do_init,
         )
-        return cls(wiki=wiki, wd_client=wd_client, settings=settings)
+        return cls(wiki_client=wiki, wd_client=wd_client, settings=settings)
 
     # ------------------------------------------------------------------
     # Row building
@@ -124,7 +130,7 @@ class HdpService:
         rows: list[ApplicationRow] = []
 
         for sub in subpages:
-            username = self.users.normalize(sub)
+            username = self.users_resolver.normalize(sub)
             row = ApplicationRow.from_subpage(
                 sub,
                 base_page=base,
@@ -135,14 +141,14 @@ class HdpService:
 
         # 2. Live User: redirects
         usernames = [r.username for r in rows if r.username]
-        live_redirects = self.users.resolve_batch(usernames)
+        live_redirects = self.users_resolver.resolve_batch(usernames)
         for row in rows:
             if row.username in live_redirects:
                 row.user_info.update_username(live_redirects[row.username])
 
         # 3. Application wikitext (country)
         # Batch-fetch application page wikitexts to extract country
-        app_texts = self.wiki.get_pages_wikitext([r.full_title for r in rows])
+        app_texts = self.wiki_client.get_pages_wikitext([r.full_title for r in rows])
 
         # 9. Apply country
         for row in rows:
@@ -160,7 +166,7 @@ class HdpService:
         users = [r.username for r in rows if r.username]
 
         # 4. Global edit counts
-        editcounts = self.wiki.get_global_editcounts(users)
+        editcounts = self.wiki_client.get_global_editcounts(users)
 
         # 5. Recent edit counts
         wikidata_editcounts = self._fetch_wikidata_editcounts(users)
@@ -169,7 +175,7 @@ class HdpService:
         recent = self._fetch_recent_edit_counts(users)
 
         # 7. Home wiki + registration
-        home_wikis = self.home_cache.get_many(users)
+        home_wikis = self.home_wiki_provider.get_many(users)
 
         # 8. Optional last-edit timestamps
         last_edits = self._get_last_edit_timestamps(users)
@@ -196,10 +202,8 @@ class HdpService:
     # ------------------------------------------------------------------
 
     def _fetch_recent_edit_counts(self, users: list[str]) -> dict[str, int]:
-        if self.load_recent_editcounts and not self.offline:
-            recent = self.recent_cache.get_many(users, set_zero=True)
-        else:
-            recent = self.recent_cache.get_many(users, offline=True, set_zero=True)
+        is_offline = not self.load_recent_editcounts or self.offline
+        recent = self.recent_provider.get_many(users, offline=is_offline, set_zero=True)
         logger.info("Loaded %s recent edit counts", len(recent))
         return recent
 
@@ -214,7 +218,7 @@ class HdpService:
 
     def _get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
         if self.load_last_edits and not self.offline:
-            last_edits = self.xtools.get_last_edit_timestamps(users)
+            last_edits = self.xtools_client.get_last_edit_timestamps(users)
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
             return last_edits
 
@@ -237,7 +241,7 @@ class HdpService:
         Returns a single wikitext string with ``=== Section ===`` headings.
         """
         parts: list[str] = []
-        full_wikitext = self.wiki.get_page_wikitext(page_title)
+        full_wikitext = self.wiki_client.get_page_wikitext(page_title)
 
         for section_title in section_names:
             subpages = self.subpages._subpages_for_section(full_wikitext, section_title)
@@ -264,7 +268,7 @@ class HdpService:
 
         Returns the full updated page wikitext.
         """
-        full_wikitext = self.wiki.get_page_wikitext(page_title)
+        full_wikitext = self.wiki_client.get_page_wikitext(page_title)
         subpages = self.subpages.discover_subpages(page_title, section_names, full_wikitext)
 
         table = self.load_rows(subpages, unknown=unknown)

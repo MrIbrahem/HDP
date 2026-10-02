@@ -33,15 +33,15 @@ class JsonCache:
 
         if not self.path.exists():
             logger.warning("Cache file %s does not exist", self.path)
-            return self.default
+            return dict(self.default)
 
         try:
             with self.path.open(encoding="utf-8") as f:
                 data = json.load(f)
-            return data if isinstance(data, dict) else (self.default)
-        except (json.JSONDecodeError, OSError) as e:
+            return data if isinstance(data, dict) else dict(self.default)
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError) as e:
             logger.warning("Could not read %s (%s); starting fresh", self.path, e)
-            return self.default
+            return dict(self.default)
 
     def save(self, data: dict) -> None:
         """

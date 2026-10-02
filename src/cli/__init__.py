@@ -12,9 +12,9 @@ from __future__ import annotations
 import argparse
 import logging
 
-from .config import DEFAULT_SECTION_NAMES, Settings
-from .logging_setup import setup_logging
-from .services import HdpService
+from ..config import DEFAULT_SECTION_NAMES, Settings
+from ..logging_setup import setup_logging
+from ..services import HdpService
 
 logger = logging.getLogger(__name__)
 

@@ -26,12 +26,36 @@ METAWIKI_HOST: str = "meta.wikimedia.org"
 class WikiClientLoader:
     """ """
 
-    def __init__(self, site: Site) -> None:
+    DEFAULT_BATCH_SIZE = 50
+    # HIGH_LIMIT_BATCH_SIZE = 500 API request failed: 414 Client Error: URI Too Long for url:
+    HIGH_LIMIT_BATCH_SIZE = 100
+    HIGH_LIMIT_RIGHT = "apihighlimits"
+
+    def __init__(self, site: Site, batch_size: int | None = None) -> None:
         self._site = site
+        self._batch_size = batch_size  # None => auto-detect from user rights
 
     @property
     def batch_size(self) -> int:
-        return 50
+        # Lazily detected once, then cached
+        if self._batch_size is None:
+            self._batch_size = self._detect_batch_size()
+            logger.info("Using batch size %s", self._batch_size)
+        return self._batch_size
+
+    def _detect_batch_size(self) -> int:
+        # 1) Use the rights cached by mwclient (populated on login / site init)
+        #  self._site.rights: ['apihighlimits', 'read', ...]
+        if self.HIGH_LIMIT_RIGHT in self._site.rights:
+            logger.info(
+                "User has %s right, using high limit batch size: %s", self.HIGH_LIMIT_RIGHT, self.HIGH_LIMIT_BATCH_SIZE
+            )
+            return self.HIGH_LIMIT_BATCH_SIZE
+
+        logger.info(
+            "User does not have %s right, using default batch size: %s", self.HIGH_LIMIT_RIGHT, self.DEFAULT_BATCH_SIZE
+        )
+        return self.DEFAULT_BATCH_SIZE
 
     # ------------------------------------------------------------------
     # Page content
@@ -58,7 +82,7 @@ class WikiClientLoader:
         batch_size = self.batch_size
 
         batchs = range(0, len(titles), batch_size)
-        for i in tqdm(batchs, desc="Fetching wikitext", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Fetching wikitext", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             batch = titles[i : i + batch_size]
             logger.debug(
                 "Fetching wikitext for batch %s (%s pages) ...",
@@ -193,7 +217,7 @@ class WikiClientLoader:
         result: dict[str, int] = dict.fromkeys(users, 0)
 
         batchs = range(0, len(users), batch_size)
-        for i in tqdm(batchs, desc="Fetching edit counts", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Fetching edit counts", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             batch = users[i : i + batch_size]
             params = {
                 "list": "users",
@@ -242,7 +266,7 @@ class WikiClientLoader:
         logger.info("Fetching global edit counts for %s users ...", len(users))
 
         batchs = range(0, len(users), batch_size)
-        for i in tqdm(batchs, desc="Fetching global edit counts", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Fetching global edit counts", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             batch = users[i : i + batch_size]
             params = {
                 "list": "globalusers",
@@ -331,7 +355,7 @@ class WikiClientLoader:
         result: dict[str, str] = {}
 
         batchs = range(0, len(pages), batch_size)
-        for i in tqdm(batchs, desc="Resolve redirects for pages", unit="batch", disable=TQDM_DISABLE):
+        for i in tqdm(batchs, desc="Resolve redirects for pages", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
             group = pages[i : i + batch_size]
             logger.debug(
                 "Fetching redirects %s – %s ...",
@@ -371,9 +395,8 @@ class WikiClient(WikiClientLoader):
     Thin, injectable wrapper around a logged-in ``mwclient.Site``.
     """
 
-    def __init__(self, site: Site) -> None:
-        self._site = site
-        super().__init__(site)
+    def __init__(self, site: Site, batch_size: int | None = None) -> None:
+        super().__init__(site, batch_size=batch_size)
 
     @property
     def site(self) -> Site:

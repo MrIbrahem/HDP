@@ -1,95 +1,80 @@
 """
 Unit tests for src/cache/home_wiki_cache.py module.
-
-Classes to test: HomeWikiCache
-
-TODO: write tests
 """
-
-import os
-from unittest.mock import MagicMock
 
 import pytest
 
-from src.cache.home_wiki_cache import HomeWikiCache
+from src.cache.home_wiki_cache import HomeWikiCache, validate_user_entry
+
+VALID = {"home": "enwiki", "registration": "2020-01-01T00:00:00Z"}
+
+# ---------------------------------------------------------------------------
+# validate_user_entry
+# ---------------------------------------------------------------------------
 
 
-@pytest.fixture(autouse=True)
-def mock_sleep(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("src.cache.home_wiki_cache.time.sleep", MagicMock())
+class TestValidateUserEntry:
+    def test_valid_entry_returned(self):
+        assert validate_user_entry(VALID) == VALID
+
+    @pytest.mark.parametrize("bad", [None, {}, {"home": "enwiki"}, {"registration": "2020-01-01T00:00:00Z"}])
+    def test_invalid_entry_returns_empty(self, bad):
+        assert validate_user_entry(bad) == {}
+
+    def test_editcount_dropped_by_default(self):
+        assert validate_user_entry({**VALID, "editcount": 5}) == VALID
+
+    def test_editcount_kept_when_requested(self):
+        assert validate_user_entry({**VALID, "editcount": 5}, get_editcount=True) == {**VALID, "editcount": 5}
+
+    def test_zero_editcount_not_kept(self):
+        assert validate_user_entry({**VALID, "editcount": 0}, get_editcount=True) == VALID
 
 
-class TestGetHomeWikisCached:
-    @pytest.fixture
-    def mock_api(self):
-        """A mock WikiClient that records which users it was asked about."""
+# ---------------------------------------------------------------------------
+# HomeWikiCache (storage only)
+# ---------------------------------------------------------------------------
 
-        class MockApi:
-            def __init__(self):
-                self.calls: list[str] = []
 
-            def get_global_userinfo(self, username):
-                self.calls.append(username)
-                return {
-                    "home": f"{username.lower()}wiki",
-                    "registration": "2020-01-01T00:00:00Z",
-                }
+class TestHomeWikiCache:
+    def test_get_unknown_user_returns_empty(self, tmp_path):
+        cache = HomeWikiCache(tmp_path / "c.json")
+        cache.load()
+        assert cache.get("Nobody") == {}
 
-        return MockApi()
+    def test_set_then_get(self, tmp_path):
+        cache = HomeWikiCache(tmp_path / "c.json")
+        cache.load()
+        cache.set("A", VALID)
+        assert cache.get("A") == VALID
 
-    def test_all_new_users_fetched(self, tmp_path, mock_api):
-        cache_path = str(tmp_path / "cache.json")
-        users = ["Alice", "Bob", "Carol"]
+    def test_get_invalid_entry_returns_empty(self, tmp_path):
+        cache = HomeWikiCache(tmp_path / "c.json")
+        cache.load()
+        cache.set("A", {"home": "enwiki"})
+        assert cache.get("A") == {}
 
-        client = HomeWikiCache(cache_path, mock_api)
-        result = client.get_many(users)
+    def test_save_and_load_roundtrip(self, tmp_path):
+        path = tmp_path / "c.json"
+        first = HomeWikiCache(path)
+        first.load()
+        first.set("A", VALID)
+        first.save()
 
-        assert len(result) == 3
-        assert mock_api.calls == users
-        # Cache file should now exist
-        assert os.path.exists(cache_path)
+        second = HomeWikiCache(path)
+        second.load()
+        assert second.get("A") == VALID
 
-    @pytest.mark.skip(reason="get_many returns a dict[str, UserInfo] now.")
-    def test_cached_users_skipped(self, tmp_path, mock_api):
-        cache_path = str(tmp_path / "cache1.json")
+    def test_unsaved_changes_not_persisted(self, tmp_path):
+        path = tmp_path / "c.json"
+        first = HomeWikiCache(path)
+        first.load()
+        first.set("A", VALID)
 
-        users = ["Alice", "Bob"]
-        client = HomeWikiCache(cache_path, mock_api)
+        second = HomeWikiCache(path)
+        second.load()
+        assert second.get("A") == {}
 
-        # Populate the cache with Alice
-        client._store.save(
-            {"Alice": {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"}},
-        )
-        result = client.get_many(users)
-
-        # Alice should come from cache, only Bob fetched
-        assert mock_api.calls == ["Bob"]
-        assert result["Alice"] == {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"}
-        assert result["Bob"]["home"] == "bobwiki"
-
-    @pytest.mark.skip(reason="get_many returns a dict[str, UserInfo] now.")
-    def test_all_cached_no_api_calls(self, tmp_path, mock_api):
-        cache_path = str(tmp_path / "cache2.json")
-        preloaded = {
-            "Alice": {"home": "enwiki", "registration": "2010-01-01T00:00:00Z"},
-            "Bob": {"home": "frwiki", "registration": "2015-06-15T12:00:00Z"},
-        }
-
-        client = HomeWikiCache(cache_path, mock_api)
-        client._store.save(preloaded)
-
-        result = client.get_many(["Alice", "Bob"])
-
-        assert mock_api.calls == []
-        assert result == preloaded
-
-    def test_cache_persisted_after_run(self, tmp_path, mock_api):
-        cache_path = str(tmp_path / "cache3.json")
-
-        client = HomeWikiCache(cache_path, mock_api)
-        client.get_many(["Alice"])
-
-        # Load the cache independently and verify Alice is there
-        cache = client._store.load()
-        assert "Alice" in cache
-        assert cache["Alice"]["home"] == "alicewiki"
+    def test_never_touches_wiki(self, tmp_path):
+        # The cache has no wiki dependency at all.
+        assert "wiki" not in HomeWikiCache.__init__.__code__.co_varnames

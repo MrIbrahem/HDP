@@ -173,7 +173,7 @@ src/hdp/
 ├── config.py            # Settings, Credentials, constants
 ├── models.py            # UserInfo, ApplicationRow (dataclasses)
 ├── logging_setup.py
-├── cache.py             # JsonCache, HomeWikiCache, RecentEditCache
+├── cache.py             # JsonCache, HomeWikiCache, XtoolsRecentEditCache
 ├── services.py          # HdpService — domain orchestration
 │
 ├── wiki/
@@ -205,7 +205,7 @@ CLI ──► HdpService
             │
             ├── WikiClient / CategoryService / UserResolver
             ├── HomeWikiCache ──► WikiClient
-            ├── RecentEditCache ──► XToolsClient
+            ├── XtoolsRecentEditCache ──► XToolsClient
             └── LinkExtractor / WikiTableDataUpdater
 ```
 
@@ -311,6 +311,17 @@ pytest tests/ -q
 
 # Include live XTools / Meta API tests
 pytest tests/ -m network
+
+# Coverage report for src/
+pytest tests/unit/config --cov=src/config
+pytest tests/unit/cli --cov=src/cli
+pytest tests/unit/cache --cov=src/cache
+pytest tests/unit/wiki --cov=src/wiki
+pytest tests/unit/models --cov=src/models
+pytest tests/unit/parsing --cov=src/parsing
+pytest tests/unit/services --cov=src/services
+pytest tests/unit/xtools --cov=src/xtools
+
 ```
 
 Markers:

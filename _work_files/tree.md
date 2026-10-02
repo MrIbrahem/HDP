@@ -7,7 +7,7 @@ repo/
 │   │   ├── __init__.py
 │   │   ├── home_wiki_cache.py
 │   │   ├── json_cache.py
-│   │   └── recent_edit_cache.py
+│   │   └── xtools_cache.py
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── application_row.py

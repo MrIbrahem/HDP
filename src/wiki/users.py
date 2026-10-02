@@ -22,10 +22,10 @@ class UserResolver:
 
     def __init__(
         self,
-        wiki: WikiClient,
+        wiki_client: WikiClient,
         static_redirects: Mapping[str, str] | None = None,
     ) -> None:
-        self._wiki = wiki
+        self.wiki_client = wiki_client
         self._static = {k.lower(): v for k, v in (static_redirects or {}).items()}
 
     # ------------------------------------------------------------------
@@ -63,7 +63,7 @@ class UserResolver:
             logger.debug("No usernames provided, returning empty dict")
             return {}
 
-        live_redirects = self._wiki.solve_pages_redirects(titles)
+        live_redirects = self.wiki_client.solve_pages_redirects(titles)
 
         result: dict[str, str] = {}
         for src, dst in live_redirects.items():

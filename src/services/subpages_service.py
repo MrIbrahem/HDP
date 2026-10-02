@@ -15,18 +15,18 @@ from ..wiki.client import WikiClient
 logger = logging.getLogger(__name__)
 
 
-class SubPages:
+class SubPagesService:
 
     def __init__(
         self,
-        wiki: WikiClient,
-        settings: Settings,
         *,
-        category: CategoryService | None = None,
+        wiki_client: WikiClient,
+        settings: Settings,
+        category_service: CategoryService | None = None,
     ) -> None:
-        self.wiki = wiki
+        self.wiki_client = wiki_client
         self.settings = settings
-        self.category = category or CategoryService(wiki.site)
+        self.category_service = category_service or CategoryService(wiki_client.site)
         self.extractor = LinkExtractor()
 
     # ------------------------------------------------------------------
@@ -47,7 +47,7 @@ class SubPages:
         otherwise the page wikitext is parsed for links under that heading.
         """
         if not full_wikitext:
-            full_wikitext = self.wiki.get_page_wikitext(page_title)
+            full_wikitext = self.wiki_client.get_page_wikitext(page_title)
 
         found: set[str] = set()
 
@@ -91,8 +91,8 @@ class SubPages:
     def _subpages_from_category(self, category_name: str) -> list[str]:
         """Fetch subpage names (relative to base_page) from a MediaWiki category."""
         base = self.settings.base_page
-        total = self.category.count(category_name)
-        members = self.category.member_titles(
+        total = self.category_service.count(category_name)
+        members = self.category_service.member_titles(
             category_name,
             namespace=0,
             total_pages=total,
@@ -110,5 +110,5 @@ class SubPages:
 
 
 __all__ = [
-    "SubPages",
+    "SubPagesService",
 ]

@@ -99,14 +99,12 @@ class CategoryService:
 
         all_titles: list[str] = []
         cmcontinue: str | None = None
-        first = True
         delay = 0.1
         max_delay = 8.0
 
         # Initialize tqdm with the total expected items
         with tqdm(total=limit, desc="Fetching members", unit="item", disable=TQDM_DISABLE) as pbar:
-            while first or cmcontinue is not None:
-                first = False
+            while True:
                 if max_items is not None and len(all_titles) >= max_items:
                     break
 
@@ -129,11 +127,11 @@ class CategoryService:
                         f"Fetched category members: {len(members)} page, (total: {len(all_titles)}/{total_pages})"
                     )
 
-                    if "continue" in data:
-                        cmcontinue = data["continue"].get("cmcontinue")
-                        time.sleep(delay)
-                    else:
+                    cmcontinue = data.get("continue", {}).get("cmcontinue")
+                    if not cmcontinue:
                         break
+
+                    time.sleep(delay)
 
                 except mwclient.errors.APIError as e:
                     if e.code == "invalidcategory":
@@ -159,6 +157,10 @@ class CategoryService:
                     continue
 
         logger.info("Finished fetching %s members", len(all_titles))
+
+        if max_items is not None:
+            return all_titles[:max_items]
+
         return all_titles
 
     # ------------------------------------------------------------------
