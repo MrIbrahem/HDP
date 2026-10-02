@@ -15,11 +15,13 @@ import requests
 
 from src.xtools.client import XToolsClient
 
+
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch):
     m = MagicMock()
     monkeypatch.setattr("src.xtools.client.time.sleep", m)
     return m
+
 
 class TestRealNetwork:
     @pytest.mark.network
@@ -28,12 +30,10 @@ class TestRealNetwork:
         result = XToolsClient().recent_editcount_by_day("Arpitha05", start_s, end_s)
         assert result == {}
 
-
     @pytest.mark.network
     def test_get_recent_editcount_m(self) -> None:
         result = XToolsClient().recent_editcount_by_day("Mr. Ibrahem", "2026-05-10", "2026-05-12")
         assert result == {"2026-05-10": 6}
-
 
     @pytest.mark.network
     def test_last_edit_timestamp(self) -> None:

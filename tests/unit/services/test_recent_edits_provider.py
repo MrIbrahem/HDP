@@ -60,6 +60,7 @@ def fixed_dates(monkeypatch):
         staticmethod(lambda days: (START, END)),
     )
 
+
 @pytest.fixture
 def provider(settings, xtools_client, cache_client):
     return RecentEditCountsProvider(

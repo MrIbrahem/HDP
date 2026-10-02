@@ -12,6 +12,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 def calculate_age(registration: str) -> str:
     """
     Input example:

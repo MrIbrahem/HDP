@@ -36,6 +36,7 @@ def mock_logger(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestCalculateAge:
     def test_empty_registration_returns_empty_string(self) -> None:
         """Test that an empty string returns an empty result."""

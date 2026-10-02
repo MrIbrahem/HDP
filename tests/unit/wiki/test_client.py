@@ -16,11 +16,13 @@ import pytest
 from src.config import Credentials, Settings
 from src.wiki.client import WikiClient, WikiClientLoader
 
+
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch):
     m = MagicMock()
     monkeypatch.setattr("src.wiki.client.time.sleep", m)
     return m
+
 
 @pytest.fixture
 def mock_site_cls(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -740,6 +742,7 @@ class TestFromSettings:
 # last_edit_timestamp
 # ===========================================================================
 
+
 class TestLastEditTimestamp:
     """Unit tests for WikiClientLoader.last_edit_timestamp."""
 
@@ -780,13 +783,7 @@ class TestLastEditTimestamp:
 
     def test_last_edit_timestamp_empty_entries(self, client_loader):
         """Test returning None when the user has no global contributions."""
-        mock_api_response = {
-            "query": {
-                "globalcontributions": {
-                    "entries": []
-                }
-            }
-        }
+        mock_api_response = {"query": {"globalcontributions": {"entries": []}}}
         client_loader._site.get.return_value = mock_api_response
 
         result = client_loader.last_edit_timestamp("InactiveUser")
@@ -814,6 +811,7 @@ class TestLastEditTimestamp:
 # get_last_edit_timestamps (batch)
 # ===========================================================================
 
+
 class TestLastEditTimestamps:
     """Unit tests for WikiClientLoader.get_last_edit_timestamps."""
 
@@ -833,9 +831,7 @@ class TestLastEditTimestamps:
         }
 
         with patch.object(
-            client_loader,
-            "last_edit_timestamp",
-            side_effect=lambda u: timestamps.get(u)
+            client_loader, "last_edit_timestamp", side_effect=lambda u: timestamps.get(u)
         ) as mock_single_fetch:
             results = client_loader.get_last_edit_timestamps(users)
 

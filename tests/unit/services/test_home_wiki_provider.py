@@ -14,6 +14,7 @@ from src.services.home_wiki_provider import HomeWikiProvider
 
 VALID = {"home": "enwiki", "registration": "2020-01-01T00:00:00Z"}
 
+
 def make_provider(path, wiki) -> tuple[HomeWikiProvider, HomeWikiCache]:
     """Build a provider together with the cache it uses."""
     cache = HomeWikiCache(path)
@@ -41,6 +42,7 @@ class TestGetHomeWikisCached:
                     "registration": "2020-01-01T00:00:00Z",
                     "editcount": 35,
                 }
+
             def get_global_users_info(self, users: list[str]):
                 return {user: self.get_global_userinfo(user) for user in users}
 
@@ -127,10 +129,7 @@ class TestGetManyEdgeCases:
 
     @pytest.mark.parametrize("bad", [None, {}, {"home": "enwiki"}, {"registration": "2020-01-01T00:00:00Z"}])
     def test_failed_fetch_skipped_and_not_cached(self, tmp_path, wiki, bad, caplog):
-        wiki.get_global_users_info.return_value = {
-            "Good": VALID,
-            "Bad": bad
-        }
+        wiki.get_global_users_info.return_value = {"Good": VALID, "Bad": bad}
         provider, cache = make_provider(tmp_path / "c.json", wiki)
 
         result = provider.get_many(["Good", "Bad"])
