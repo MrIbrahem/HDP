@@ -182,7 +182,7 @@ class HdpService:
         # 7. Wikidata edit counts
         remain_users = [user for user in users if user not in wikidata_editcounts]
         if remain_users:
-            wikidata_editcounts = self._fetch_wikidata_editcounts(remain_users)
+            wikidata_editcounts.update(self._fetch_wikidata_editcounts(remain_users))
 
         # 8. Optional last-edit timestamps
         last_edits = self._get_last_edit_timestamps(users)
