@@ -27,7 +27,8 @@ class WikiClientLoader:
     """ """
 
     DEFAULT_BATCH_SIZE = 50
-    HIGH_LIMIT_BATCH_SIZE = 500
+    # HIGH_LIMIT_BATCH_SIZE = 500 API request failed: 414 Client Error: URI Too Long for url:
+    HIGH_LIMIT_BATCH_SIZE = 100
     HIGH_LIMIT_RIGHT = "apihighlimits"
 
     def __init__(self, site: Site, batch_size: int | None = None) -> None:
