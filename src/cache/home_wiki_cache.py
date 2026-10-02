@@ -34,9 +34,11 @@ def validate_user_entry(entry: dict[str, Any] | None, get_editcount: bool = Fals
 
     return {}
 
+
 # ---------------------------------------------------------------------------
 # Home wiki cache
 # ---------------------------------------------------------------------------
+
 
 class HomeWikiCache:
     """
