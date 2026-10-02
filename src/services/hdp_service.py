@@ -42,32 +42,32 @@ class HdpService:
         settings: Settings | None = None,
         wd_client: WikiClient | None = None,
         *,
-        category: CategoryService | None = None,
-        users: UserResolver | None = None,
+        category_service: CategoryService | None = None,
+        users_resolver: UserResolver | None = None,
         home_wiki_provider: HomeWikiProvider | None = None,
         recent_provider: RecentEditCountsProvider | None = None,
-        xtools: XToolsClient | None = None,
+        xtools_client: XToolsClient | None = None,
         offline: bool = False,
     ) -> None:
         self.offline = offline
         self.wiki = wiki_client
         self.wd_client = wd_client if wd_client is not None else WikiClient.load(host="www.wikidata.org")
         self.settings = settings if settings is not None else Settings.from_env()
-        self.category = category or CategoryService(wiki_client.site)
+        self.category_service = category_service or CategoryService(wiki_client.site)
 
-        self.users = users or UserResolver(wiki_client, self.settings.users_redirects)
+        self.users_resolver = users_resolver or UserResolver(wiki_client, self.settings.users_redirects)
         self.home_wiki_provider = home_wiki_provider or HomeWikiProvider(
             settings=self.settings,
             wiki_client=wiki_client,
             cache_client=HomeWikiCache(self.settings.home_wiki_cache_path),
         )
-        self.subpages = SubPagesService(wiki_client, self.settings, category=self.category)
+        self.subpages = SubPagesService(wiki_client, self.settings, category_service=self.category_service)
 
-        self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
+        self.xtools_client = xtools_client or XToolsClient(user_agent=self.settings.user_agent)
 
         self.recent_provider = recent_provider or RecentEditCountsProvider(
             settings=self.settings,
-            xtools_client=self.xtools,
+            xtools_client=self.xtools_client,
         )
 
     def set_args(self, args: argparse.Namespace) -> None:
@@ -131,7 +131,7 @@ class HdpService:
         rows: list[ApplicationRow] = []
 
         for sub in subpages:
-            username = self.users.normalize(sub)
+            username = self.users_resolver.normalize(sub)
             row = ApplicationRow.from_subpage(
                 sub,
                 base_page=base,
@@ -142,7 +142,7 @@ class HdpService:
 
         # 2. Live User: redirects
         usernames = [r.username for r in rows if r.username]
-        live_redirects = self.users.resolve_batch(usernames)
+        live_redirects = self.users_resolver.resolve_batch(usernames)
         for row in rows:
             if row.username in live_redirects:
                 row.user_info.update_username(live_redirects[row.username])
@@ -219,7 +219,7 @@ class HdpService:
 
     def _get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
         if self.load_last_edits and not self.offline:
-            last_edits = self.xtools.get_last_edit_timestamps(users)
+            last_edits = self.xtools_client.get_last_edit_timestamps(users)
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
             return last_edits
 

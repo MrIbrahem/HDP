@@ -48,30 +48,30 @@ def _make_service(
     Build an HdpService with all collaborators mocked.
     Returns (service, mocks_dict).
     """
-    wiki = MagicMock()
+    wiki_client = MagicMock()
     wd_client = MagicMock()
     settings = _make_settings()
-    category = MagicMock()
-    users = MagicMock()
+    category_service = MagicMock()
+    users_resolver = MagicMock()
     home_wiki_provider = MagicMock()
-    xtools = MagicMock()
+    xtools_client = MagicMock()
     subpages_svc = MagicMock()
     recent_provider = MagicMock()
 
     # Default collaborator behaviour
-    users.normalize.side_effect = lambda raw: (
+    users_resolver.normalize.side_effect = lambda raw: (
         raw.replace("(2nd Application)", "").split("/")[0].strip().replace("_", " ").title() if raw else ""
     )
-    users.resolve_batch.return_value = {}
+    users_resolver.resolve_batch.return_value = {}
 
-    wiki.get_pages_wikitext.return_value = {}
-    wiki.get_global_editcounts.return_value = {}
-    wiki.get_page_wikitext.return_value = "== Open requests ==\n[[Hardware donation program/Alice]]\n"
+    wiki_client.get_pages_wikitext.return_value = {}
+    wiki_client.get_global_editcounts.return_value = {}
+    wiki_client.get_page_wikitext.return_value = "== Open requests ==\n[[Hardware donation program/Alice]]\n"
 
     wd_client.get_editcounts.return_value = {"Alice": 50}
 
     home_wiki_provider.get_many.return_value = {}
-    xtools.get_last_edit_timestamps.return_value = {}
+    xtools_client.get_last_edit_timestamps.return_value = {}
 
     if subpages_return is not None:
         subpages_svc._subpages_for_section.return_value = list(subpages_return)
@@ -80,13 +80,13 @@ def _make_service(
     recent_provider.get_many.return_value = {}
 
     service = HdpService(
-        wiki_client=wiki,
+        wiki_client=wiki_client,
         wd_client=wd_client,
         settings=settings,
-        category=category,
-        users=users,
+        category_service=category_service,
+        users_resolver=users_resolver,
         home_wiki_provider=home_wiki_provider,
-        xtools=xtools,
+        xtools_client=xtools_client,
         offline=offline,
         recent_provider=recent_provider,
     )
@@ -98,13 +98,13 @@ def _make_service(
     service.load_last_edits = load_last_edits
 
     mocks = {
-        "wiki": wiki,
+        "wiki_client": wiki_client,
         "wd_client": wd_client,
         "settings": settings,
-        "category": category,
-        "users": users,
+        "category_service": category_service,
+        "users_resolver": users_resolver,
         "home_wiki_provider": home_wiki_provider,
-        "xtools": xtools,
+        "xtools_client": xtools_client,
         "subpages": subpages_svc,
         "recent_provider": recent_provider,
     }
@@ -171,52 +171,52 @@ class TestLoadRows:
 
     def test_normalizes_username_from_subpage(self):
         service, mocks = _make_service()
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
 
         table = service.load_rows(["Alice", "Bob_(2nd_Application)"])
 
-        assert mocks["users"].normalize.call_count == 2
+        assert mocks["users_resolver"].normalize.call_count == 2
         # After fix, enriched rows should be returned; for now assert structure
         assert len(table.rows) >= 0  # smoke: no crash
 
     def test_applies_live_redirects(self):
         service, mocks = _make_service()
-        mocks["users"].normalize.side_effect = lambda s: s
-        mocks["users"].resolve_batch.return_value = {"OldName": "NewName"}
+        mocks["users_resolver"].normalize.side_effect = lambda s: s
+        mocks["users_resolver"].resolve_batch.return_value = {"OldName": "NewName"}
 
         # Draft will have username OldName; after redirect becomes NewName
         service.load_rows(["OldName"])
 
-        mocks["users"].resolve_batch.assert_called_once()
+        mocks["users_resolver"].resolve_batch.assert_called_once()
         # The row username should have been updated in-place
         # (implementation mutates draft rows)
 
     def test_fetches_application_wikitext_for_country(self):
         service, mocks = _make_service()
-        mocks["users"].normalize.return_value = "Alice"
-        mocks["wiki"].get_pages_wikitext.return_value = {
+        mocks["users_resolver"].normalize.return_value = "Alice"
+        mocks["wiki_client"].get_pages_wikitext.return_value = {
             "Hardware donation program/Alice": "; country your from: Rwanda\n"
         }
 
         service.load_rows(["Alice"])
 
-        mocks["wiki"].get_pages_wikitext.assert_called_once()
-        titles = mocks["wiki"].get_pages_wikitext.call_args[0][0]
+        mocks["wiki_client"].get_pages_wikitext.assert_called_once()
+        titles = mocks["wiki_client"].get_pages_wikitext.call_args[0][0]
         assert "Hardware donation program/Alice" in titles
 
     def test_fetches_global_editcounts(self):
         service, mocks = _make_service()
-        mocks["users"].normalize.return_value = "Alice"
-        mocks["wiki"].get_global_editcounts.return_value = {"Alice": 500}
+        mocks["users_resolver"].normalize.return_value = "Alice"
+        mocks["wiki_client"].get_global_editcounts.return_value = {"Alice": 500}
 
         service.load_rows(["Alice"])
 
-        mocks["wiki"].get_global_editcounts.assert_called_once()
-        assert "Alice" in mocks["wiki"].get_global_editcounts.call_args[0][0]
+        mocks["wiki_client"].get_global_editcounts.assert_called_once()
+        assert "Alice" in mocks["wiki_client"].get_global_editcounts.call_args[0][0]
 
     def test_fetches_wikidata_editcounts_when_online(self):
         service, mocks = _make_service(offline=False)
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
 
         wd_client = mocks["wd_client"]
         service.load_rows(["Alice"])
@@ -226,7 +226,7 @@ class TestLoadRows:
     @patch("src.services.hdp_service.WikiClient.load")
     def test_skips_wikidata_when_offline(self, mock_wd_load):
         service, mocks = _make_service(offline=True)
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
 
         service.load_rows(["Alice"])
 
@@ -239,7 +239,7 @@ class TestLoadRows:
 
     def test_recent_editcounts_online_path(self):
         service, mocks = _make_service(load_recent=True, offline=False)
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
         mocks["recent_provider"].get_many.return_value = {"Alice": 10}
 
         service.load_rows(["Alice"])
@@ -251,7 +251,7 @@ class TestLoadRows:
 
     def test_recent_editcounts_offline_path(self):
         service, mocks = _make_service(load_recent=False, offline=False)
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
         mocks["recent_provider"].get_many.return_value = {"Alice": 10}
 
         service.load_rows(["Alice"])
@@ -261,7 +261,7 @@ class TestLoadRows:
 
     def test_home_wiki_cache_called(self):
         service, mocks = _make_service()
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
         mocks["home_wiki_provider"].get_many.return_value = {
             "Alice": _sample_user_info("Alice"),
         }
@@ -272,24 +272,24 @@ class TestLoadRows:
 
     def test_last_edits_fetched_only_when_enabled(self):
         service, mocks = _make_service(load_last_edits=True, offline=False)
-        mocks["users"].normalize.return_value = "Alice"
-        mocks["xtools"].get_last_edit_timestamps.return_value = {"Alice": "2026-09-01"}
+        mocks["users_resolver"].normalize.return_value = "Alice"
+        mocks["xtools_client"].get_last_edit_timestamps.return_value = {"Alice": "2026-09-01"}
 
         service.load_rows(["Alice"])
 
-        mocks["xtools"].get_last_edit_timestamps.assert_called_once()
+        mocks["xtools_client"].get_last_edit_timestamps.assert_called_once()
 
     def test_last_edits_skipped_when_disabled(self):
         service, mocks = _make_service(load_last_edits=False)
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
 
         service.load_rows(["Alice"])
 
-        mocks["xtools"].get_last_edit_timestamps.assert_not_called()
+        mocks["xtools_client"].get_last_edit_timestamps.assert_not_called()
 
     def test_returns_application_table(self):
         service, mocks = _make_service()
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
 
         table = service.load_rows(["Alice"])
 
@@ -309,13 +309,13 @@ class TestLoadRows:
         This test documents the expected behaviour.
         """
         service, mocks = _make_service()
-        mocks["users"].normalize.return_value = "Alice"
+        mocks["users_resolver"].normalize.return_value = "Alice"
         mocks["home_wiki_provider"].get_many.return_value = {
             "Alice": _sample_user_info("Alice"),
         }
-        mocks["wiki"].get_global_editcounts.return_value = {"Alice": 1000}
+        mocks["wiki_client"].get_global_editcounts.return_value = {"Alice": 1000}
         mocks["recent_provider"].get_many.return_value = {"Alice": 42}
-        mocks["wiki"].get_pages_wikitext.return_value = {
+        mocks["wiki_client"].get_pages_wikitext.return_value = {
             "Hardware donation program/Alice": "; country your from: Kenya\n"
         }
 
@@ -343,7 +343,7 @@ class TestGenerate:
 
     def test_generate_empty_sections_returns_empty_string(self):
         service, mocks = _make_service(subpages_return=[])
-        mocks["wiki"].get_page_wikitext.return_value = "page text"
+        mocks["wiki_client"].get_page_wikitext.return_value = "page text"
 
         result = service.generate("Hardware donation program", section_names=[])
 
@@ -351,8 +351,8 @@ class TestGenerate:
 
     def test_generate_builds_section_headings(self):
         service, mocks = _make_service(subpages_return=["Alice"])
-        mocks["users"].normalize.return_value = "Alice"
-        mocks["wiki"].get_page_wikitext.return_value = "wikitext"
+        mocks["users_resolver"].normalize.return_value = "Alice"
+        mocks["wiki_client"].get_page_wikitext.return_value = "wikitext"
 
         result = service.generate(
             "Hardware donation program",
@@ -364,7 +364,7 @@ class TestGenerate:
 
     def test_generate_calls_subpages_for_each_section(self):
         service, mocks = _make_service(subpages_return=[])
-        mocks["wiki"].get_page_wikitext.return_value = "wikitext"
+        mocks["wiki_client"].get_page_wikitext.return_value = "wikitext"
 
         service.generate(
             "Hardware donation program",
@@ -375,8 +375,8 @@ class TestGenerate:
 
     def test_generate_includes_last_edit_column_when_enabled(self):
         service, mocks = _make_service(subpages_return=["Alice"], load_last_edits=True)
-        mocks["users"].normalize.return_value = "Alice"
-        mocks["wiki"].get_page_wikitext.return_value = "wikitext"
+        mocks["users_resolver"].normalize.return_value = "Alice"
+        mocks["wiki_client"].get_page_wikitext.return_value = "wikitext"
 
         result = service.generate(
             "Hardware donation program",
@@ -397,8 +397,8 @@ class TestUpdate:
     @patch("src.services.hdp_service.WikiTableDataUpdater")
     def test_update_calls_updater_with_row_dicts(self, mock_updater_cls):
         service, mocks = _make_service(subpages_return=["Alice"])
-        mocks["users"].normalize.return_value = "Alice"
-        mocks["wiki"].get_page_wikitext.return_value = (
+        mocks["users_resolver"].normalize.return_value = "Alice"
+        mocks["wiki_client"].get_page_wikitext.return_value = (
             '{| class="wikitable"\n! Page\n|-\n| [[Hardware donation program/Alice]]\n|}'
         )
         mocks["subpages"].discover_subpages.return_value = {"Alice"}
@@ -422,7 +422,7 @@ class TestUpdate:
     @patch("src.services.hdp_service.WikiTableDataUpdater")
     def test_update_pops_last_edit_header_when_disabled(self, mock_updater_cls):
         service, mocks = _make_service(subpages_return=[], load_last_edits=False)
-        mocks["wiki"].get_page_wikitext.return_value = "page"
+        mocks["wiki_client"].get_page_wikitext.return_value = "page"
         mocks["subpages"].discover_subpages.return_value = set()
 
         mock_updater = MagicMock()
@@ -438,7 +438,7 @@ class TestUpdate:
     def test_update_keeps_last_edited_to_application_header(self, mock_updater_cls):
         """'Last edited to application' must never be removed."""
         service, mocks = _make_service(subpages_return=[], load_last_edits=False)
-        mocks["wiki"].get_page_wikitext.return_value = "page"
+        mocks["wiki_client"].get_page_wikitext.return_value = "page"
         mocks["subpages"].discover_subpages.return_value = set()
 
         mock_updater = MagicMock()

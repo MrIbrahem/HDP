@@ -22,11 +22,11 @@ class SubPagesService:
         wiki_client: WikiClient,
         settings: Settings,
         *,
-        category: CategoryService | None = None,
+        category_service: CategoryService | None = None,
     ) -> None:
         self.wiki = wiki_client
         self.settings = settings
-        self.category = category or CategoryService(wiki_client.site)
+        self.category_service = category_service or CategoryService(wiki_client.site)
         self.extractor = LinkExtractor()
 
     # ------------------------------------------------------------------
@@ -91,8 +91,8 @@ class SubPagesService:
     def _subpages_from_category(self, category_name: str) -> list[str]:
         """Fetch subpage names (relative to base_page) from a MediaWiki category."""
         base = self.settings.base_page
-        total = self.category.count(category_name)
-        members = self.category.member_titles(
+        total = self.category_service.count(category_name)
+        members = self.category_service.member_titles(
             category_name,
             namespace=0,
             total_pages=total,
