@@ -89,7 +89,7 @@ def provider(settings, xtools_client, cache_client, sleep_mock):
 class TestInit:
     """Tests for RecentEditCountsProvider.__init__."""
 
-    def test_uses_injected_dependencies(self, provider, settings, xtools_client, cache_client):
+    def test_uses_injected_dependencies(self, provider: RecentEditCountsProvider, settings, xtools_client, cache_client):
         assert provider.settings is settings
         assert provider.xtools_client is xtools_client
         assert provider.cache_client is cache_client
@@ -135,7 +135,7 @@ class TestInit:
 class TestGetMany:
     """Tests for RecentEditCountsProvider.get_many."""
 
-    def test_loads_cache_then_goes_online_by_default(self, provider, cache_client, monkeypatch):
+    def test_loads_cache_then_goes_online_by_default(self, provider: RecentEditCountsProvider, cache_client, monkeypatch):
         order = []
         cache_client.load.side_effect = lambda: order.append("load")
         online = MagicMock(side_effect=lambda **kw: order.append("online") or {"a": 1})
@@ -149,7 +149,7 @@ class TestGetMany:
         assert order == ["load", "online"]
         offline.assert_not_called()
 
-    def test_online_receives_arguments(self, provider, monkeypatch):
+    def test_online_receives_arguments(self, provider: RecentEditCountsProvider, monkeypatch):
         online = MagicMock(return_value={})
         monkeypatch.setattr(provider, "_get_online", online)
 
@@ -157,7 +157,7 @@ class TestGetMany:
 
         online.assert_called_once_with(users=["a", "b"], set_zero=True, save_every=2)
 
-    def test_online_default_arguments(self, provider, monkeypatch):
+    def test_online_default_arguments(self, provider: RecentEditCountsProvider, monkeypatch):
         online = MagicMock(return_value={})
         monkeypatch.setattr(provider, "_get_online", online)
 
@@ -165,7 +165,7 @@ class TestGetMany:
 
         online.assert_called_once_with(users=["a"], set_zero=False, save_every=5)
 
-    def test_offline_dispatch(self, provider, cache_client, monkeypatch):
+    def test_offline_dispatch(self, provider: RecentEditCountsProvider, cache_client, monkeypatch):
         online = MagicMock()
         offline = MagicMock(return_value={"a": 3})
         monkeypatch.setattr(provider, "_get_online", online)
@@ -178,7 +178,7 @@ class TestGetMany:
         offline.assert_called_once_with(["a"], set_zero=True)
         online.assert_not_called()
 
-    def test_offline_never_touches_network_client(self, provider, xtools_client, cache_client):
+    def test_offline_never_touches_network_client(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_counts.return_value = {"2024-06-02": 4}
         cache_client.sum_in_range.return_value = 4
 
@@ -187,7 +187,7 @@ class TestGetMany:
         assert result == {"a": 4}
         xtools_client.recent_editcount_by_day.assert_not_called()
 
-    def test_empty_users_online(self, provider, cache_client):
+    def test_empty_users_online(self, provider: RecentEditCountsProvider, cache_client):
         assert provider.get_many([]) == {}
         cache_client.load.assert_called_once_with()
 
@@ -201,19 +201,19 @@ class TestGetOnline:
     """Tests for RecentEditCountsProvider._get_online."""
 
     @pytest.fixture
-    def get_one(self, provider, monkeypatch):
+    def get_one(self, provider: RecentEditCountsProvider, monkeypatch):
         mock = MagicMock(return_value=5)
         monkeypatch.setattr(provider, "_get_one", mock)
         return mock
 
-    def test_collects_counts_for_each_user(self, provider, get_one):
+    def test_collects_counts_for_each_user(self, provider: RecentEditCountsProvider, get_one):
         get_one.side_effect = [1, 2, 3]
 
         result = provider._get_online(["a", "b", "c"])
 
         assert result == {"a": 1, "b": 2, "c": 3}
 
-    def test_passes_date_range_to_get_one(self, provider, get_one):
+    def test_passes_date_range_to_get_one(self, provider: RecentEditCountsProvider, get_one):
         provider._get_online(["a", "b"])
 
         assert get_one.call_args_list == [
@@ -221,26 +221,26 @@ class TestGetOnline:
             call("b", START, END),
         ]
 
-    def test_none_counts_are_omitted(self, provider, get_one):
+    def test_none_counts_are_omitted(self, provider: RecentEditCountsProvider, get_one):
         get_one.side_effect = [None, 7]
 
         result = provider._get_online(["a", "b"])
 
         assert result == {"b": 7}
 
-    def test_set_zero_fills_none_with_zero(self, provider, get_one):
+    def test_set_zero_fills_none_with_zero(self, provider: RecentEditCountsProvider, get_one):
         get_one.side_effect = [None, 7]
 
         result = provider._get_online(["a", "b"], set_zero=True)
 
         assert result == {"a": 0, "b": 7}
 
-    def test_set_zero_keeps_real_counts(self, provider, get_one):
+    def test_set_zero_keeps_real_counts(self, provider: RecentEditCountsProvider, get_one):
         get_one.return_value = 9
 
         assert provider._get_online(["a"], set_zero=True) == {"a": 9}
 
-    def test_nonexistent_users_get_zero_even_without_set_zero(self, provider, xtools_client, get_one):
+    def test_nonexistent_users_get_zero_even_without_set_zero(self, provider: RecentEditCountsProvider, xtools_client, get_one):
         xtools_client.users_not_exists = {"ghost"}
         get_one.side_effect = [None, 4]
 
@@ -248,13 +248,13 @@ class TestGetOnline:
 
         assert result == {"ghost": 0, "real": 4}
 
-    def test_nonexistent_user_with_count_keeps_count(self, provider, xtools_client, get_one):
+    def test_nonexistent_user_with_count_keeps_count(self, provider: RecentEditCountsProvider, xtools_client, get_one):
         xtools_client.users_not_exists = {"ghost"}
         get_one.return_value = 3
 
         assert provider._get_online(["ghost"]) == {"ghost": 3}
 
-    def test_throttles_only_uncached_users(self, provider, cache_client, sleep_mock, get_one):
+    def test_throttles_only_uncached_users(self, provider: RecentEditCountsProvider, cache_client, sleep_mock, get_one):
         cache_client.has_coverage.side_effect = [True, False, False, True]
 
         provider._get_online(["a", "b", "c", "d"])
@@ -262,7 +262,7 @@ class TestGetOnline:
         assert sleep_mock.call_count == 2
         sleep_mock.assert_called_with(0.3)
 
-    def test_no_throttle_when_all_cached(self, provider, cache_client, sleep_mock, get_one):
+    def test_no_throttle_when_all_cached(self, provider: RecentEditCountsProvider, cache_client, sleep_mock, get_one):
         cache_client.has_coverage.return_value = True
 
         provider._get_online(["a", "b"])
@@ -282,7 +282,7 @@ class TestGetOnline:
 
         sleep_mock.assert_called_once_with(1.5)
 
-    def test_coverage_checked_before_fetch(self, provider, cache_client, get_one):
+    def test_coverage_checked_before_fetch(self, provider: RecentEditCountsProvider, cache_client, get_one):
         """``has_coverage`` must be evaluated before ``_get_one`` mutates the cache."""
         order = []
         cache_client.has_coverage.side_effect = lambda u: order.append("has_coverage") or False
@@ -292,36 +292,36 @@ class TestGetOnline:
 
         assert order == ["has_coverage", "get_one"]
 
-    def test_saves_periodically_and_at_end(self, provider, cache_client, get_one):
+    def test_saves_periodically_and_at_end(self, provider: RecentEditCountsProvider, cache_client, get_one):
         provider._get_online(["a", "b", "c", "d", "e"], save_every=2)
 
         # after user 2, after user 4, and the final flush
         assert cache_client.save.call_count == 3
 
-    def test_default_save_every_five(self, provider, cache_client, get_one):
+    def test_default_save_every_five(self, provider: RecentEditCountsProvider, cache_client, get_one):
         provider._get_online([f"u{i}" for i in range(10)])
 
         # after user 5, after user 10, and the final flush
         assert cache_client.save.call_count == 3
 
-    def test_final_save_when_fewer_users_than_interval(self, provider, cache_client, get_one):
+    def test_final_save_when_fewer_users_than_interval(self, provider: RecentEditCountsProvider, cache_client, get_one):
         provider._get_online(["a", "b"], save_every=5)
 
         cache_client.save.assert_called_once_with()
 
-    def test_empty_users(self, provider, cache_client, get_one, sleep_mock):
+    def test_empty_users(self, provider: RecentEditCountsProvider, cache_client, get_one, sleep_mock):
         assert provider._get_online([]) == {}
         get_one.assert_not_called()
         sleep_mock.assert_not_called()
         cache_client.save.assert_called_once_with()
 
-    def test_save_called_even_if_fetch_returns_nothing(self, provider, cache_client, get_one):
+    def test_save_called_even_if_fetch_returns_nothing(self, provider: RecentEditCountsProvider, cache_client, get_one):
         get_one.return_value = None
 
         assert provider._get_online(["a"]) == {}
         cache_client.save.assert_called_once_with()
 
-    def test_exception_propagates(self, provider, get_one):
+    def test_exception_propagates(self, provider: RecentEditCountsProvider, get_one):
         get_one.side_effect = RuntimeError("boom")
 
         with pytest.raises(RuntimeError, match="boom"):
@@ -336,7 +336,7 @@ class TestGetOnline:
 class TestGetOffline:
     """Tests for RecentEditCountsProvider._get_offline."""
 
-    def test_returns_sum_for_cached_users(self, provider, cache_client):
+    def test_returns_sum_for_cached_users(self, provider: RecentEditCountsProvider, cache_client):
         cache_client.get_counts.return_value = {"2024-06-02": 2}
         cache_client.sum_in_range.side_effect = [11, 22]
 
@@ -348,19 +348,19 @@ class TestGetOffline:
             call("b", START, END),
         ]
 
-    def test_uncached_users_skipped(self, provider, cache_client):
+    def test_uncached_users_skipped(self, provider: RecentEditCountsProvider, cache_client):
         cache_client.get_counts.return_value = {}
 
         assert provider._get_offline(["a"], set_zero=False) == {}
         cache_client.sum_in_range.assert_not_called()
 
-    def test_uncached_users_zero_with_set_zero(self, provider, cache_client):
+    def test_uncached_users_zero_with_set_zero(self, provider: RecentEditCountsProvider, cache_client):
         cache_client.get_counts.return_value = {}
 
         assert provider._get_offline(["a", "b"], set_zero=True) == {"a": 0, "b": 0}
         cache_client.sum_in_range.assert_not_called()
 
-    def test_mixed_cached_and_uncached(self, provider, cache_client):
+    def test_mixed_cached_and_uncached(self, provider: RecentEditCountsProvider, cache_client):
         cache_client.get_counts.side_effect = lambda u: {"d": 1} if u == "cached" else {}
         cache_client.sum_in_range.return_value = 8
 
@@ -368,13 +368,13 @@ class TestGetOffline:
 
         assert result == {"cached": 8, "missing": 0}
 
-    def test_cached_zero_sum_is_preserved(self, provider, cache_client):
+    def test_cached_zero_sum_is_preserved(self, provider: RecentEditCountsProvider, cache_client):
         cache_client.get_counts.return_value = {"2024-06-02": 0}
         cache_client.sum_in_range.return_value = 0
 
         assert provider._get_offline(["a"], set_zero=False) == {"a": 0}
 
-    def test_never_calls_network_client_or_sleeps(self, provider, xtools_client, cache_client, sleep_mock):
+    def test_never_calls_network_client_or_sleeps(self, provider: RecentEditCountsProvider, xtools_client, cache_client, sleep_mock):
         cache_client.get_counts.return_value = {}
 
         provider._get_offline(["a", "b"], set_zero=True)
@@ -382,7 +382,7 @@ class TestGetOffline:
         xtools_client.recent_editcount_by_day.assert_not_called()
         sleep_mock.assert_not_called()
 
-    def test_does_not_save_cache(self, provider, cache_client):
+    def test_does_not_save_cache(self, provider: RecentEditCountsProvider, cache_client):
         provider._get_offline(["a"], set_zero=False)
 
         cache_client.save.assert_not_called()
@@ -411,7 +411,7 @@ class TestGetOne:
         ],
     )
     def test_fully_covered_makes_no_api_call(
-        self, provider, xtools_client, cache_client, cached_start, cached_end
+        self, provider: RecentEditCountsProvider, xtools_client, cache_client, cached_start, cached_end
     ):
         cache_client.get_coverage.return_value = {"start": cached_start, "end": cached_end}
         cache_client.sum_in_range.return_value = 42
@@ -425,7 +425,7 @@ class TestGetOne:
 
     # -- overlapping / adjacent: only the missing parts are fetched ------
 
-    def test_fetches_only_tail_when_end_moved_forward(self, provider, xtools_client, cache_client):
+    def test_fetches_only_tail_when_end_moved_forward(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = {"start": "2024-06-01", "end": "2024-06-20"}
         xtools_client.recent_editcount_by_day.return_value = {"2024-06-25": 3}
         cache_client.sum_in_range.return_value = 10
@@ -439,7 +439,7 @@ class TestGetOne:
         )
         cache_client.sum_in_range.assert_called_once_with("alice", START, END)
 
-    def test_fetches_only_front_when_start_moved_back(self, provider, xtools_client, cache_client):
+    def test_fetches_only_front_when_start_moved_back(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = {"start": "2024-06-10", "end": "2024-06-30"}
         xtools_client.recent_editcount_by_day.return_value = {"2024-06-02": 5}
         cache_client.sum_in_range.return_value = 12
@@ -452,7 +452,7 @@ class TestGetOne:
             "alice", {"2024-06-02": 5}, "2024-06-01", "2024-06-30"
         )
 
-    def test_fetches_both_front_and_tail(self, provider, xtools_client, cache_client):
+    def test_fetches_both_front_and_tail(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = {"start": "2024-06-10", "end": "2024-06-20"}
         xtools_client.recent_editcount_by_day.side_effect = [
             {"2024-06-02": 1},  # front
@@ -474,7 +474,7 @@ class TestGetOne:
             "2024-06-30",
         )
 
-    def test_adjacent_range_after_cache_fetches_tail(self, provider, xtools_client, cache_client):
+    def test_adjacent_range_after_cache_fetches_tail(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = {"start": "2024-06-01", "end": "2024-06-20"}
         xtools_client.recent_editcount_by_day.return_value = {}
 
@@ -484,7 +484,7 @@ class TestGetOne:
         xtools_client.recent_editcount_by_day.assert_called_once_with("alice", "2024-06-21", END)
         cache_client.merge.assert_called_once_with("alice", {}, "2024-06-01", "2024-06-30")
 
-    def test_adjacent_range_before_cache_fetches_front(self, provider, xtools_client, cache_client):
+    def test_adjacent_range_before_cache_fetches_front(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = {"start": "2024-06-20", "end": "2024-06-30"}
         xtools_client.recent_editcount_by_day.return_value = {}
 
@@ -495,7 +495,7 @@ class TestGetOne:
         cache_client.merge.assert_called_once_with("alice", {}, "2024-06-01", "2024-06-30")
 
     def test_partial_fetch_with_empty_result_still_extends_coverage(
-        self, provider, xtools_client, cache_client
+        self, provider: RecentEditCountsProvider, xtools_client, cache_client
     ):
         cache_client.get_coverage.return_value = {"start": "2024-06-01", "end": "2024-06-20"}
         xtools_client.recent_editcount_by_day.return_value = {}
@@ -506,7 +506,7 @@ class TestGetOne:
         assert result == 6
         cache_client.merge.assert_called_once_with("alice", {}, "2024-06-01", "2024-06-30")
 
-    def test_merge_uses_union_of_cached_and_requested_range(self, provider, xtools_client, cache_client):
+    def test_merge_uses_union_of_cached_and_requested_range(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         """Request starts later than cache, ends later: union is cache.start..req.end."""
         cache_client.get_coverage.return_value = {"start": "2024-05-20", "end": "2024-06-20"}
         xtools_client.recent_editcount_by_day.return_value = {"2024-06-25": 1}
@@ -528,7 +528,7 @@ class TestGetOne:
         ],
     )
     def test_real_gap_fetches_full_range(
-        self, provider, xtools_client, cache_client, cached_start, cached_end
+        self, provider: RecentEditCountsProvider, xtools_client, cache_client, cached_start, cached_end
     ):
         cache_client.get_coverage.return_value = {"start": cached_start, "end": cached_end}
         xtools_client.recent_editcount_by_day.return_value = {"2024-06-10": 4}
@@ -541,7 +541,7 @@ class TestGetOne:
         cache_client.merge.assert_called_once_with("alice", {"2024-06-10": 4}, START, END)
 
     def test_gap_with_empty_fetch_and_existing_coverage_still_merges(
-        self, provider, xtools_client, cache_client
+        self, provider: RecentEditCountsProvider, xtools_client, cache_client
     ):
         cache_client.get_coverage.return_value = {"start": "2024-05-01", "end": "2024-05-20"}
         xtools_client.recent_editcount_by_day.return_value = {}
@@ -554,7 +554,7 @@ class TestGetOne:
 
     # -- no cache entry --------------------------------------------------
 
-    def test_no_coverage_fetches_full_range_and_merges(self, provider, xtools_client, cache_client):
+    def test_no_coverage_fetches_full_range_and_merges(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = None
         xtools_client.recent_editcount_by_day.return_value = {"2024-06-05": 2, "2024-06-06": 3}
         cache_client.sum_in_range.return_value = 5
@@ -568,7 +568,7 @@ class TestGetOne:
         )
         cache_client.sum_in_range.assert_called_once_with("alice", START, END)
 
-    def test_no_coverage_and_empty_fetch_returns_none(self, provider, xtools_client, cache_client):
+    def test_no_coverage_and_empty_fetch_returns_none(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = None
         xtools_client.recent_editcount_by_day.return_value = {}
 
@@ -578,14 +578,14 @@ class TestGetOne:
         cache_client.merge.assert_not_called()
         cache_client.sum_in_range.assert_not_called()
 
-    def test_no_coverage_and_none_fetch_returns_none(self, provider, xtools_client, cache_client):
+    def test_no_coverage_and_none_fetch_returns_none(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = None
         xtools_client.recent_editcount_by_day.return_value = None
 
         assert provider._get_one("alice", START, END) is None
         cache_client.merge.assert_not_called()
 
-    def test_client_exception_propagates_without_merge(self, provider, xtools_client, cache_client):
+    def test_client_exception_propagates_without_merge(self, provider: RecentEditCountsProvider, xtools_client, cache_client):
         cache_client.get_coverage.return_value = None
         xtools_client.recent_editcount_by_day.side_effect = RuntimeError("api down")
 
@@ -594,7 +594,7 @@ class TestGetOne:
 
         cache_client.merge.assert_not_called()
 
-    def test_coverage_looked_up_by_username(self, provider, cache_client):
+    def test_coverage_looked_up_by_username(self, provider: RecentEditCountsProvider, cache_client):
         cache_client.get_coverage.return_value = {"start": START, "end": END}
 
         provider._get_one("bob", START, END)
