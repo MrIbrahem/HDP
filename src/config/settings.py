@@ -14,8 +14,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .credentials import Credentials
-
 from .constants import (
     BASE_PAGE,
     DEFAULT_USERS_REDIRECTS,
@@ -23,6 +21,7 @@ from .constants import (
     SECTION_TO_CATEGORY,
     USER_AGENT,
 )
+from .credentials import Credentials
 
 logger = logging.getLogger(__name__)
 

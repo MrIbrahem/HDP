@@ -5,13 +5,15 @@ Class under test: XToolsClient
 """
 
 from __future__ import annotations
+
 from datetime import datetime
 
 import pytest
 
 from src.config import Settings
-from src.xtools.client import XToolsClient
 from src.wiki.client import WikiClient
+from src.xtools.client import XToolsClient
+
 
 @pytest.mark.network
 def test_last_edit_timestamp_xtoolsclient() -> None:
@@ -30,6 +32,7 @@ def test_last_edit_timestamp_wikiclient():
 
     result = site.last_edit_timestamp("Mr. Ibrahem")
     assert result == "2026-10-02"
+
 
 def test_timestamp_format():
     assert datetime.strptime("20261002", "%Y%m%d").strftime("%Y-%m-%d") == "2026-10-02"

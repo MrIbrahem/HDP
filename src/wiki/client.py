@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 import mwclient.errors
 from mwclient.client import Site
@@ -405,7 +405,7 @@ class WikiClientLoader:
             "utf8": 1,
             "formatversion": 2,
             "guctarget": username,
-            "guclimit": "1"
+            "guclimit": "1",
         }
         try:
             data = self._site.get("query", **params)
@@ -420,7 +420,7 @@ class WikiClientLoader:
 
         # sort by timestamp descending
         entries.sort(key=lambda x: int(x["timestamp"]), reverse=True)
-        timestamp = entries[0]["timestamp"][:8] # 20261002
+        timestamp = entries[0]["timestamp"][:8]  # 20261002
 
         return datetime.strptime(timestamp, "%Y%m%d").strftime("%Y-%m-%d")
 
