@@ -27,13 +27,12 @@ class TestRealNetwork:
     @pytest.mark.network
     def test_get_recent_editcount(self) -> None:
         start_s, end_s = XToolsClient.load_dates()
-        result, wd_result = XToolsClient().recent_editcount_by_day("Arpitha05", start_s, end_s)
+        result = XToolsClient().recent_editcount_by_day("Arpitha05", start_s, end_s)
         assert result == {}
-        assert wd_result == {}
 
     @pytest.mark.network
     def test_get_recent_editcount_m(self) -> None:
-        result, wd_result = XToolsClient().recent_editcount_by_day("Mr. Ibrahem", "2026-05-10", "2026-05-12")
+        result = XToolsClient().recent_editcount_by_day("Mr. Ibrahem", "2026-05-10", "2026-05-12")
         assert result == {"2026-05-10": 6}
 
     @pytest.mark.network
@@ -51,9 +50,9 @@ def _client() -> XToolsClient:
     return XToolsClient(user_agent="test-agent", timeout=5)
 
 
-def _contrib(ts: str, project: str = "ar.wikipedia.org") -> dict:
+def _contrib(ts: str) -> dict:
     """Minimal globalcontribs entry."""
-    return {"timestamp": ts, "project": project}
+    return {"timestamp": ts}
 
 
 def _ok_response(payload: dict, status: int = 200) -> MagicMock:
@@ -122,24 +121,23 @@ class TestRecentEditcountByDay:
         mock_get.return_value = _ok_response(
             {
                 "globalcontribs": [
-                    _contrib("2026-05-10T09:00:00Z", "ar.wikipedia.org"),
-                    _contrib("2026-05-10T11:00:00Z", "www.wikidata.org"),
-                    _contrib("2026-05-11T08:00:00Z", "en.wikipedia.org"),
+                    _contrib("2026-05-10T09:00:00Z"),
+                    _contrib("2026-05-10T11:00:00Z"),
+                    _contrib("2026-05-11T08:00:00Z"),
                 ]
             }
         )
         client = _client()
-        result, wd_result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-12")
+        result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-12")
 
-        assert result == {"2026-05-10": 1, "2026-05-11": 1}
-        assert wd_result == {"2026-05-10": 1}
+        assert result == {"2026-05-10": 2, "2026-05-11": 1}
 
     @patch("src.xtools.client.requests.get")
     def test_empty_contribs_returns_empty_dict(self, mock_get):
         mock_get.return_value = _ok_response({"globalcontribs": []})
         client = _client()
 
-        assert client.recent_editcount_by_day("Alice", "2026-01-01", "2026-01-31") == ({}, {})
+        assert client.recent_editcount_by_day("Alice", "2026-01-01", "2026-01-31") == {}
 
     @patch("src.xtools.client.requests.get")
     def test_user_not_exists_appends_and_returns_empty(self, mock_get):
@@ -151,10 +149,9 @@ class TestRecentEditcountByDay:
         mock_get.return_value = resp
 
         client = _client()
-        result, wd_result = client.recent_editcount_by_day("NoSuchUser", "2026-01-01", "2026-01-31")
+        result = client.recent_editcount_by_day("NoSuchUser", "2026-01-01", "2026-01-31")
 
         assert result == {}
-        assert wd_result == {}
         assert "NoSuchUser" in client.users_not_exists
 
     @patch("src.xtools.client.requests.get")
@@ -162,7 +159,7 @@ class TestRecentEditcountByDay:
         mock_get.return_value = _ok_response({"status": 400, "title": "Bad Request", "detail": "invalid"})
         client = _client()
 
-        assert client.recent_editcount_by_day("Alice", "2026-01-01", "2026-01-02") == ({}, {})
+        assert client.recent_editcount_by_day("Alice", "2026-01-01", "2026-01-02") == {}
 
     @patch("src.xtools.client.requests.get")
     def test_pagination_follows_continue(self, mock_get):
@@ -180,10 +177,9 @@ class TestRecentEditcountByDay:
         mock_get.side_effect = [page1, page2]
 
         client = _client()
-        result, wd_result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-11")
+        result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-11")
 
         assert result == {"2026-05-10": 2}
-        assert wd_result == {}
         assert mock_get.call_count == 2
         # Second request should pass offset
         second_params = mock_get.call_args_list[1][1].get("params") or {}
@@ -204,11 +200,10 @@ class TestRecentEditcountByDay:
         mock_get.side_effect = [ok] + [requests.ConnectionError("down")] * 10
 
         client = _client()
-        result, wd_result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-11")
+        result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-11")
 
         # Partial data preserved
         assert result == {"2026-05-10": 1}
-        assert wd_result == {}
 
         # Ensure that retries actually happened
         assert mock_get.call_count > 2
@@ -219,10 +214,9 @@ class TestRecentEditcountByDay:
 
         client = _client()
         # max_delay path: keep failing until delay >= max_delay
-        result, wd_result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-11")
+        result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-11")
 
         assert result == {}
-        assert wd_result == {}
         assert mock_sleep.called
 
     @patch("src.xtools.client.requests.get")
@@ -247,17 +241,17 @@ class TestRecentEditcountByDay:
 class TestRecentEditcount:
     @patch.object(XToolsClient, "recent_editcount_by_day")
     def test_sums_days(self, mock_by_day):
-        mock_by_day.return_value = ({"2026-05-10": 3}, {"2026-05-11": 2})
+        mock_by_day.return_value = {"2026-05-10": 3, "2026-05-11": 2}
         client = _client()
 
-        assert client.get_recent_editcount("Alice", "2026-05-10", "2026-05-12") == (3, 2)
+        assert client.get_recent_editcount("Alice", "2026-05-10", "2026-05-12") == 5
 
     @patch.object(XToolsClient, "recent_editcount_by_day")
     def test_returns_none_when_no_data(self, mock_by_day):
-        mock_by_day.return_value = ({}, {})
+        mock_by_day.return_value = {}
         client = _client()
 
-        assert client.get_recent_editcount("Alice", "2026-05-10", "2026-05-12") == (None, None)
+        assert client.get_recent_editcount("Alice", "2026-05-10", "2026-05-12") is None
 
 
 # ===========================================================================
@@ -269,13 +263,12 @@ class TestRecentEditcounts:
     @patch.object(XToolsClient, "get_recent_editcount")
     @patch.object(XToolsClient, "load_dates", return_value=("2026-01-01", "2026-03-31"))
     def test_collects_per_user(self, mock_dates, mock_count, mock_sleep):
-        mock_count.side_effect = [(10, 2), (None, None), (5, 0)]
+        mock_count.side_effect = [10, None, 5]
         client = _client()
 
-        result, wd_result = client.recent_editcounts(["Alice", "Bob", "Carol"], recent_days=90)
+        result = client.recent_editcounts(["Alice", "Bob", "Carol"], recent_days=90)
 
         assert result == {"Alice": 10, "Carol": 5}
-        assert wd_result == {"Alice": 2, "Carol": 0}
         assert "Bob" not in result
         assert mock_count.call_count == 3
         assert mock_sleep.call_count == 3
@@ -284,8 +277,35 @@ class TestRecentEditcounts:
     @patch.object(XToolsClient, "load_dates", return_value=("2026-01-01", "2026-03-31"))
     def test_empty_users(self, mock_dates, mock_count):
         client = _client()
-        assert client.recent_editcounts([]) == ({}, {})
+        assert client.recent_editcounts([]) == {}
         mock_count.assert_not_called()
+
+
+# ===========================================================================
+# get_wikidata_recent_editcount
+# ===========================================================================
+
+
+class TestGetWikidataRecentEditcount:
+    @patch("src.xtools.client.requests.get")
+    def test_returns_live_edit_count(self, mock_get):
+        mock_get.return_value = _ok_response({"live_edit_count": 105})
+        client = _client()
+
+        count = client.get_wikidata_recent_editcount("Mr. Ibrahem", "2026-08-15", "2026-10-01")
+
+        assert count == 105
+        url = mock_get.call_args[0][0]
+        assert "simple_editcount/www.wikidata.org/Mr.%20Ibrahem/all/2026-08-15/2026-10-01/true" in url
+
+    @patch("src.xtools.client.requests.get")
+    def test_user_does_not_exist_returns_zero(self, mock_get):
+        resp = MagicMock()
+        resp.text = '{"detail":"The requested user does not exist"}'
+        mock_get.return_value = resp
+        client = _client()
+
+        assert client.get_wikidata_recent_editcount("GhostUser", "2026-08-15", "2026-10-01") == 0
 
 
 # ===========================================================================

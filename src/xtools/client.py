@@ -34,7 +34,9 @@ class XToolsClient:
         self._headers = {"User-Agent": user_agent}
         self._timeout = timeout
         self.users_not_exists: list[str] = []
-        self.excluded_projects: list[str] = []
+        self.excluded_projects: list[str] = [
+            "www.wikidata.org",
+        ]
         self._request_delay = request_delay
 
     # ------------------------------------------------------------------
@@ -60,7 +62,7 @@ class XToolsClient:
         username: str,
         start: str,
         end: str,
-    ) -> tuple[dict[str, int], dict[str, int]]:
+    ) -> dict[str, int]:
         """
         Main orchestrator: Paginates through XTools API and aggregates edit counts.
 
@@ -69,7 +71,7 @@ class XToolsClient:
         (GET /api/user/globalcontribs/{username}/{namespace}/{start}/{end}/{offset}),
         which paginates via a 'continue' timestamp offset.
 
-        Returns empty dicts if the lookup fails (e.g. XTools returns an error, or the
+        Returns an empty dict if the lookup fails (e.g. XTools returns an error, or the
         user has an exceptionally high edit count and the endpoint declines to
         serve it without authentication, per XTools' own rate-limiting rules).
         """
@@ -77,7 +79,6 @@ class XToolsClient:
         base_url = f"{XTOOLS_GLOBALCONTRIBS_URL}/{encoded}/all/{start}/{end}"
 
         total_by_day: dict[str, int] = {}
-        wikidata_by_day: dict[str, int] = {}
         offset: str | None = None
         excluded_count = 0
         max_pages = 50  # Safety cap against runaway pagination
@@ -94,7 +95,7 @@ class XToolsClient:
                 break
 
             contribs = data.get("globalcontribs") or []
-            excluded_count += self._aggregate_page(contribs, total_by_day, wikidata_by_day)
+            excluded_count += self._aggregate_page(contribs, total_by_day)
 
             offset = data.get("continue")
             if not offset:
@@ -103,13 +104,12 @@ class XToolsClient:
             logger.warning("Hit max_pages cap for %s", username)
 
         logger.debug(
-            "Returning %s non-wikidata edit counts and %s wikidata edit counts for %s. excluded contribs: %s",
+            "Returning %s edit counts for %s. excluded contribs: %s",
             f"{len(total_by_day):,}",
-            f"{len(wikidata_by_day):,}",
             username,
             f"{excluded_count:,}",
         )
-        return total_by_day, wikidata_by_day
+        return total_by_day
 
     def _fetch_xtools_page(self, base_url: str, username: str, offset: str | None, page_num: int) -> dict | None:
         """
@@ -153,14 +153,9 @@ class XToolsClient:
         logger.debug("Giving up on %s after multiple attempts.", username)
         return None
 
-    def _aggregate_page(
-        self,
-        contribs: list[dict],
-        total_by_day: dict[str, int],
-        wikidata_by_day: dict[str, int],
-    ) -> int:
+    def _aggregate_page(self, contribs: list[dict], total_by_day: dict[str, int]) -> int:
         """
-        Processes a single page of contributions, updates the totals dicts in-place,
+        Processes a single page of contributions, updates the totals dict in-place,
         and returns the number of excluded contributions.
         """
         excluded_count = 0
@@ -170,23 +165,22 @@ class XToolsClient:
             # "project": "ar.wikipedia.org",
             project = contrib.get("project")
 
-            if project == "www.wikidata.org":
-                wikidata_by_day[day] = wikidata_by_day.get(day, 0) + 1
-            elif project in self.excluded_projects:
+            if project in self.excluded_projects:
                 excluded_count += 1
-            else:
-                total_by_day[day] = total_by_day.get(day, 0) + 1
+                continue
+
+            total_by_day[day] = total_by_day.get(day, 0) + 1
 
         return excluded_count
 
-    def get_recent_editcount(self, username: str, start: str, end: str) -> tuple[int | None, int | None]:
+    def get_recent_editcount(self, username: str, start: str, end: str) -> int | None:
         """
-        Sum of per-day counts (non-wikidata, wikidata), or ``(None, None)`` when no data was returned.
+        Sum of per-day counts, or ``None`` when no data was returned.
         """
-        by_day, wd_by_day = self.recent_editcount_by_day(username, start, end)
-        if not by_day and not wd_by_day:
-            return None, None
-        return sum(by_day.values()), sum(wd_by_day.values())
+        by_day = self.recent_editcount_by_day(username, start, end)
+        if not by_day:
+            return None
+        return sum(by_day.values())
 
     # ------------------------------------------------------------------
     # recent_editcounts
@@ -196,25 +190,86 @@ class XToolsClient:
         self,
         users: list[str],
         recent_days: int = RECENT_DAYS,
-    ) -> tuple[dict[str, int], dict[str, int]]:
+    ) -> dict[str, int]:
         """
-        Uncached batch: last-``recent_days`` edit counts for each user (non-wikidata, wikidata).
+        Uncached batch: last-``recent_days`` edit counts for each user.
         """
         start, end = self.load_dates(recent_days)
         results: dict[str, int] = {}
-        wd_results: dict[str, int] = {}
         logger.info("Fetching recent edits for %s users", len(users))
 
         for username in tqdm(users, desc="Fetching recent edits", unit="user", disable=TQDM_DISABLE):
 
-            count, wd_count = self.get_recent_editcount(username, start, end)
+            count = self.get_recent_editcount(username, start, end)
             if count is not None:
                 results[username] = count
-            if wd_count is not None:
-                wd_results[username] = wd_count
             time.sleep(self._request_delay)
 
-        return results, wd_results
+        return results
+
+    # ------------------------------------------------------------------
+    # Recent Wikidata edits
+    # ------------------------------------------------------------------
+
+    def get_wikidata_recent_editcount(
+        self,
+        username: str,
+        start: str | None = None,
+        end: str | None = None,
+        recent_days: int = RECENT_DAYS,
+    ) -> int | None:
+        """
+        Fetch recent Wikidata edit count using XTools simple_editcount API endpoint.
+        """
+        if not start or not end:
+            start, end = self.load_dates(recent_days)
+
+        encoded = quote(username)
+        url = f"https://xtools.wmcloud.org/api/user/simple_editcount/www.wikidata.org/{encoded}/all/{start}/{end}/true"
+
+        try:
+            response = requests.get(
+                url,
+                headers=self._headers,
+                timeout=self._timeout,
+            )
+            if "The requested user does not exist" in response.text:
+                logger.debug("User %s does not exist on Wikidata", username)
+                return 0
+
+            response.raise_for_status()
+            data = response.json()
+            if "error" in data or ("status" in data and isinstance(data.get("status"), int) and data.get("status") >= 400):
+                logger.warning("XTools simple_editcount error for %s: %s", username, data)
+                return None
+
+            live_count = data.get("live_edit_count")
+            if live_count is not None:
+                return int(live_count)
+            return None
+        except (requests.RequestException, ValueError, TypeError) as e:
+            logger.error("XTools simple_editcount failed for %s: %s", username, e)
+            return None
+
+    def get_wikidata_recent_editcounts(
+        self,
+        users: list[str],
+        recent_days: int = RECENT_DAYS,
+    ) -> dict[str, int]:
+        """
+        Fetch recent Wikidata edit count for a list of users.
+        """
+        start, end = self.load_dates(recent_days)
+        results: dict[str, int] = {}
+        logger.info("Fetching Wikidata recent edits for %s users", len(users))
+
+        for username in tqdm(users, desc="Fetching Wikidata recent edits", unit="user", disable=TQDM_DISABLE):
+            count = self.get_wikidata_recent_editcount(username, start, end)
+            if count is not None:
+                results[username] = count
+            time.sleep(self._request_delay)
+
+        return results
 
     # ------------------------------------------------------------------
     # Last edit

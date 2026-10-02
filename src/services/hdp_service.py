@@ -176,7 +176,8 @@ class HdpService:
         }
 
         # 6. Recent edit counts
-        recent, recent_wikidata = self._fetch_recent_edit_counts(users)
+        recent = self._fetch_recent_edit_counts(users)
+        recent_wikidata = self._fetch_recent_wikidata_edit_counts(users)
 
         # 7. Wikidata edit counts
         remain_users = [user for user in users if user not in wikidata_editcounts]
@@ -208,15 +209,20 @@ class HdpService:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _fetch_recent_edit_counts(self, users: list[str]) -> tuple[dict[str, int], dict[str, int]]:
+    def _fetch_recent_edit_counts(self, users: list[str]) -> dict[str, int]:
         is_offline = not self.load_recent_editcounts or self.offline
-        recent, recent_wikidata = self.recent_provider.get_many(users, offline=is_offline, set_zero=True)
-        logger.info(
-            "Loaded %s recent edit counts and %s recent wikidata edit counts",
-            len(recent),
-            len(recent_wikidata),
+        recent = self.recent_provider.get_many(users, offline=is_offline, set_zero=True)
+        logger.info("Loaded %s recent edit counts", len(recent))
+        return recent
+
+    def _fetch_recent_wikidata_edit_counts(self, users: list[str]) -> dict[str, int]:
+        if not self.load_recent_editcounts or self.offline:
+            return {user: 0 for user in users}
+        recent_wikidata = self.xtools_client.get_wikidata_recent_editcounts(
+            users, recent_days=self.settings.recent_days
         )
-        return recent, recent_wikidata
+        logger.info("Loaded %s recent Wikidata edit counts", len(recent_wikidata))
+        return recent_wikidata
 
     def _fetch_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
 

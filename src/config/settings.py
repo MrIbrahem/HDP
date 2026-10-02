@@ -70,10 +70,6 @@ class Settings:
         return self.cache_dir / "edit_counts_cache.json"
 
     @property
-    def wikidata_edit_counts_cache_path(self) -> Path:
-        return self.cache_dir / "wikidata_edit_counts_cache.json"
-
-    @property
     def users_redirects_path(self) -> Path:
         return self.cache_dir / "users_redirects.json"
 
