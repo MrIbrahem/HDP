@@ -71,38 +71,26 @@ class HomeWikiProvider:
         if not remain:
             return result
 
-        """
-        new_count = 0
-        for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
-            info = self.wiki_client.get_global_userinfo(username)
+        global_result = self.wiki_client.get_global_users_info(remain)
 
+        live_result = {}
+        for username, info in global_result.items():
             user_entry = self.cache_client.validate_user_entry(info, get_editcount=True)
             if not user_entry:
                 logger.warning("Failed to fetch home wiki for %s", username)
                 continue
 
-            self.cache_client.set(username, user_entry)
-            result[username] = user_entry
-            new_count += 1
+            live_result[username] = user_entry
 
-            time.sleep(self._request_delay)
-
-            if new_count % save_every == 0:
-                self.cache_client.save()
-        """
-        live_result = self.wiki_client.get_global_users_info(remain)
-        new_count = len(live_result)
-
-        if new_count:
+        if live_result:
             self.cache_client.update(live_result)
             self.cache_client.save()
-
-        result.update(live_result)
+            result.update(live_result)
 
         logger.info(
             "Home wiki cache: %s cached, %s fetched, all records: %s",
             cached_count,
-            new_count,
+            len(live_result),
             len(result),
         )
         return result
