@@ -11,15 +11,14 @@ import pytest
 
 from src.cache.home_wiki_cache import HomeWikiCache
 
-VALID = {"home": "enwiki", "registration": "2020-01-01T00:00:00Z"}
 
+VALID = {"home": "enwiki", "registration": "2020-01-01T00:00:00Z"}
 
 @pytest.fixture(autouse=True)
 def mock_sleep(monkeypatch):
     m = MagicMock()
     monkeypatch.setattr("src.cache.home_wiki_cache.time.sleep", m)
     return m
-
 
 class TestGetHomeWikisCached:
     @pytest.fixture
@@ -93,7 +92,6 @@ class TestGetHomeWikisCached:
         cache = client._store.load()
         assert "Alice" in cache
         assert cache["Alice"]["home"] == "alicewiki"
-
 
 class TestGetManyEdgeCases:
     @pytest.fixture

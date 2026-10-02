@@ -1,17 +1,7 @@
 """
-On-disk caches for home-wiki data and recent edit counts.
+Home wiki data: on-disk cache (storage only) and a provider (cache vs. wiki).
 
-Network access is delegated to injected ``WikiClient`` / ``XToolsClient``
-instances — this module never opens HTTP connections itself beyond those calls.
-
-Cache file layout (JSON)::
-    {
-        "SomeUser": {
-            "home": "enwiki",
-            "registration": "2008-07-24T01:18:05Z"
-        },
-        ...
-    }
+// src/cache/home_wiki_cache.py
 """
 
 from __future__ import annotations
@@ -44,15 +34,15 @@ def validate_user_entry(entry: dict[str, Any] | None, get_editcount: bool = Fals
 
     return {}
 
-
 # ---------------------------------------------------------------------------
 # Home wiki cache
 # ---------------------------------------------------------------------------
 
-
 class HomeWikiCache:
     """
-    Persistent cache of CentralAuth home wiki + registration date.
+    Persistent storage of CentralAuth home wiki + registration date.
+
+    Storage only: it never touches the network.
 
     File layout::
 
@@ -60,23 +50,46 @@ class HomeWikiCache:
           "SomeUser": {"home": "enwiki", "registration": "2008-07-24T01:18:05Z"},
           ...
         }
+
+    Usage: ``load()`` -> ``get()`` / ``set()`` many times -> ``save()``.
     """
 
-    def __init__(self, path: str | Path, wiki: WikiClient) -> None:
+    def __init__(self, path: str | Path) -> None:
         self._store = JsonCache(path)
+        self._data: dict[str, Any] = {}
+
+    def load(self) -> None:
+        """Load the cache file into memory (replaces the in-memory state)."""
+        self._data = self._store.load()
+
+    def save(self) -> None:
+        """Flush the in-memory state to disk."""
+        self._store.save(self._data)
+
+    def get(self, username: str) -> dict[str, Any]:
+        """Return the validated entry for the user, or ``{}`` if missing / invalid."""
+        return validate_user_entry(self._data.get(username))
+
+    def set(self, username: str, entry: dict[str, Any]) -> None:
+        self._data[username] = entry
+
+
+class HomeWikiProvider:
+    """Serve home wiki info from the cache, fetching only unknown users from the wiki."""
+
+    def __init__(
+        self,
+        cache: HomeWikiCache,
+        wiki: WikiClient,
+        request_delay: float = 0.1,
+    ) -> None:
+        self._cache = cache
         self._wiki = wiki
+        self._request_delay = request_delay
 
-    def _get_cached_user_data(self, users: list[str], cache: dict) -> dict[str, Any]:
-        cached_result = {}
-        for username in users:
-            if username not in cache:
-                continue
-
-            data = validate_user_entry(cache[username])
-            if data:
-                cached_result[username] = data
-
-        return cached_result
+    @property
+    def _store(self) -> HomeWikiCache:
+        return self._cache._store
 
     def get_many(
         self,
@@ -85,68 +98,56 @@ class HomeWikiCache:
         save_every: int = 5,
     ) -> dict[str, Mapping[str, Any]]:
         """
-        Retrieve global user information for multiple users.
+        Retrieve home wiki and registration details for multiple users.
 
-        This method fetches the home wiki and registration details for a list of users.
-        It utilizes a local cache to avoid redundant API requests. For users not present
-        in the cache, their information is fetched from the wiki, cached, and the cache
-        is periodically saved to the underlying store based on the `save_every` parameter.
-
-        Args:
-            users (list[str]): A list of usernames to fetch information for.
-            save_every (int, optional): The number of newly fetched users after which
-                the cache is automatically saved to the store. Defaults to 5.
-
+        Users with a valid cached entry are served from the cache. The others are
+        fetched from the wiki, cached, and the cache is flushed every ``save_every``
+        newly fetched users and once more at the end if anything new was fetched.
         Returns:
-            dict[str, Mapping[str, Any]]: A dictionary mapping usernames to their informations
-
-        Side Effects:
-            - Sleeps for 0.1 seconds between fetching new users to avoid rate limiting.
-            - Saves the updated cache to the store periodically and at the end if any
-              new users were fetched.
-            - Logs the number of cached and newly fetched users.
+        Returns:
+            A dict mapping usernames to their info. Users whose lookup failed are omitted.
         """
-        cache = self._store.load()
-        new_count = 0
+        self._cache.load()
 
         result: dict[str, Mapping[str, Any]] = {}
-        cached_result = self._get_cached_user_data(users, cache)
+        remain: list[str] = []
+        for username in users:
+            entry = self._cache.get(username)
+            if entry:
+                result[username] = entry
+            else:
+                remain.append(username)
 
-        result.update(cached_result)
-
-        remain = [username for username in users if username not in cached_result]
-        logger.info(
-            "Home wiki cache: %s cached, %s to fetch",
-            len(cached_result),
-            len(remain),
-        )
+        cached_count = len(result)
+        logger.info("Home wiki cache: %s cached, %s to fetch", cached_count, len(remain))
 
         if not remain:
             return result
 
+        new_count = 0
         for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self._wiki.get_global_userinfo(username)
 
-            user_entry = validate_user_entry(info, True)
+            user_entry = validate_user_entry(info, get_editcount=True)
             if not user_entry:
                 logger.warning("Failed to fetch home wiki for %s", username)
                 continue
 
-            cache[username] = user_entry
+            self._cache.set(username, user_entry)
             result[username] = user_entry
             new_count += 1
 
-            time.sleep(0.1)
+            time.sleep(self._request_delay)
 
             if new_count % save_every == 0:
-                self._store.save(cache)
+                self._cache.save()
 
         if new_count:
-            self._store.save(cache)
+            self._cache.save()
 
         logger.info(
             "Home wiki cache: %s cached, %s fetched, all records: %s",
-            len(cached_result),
+            cached_count,
             new_count,
             len(result),
         )
@@ -155,4 +156,6 @@ class HomeWikiCache:
 
 __all__ = [
     "HomeWikiCache",
+    "HomeWikiProvider",
+    "validate_user_entry",
 ]
