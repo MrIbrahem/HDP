@@ -13,127 +13,138 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+def format_count(value: int | None) -> str:
+    """Format a numeric count with thousands separators."""
+    return f"{value:,}" if value is not None else ""
+
+
 def calculate_age(registration: str) -> str:
     """
+    Convert a Wikimedia registration timestamp to a MediaWiki age template.
+
     Input example:
-        registration: "2008-07-24T01:18:05Z"
-    Returns example:
-        {{age in years and months |2008|07|24}}
+        "2008-07-24T01:18:05Z"
+
+    Output example:
+        "{{age in years and months|2008|07|24}}"
     """
     if not registration:
         return ""
 
     try:
-        # Parse the ISO 8601 string into a datetime object
-        # Replacing 'Z' with '+00:00' to ensure compatibility with fromisoformat
+        # Replace UTC "Z" with an explicit offset for fromisoformat().
         reg_date = datetime.fromisoformat(registration.replace("Z", "+00:00"))
-
-        # Extract year, month, and day with zero-padding for month and day
-        year = reg_date.year
-        month = f"{reg_date.month:02d}"
-        day = f"{reg_date.day:02d}"
-
-        # Return the formatted template string
-        return f"{{{{age in years and months|{year}|{month}|{day}}}}}"
-
-    except Exception as e:
-        logger.error(f"Error formatting age template: {e}")
-
-        # Fallback template format in case of an error
+    except ValueError:
+        logger.warning("Invalid registration date: %s", registration)
         return registration
+
+    return (
+        f"{{{{age in years and months|{reg_date.year}|"
+        f"{reg_date.month:02d}|{reg_date.day:02d}}}}}"
+    )
 
 
 def _as_optional_int(value: Any) -> int | None:
+    """Convert a value to int, returning None when conversion fails."""
     if value is None:
         return None
+
     try:
         return int(value)
     except (TypeError, ValueError):
         return None
 
 
-# ---------------------------------------------------------------------------
-# UserInfo
-# ---------------------------------------------------------------------------
-
-
-@dataclass  # (frozen=True)
+@dataclass
 class UserInfo:
     """
-    Immutable snapshot of a Wikimedia user's global account data.
+    Mutable snapshot of a Wikimedia user's global account data.
 
-    ``home_wiki`` and ``registration`` come from CentralAuth and never change
-    for a given account, which is why this model is frozen and suitable for
-    long-lived caching.
+    ``home_wiki`` and ``registration`` come from CentralAuth and are
+    generally stable for a given account.
     """
 
     username: str
+    # FIXME: Rename "refirect_username" to "redirect_username" after checking
+    # all consumers, serialized data, templates, and persisted data.
     refirect_username: str = ""
+
     home_wiki: str = ""
-    registration: str = ""  # ISO timestamp from CentralAuth
+    registration: str = ""
+
     global_editcount: int | None = None
     recent_editcount: int | None = None
     recent_wikidata_editcount: int | None = None
     wikidata_count: int | None = None
-    last_edit: str | None = None  # Y-m-d
+
+    last_edit: str | None = None
 
     def update_username(self, username: str) -> None:
+        """Update the username while preserving the previous username."""
         self.refirect_username = self.username
         self.username = username
 
     def to_json(self) -> dict[str, Any]:
+        """Return a JSON-serializable representation of the user."""
         data = asdict(self)
+
         data["user_link"] = self.user_link
         data["age"] = self.age
         data["global_without_wikidata_str"] = self.global_without_wikidata_str
         data["global_editcount_str"] = self.global_editcount_str
         data["recent_editcount_str"] = self.recent_editcount_str
-        data["recent_wikidata_editcount_str"] = self.recent_wikidata_editcount_str
+        data["recent_wikidata_editcount_str"] = (
+            self.recent_wikidata_editcount_str
+        )
         data["wikidata_editcount_str"] = self.wikidata_editcount_str
+
         return data
 
     @property
-    def user_link(self) -> str:
+    def user_link(self) -> str | None:
+        """Return the MediaWiki user-link for the current username."""
         return f"[[User:{self.username}]]" if self.username else None
 
     @property
     def age(self) -> str:
+        """Return the user's registration date as a MediaWiki age template."""
         return calculate_age(self.registration)
 
     @property
     def global_without_wikidata_str(self) -> str:
-        if self.global_editcount is not None and self.wikidata_count is not None:
-            global_without_wikidata = max(0, self.global_editcount - self.wikidata_count)
-            return f"{global_without_wikidata:,}"
+        """
+        Return global edits excluding Wikidata edits.
 
-        return ""
+        Returns an empty string when either count is unavailable.
+        """
+        if self.global_editcount is None or self.wikidata_count is None:
+            return ""
+
+        count = max(0, self.global_editcount - self.wikidata_count)
+        return format_count(count)
 
     @property
     def global_editcount_str(self) -> str:
-        if self.global_editcount is not None:
-            return f"{self.global_editcount:,}"
-        return ""
+        """Return the formatted global edit count."""
+        return format_count(self.global_editcount)
 
     @property
     def recent_editcount_str(self) -> str:
-        if self.recent_editcount is not None:
-            return f"{self.recent_editcount:,}"
-        return ""
+        """Return the formatted recent edit count."""
+        return format_count(self.recent_editcount)
 
     @property
     def recent_wikidata_editcount_str(self) -> str:
-        if self.recent_wikidata_editcount is not None:
-            return f"{self.recent_wikidata_editcount:,}"
-        return ""
+        """Return the formatted recent Wikidata edit count."""
+        return format_count(self.recent_wikidata_editcount)
 
     @property
     def wikidata_editcount_str(self) -> str:
-        if self.wikidata_count is not None:
-            return f"{self.wikidata_count:,}"
-        return ""
+        """Return the formatted Wikidata edit count."""
+        return format_count(self.wikidata_count)
 
     # ------------------------------------------------------------------
-    # Factory
+    # Update helpers
     # ------------------------------------------------------------------
 
     def update(
@@ -146,9 +157,12 @@ class UserInfo:
         wikidata_count: int | None = None,
         last_edit: str | None = None,
     ) -> UserInfo:
-        """Return a new instance with updated edit-count fields."""
-        globaluser_data = globaluser_data or {}
+        """
+        Update available user data and return this instance.
 
+        Only values explicitly supplied or available in ``globaluser_data``
+        are used to update the corresponding fields.
+        """
         home_wiki = str(globaluser_data.get("home") or "")
         if home_wiki:
             self.home_wiki = home_wiki
@@ -157,10 +171,15 @@ class UserInfo:
         if registration:
             self.registration = registration
 
-        global_editcount = global_editcount or globaluser_data.get("editcount")
+        # NOTE: Use "is None" instead of "or" so that a valid count of 0
+        # is not accidentally ignored.
+        if global_editcount is None:
+            global_editcount = globaluser_data.get("editcount")
 
-        if global_editcount and global_editcount is not None:
-            self.global_editcount = _as_optional_int(global_editcount)
+        if global_editcount is not None:
+            parsed_global_editcount = _as_optional_int(global_editcount)
+            if parsed_global_editcount is not None:
+                self.global_editcount = parsed_global_editcount
 
         if recent_editcount is not None:
             self.recent_editcount = recent_editcount
@@ -176,19 +195,25 @@ class UserInfo:
 
         return self
 
+    # TODO: Consider whether "update()" should return None instead of self.
+    # Returning self is retained for backward compatibility and possible
+    # method chaining.
+
     # ------------------------------------------------------------------
     # Table / export helpers
     # ------------------------------------------------------------------
 
     def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
-        Dict of header-key → cell value expected by ``WikiTableDataUpdater``
-        and ``ApplicationTable.build_wikitable``.
+        Return values expected by ``WikiTableDataUpdater`` and
+        ``ApplicationTable.build_wikitable``.
         """
         return {
             "global_editcount_str": self.global_editcount_str or unknown,
             "recent_editcount_str": self.recent_editcount_str or unknown,
-            "recent_wikidata_editcount_str": self.recent_wikidata_editcount_str or unknown,
+            "recent_wikidata_editcount_str": (
+                self.recent_wikidata_editcount_str or unknown
+            ),
             "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
             "global_without_wikidata_str": self.global_without_wikidata_str,
             "user_link": self.user_link or unknown,
@@ -200,4 +225,6 @@ class UserInfo:
 
 __all__ = [
     "UserInfo",
+    "calculate_age",
+    "format_count",
 ]
