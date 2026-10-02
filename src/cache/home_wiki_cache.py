@@ -30,10 +30,21 @@ from .json_cache import JsonCache
 
 logger = logging.getLogger(__name__)
 
+def validate_user_entry(entry: dict[str, Any], get_editcount: bool = False) -> dict[str, Any]:
+    if entry and entry.get("home") and entry.get("registration"):
+        data = {
+            "home": entry["home"],
+            "registration": entry["registration"],
+        }
+        if get_editcount and entry.get("editcount"):
+            data["editcount"] = entry["editcount"]
+        return data
+
+    return {}
+
 # ---------------------------------------------------------------------------
 # Home wiki cache
 # ---------------------------------------------------------------------------
-
 
 class HomeWikiCache:
     """
@@ -57,7 +68,7 @@ class HomeWikiCache:
             if username not in cache:
                 continue
 
-            data = self.validate_user_entry(cache[username])
+            data = validate_user_entry(cache[username])
             if data:
                 cached_result[username] = data
 
@@ -112,7 +123,7 @@ class HomeWikiCache:
         for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self._wiki.get_global_userinfo(username)
 
-            user_entry = self.validate_user_entry(info, True)
+            user_entry = validate_user_entry(info, True)
             if not user_entry:
                 logger.warning("Failed to fetch home wiki for %s", username)
                 continue
@@ -136,19 +147,6 @@ class HomeWikiCache:
             len(result),
         )
         return result
-
-    @staticmethod
-    def validate_user_entry(entry: dict[str, Any], get_editcount: bool = False) -> dict[str, Any]:
-        if entry and entry.get("home") and entry.get("registration"):
-            data = {
-                "home": entry["home"],
-                "registration": entry["registration"],
-            }
-            if get_editcount and entry.get("editcount"):
-                data["editcount"] = entry["editcount"]
-            return data
-
-        return {}
 
 
 __all__ = [
