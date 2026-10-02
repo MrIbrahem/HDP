@@ -25,12 +25,14 @@ from typing import Any
 from tqdm import tqdm
 
 from ..config import TQDM_DISABLE
-from ..wiki.client import WikiClient
+from ..wiki import WikiClient
 from .json_cache import JsonCache
 
 logger = logging.getLogger(__name__)
 
-def validate_user_entry(entry: dict[str, Any], get_editcount: bool = False) -> dict[str, Any]:
+
+def validate_user_entry(entry: dict[str, Any] | None, get_editcount: bool = False) -> dict[str, Any]:
+    """Return a clean entry (home + registration, optional editcount) or ``{}`` if invalid."""
     if entry and entry.get("home") and entry.get("registration"):
         data = {
             "home": entry["home"],
