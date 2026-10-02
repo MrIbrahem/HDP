@@ -28,6 +28,7 @@ class RecentEditCountsProvider:
 
     def __init__(
         self,
+        *,
         xtools_client: XToolsClient | None = None,
         cache_client: XtoolsRecentEditCache | None = None,
         settings: Settings | None = None,

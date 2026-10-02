@@ -23,6 +23,7 @@ class HomeWikiProvider:
 
     def __init__(
         self,
+        *,
         wiki_client: WikiClient,
         cache_client: HomeWikiCache | None = None,
         request_delay: float = 0.1,

@@ -19,9 +19,9 @@ class SubPagesService:
 
     def __init__(
         self,
+        *,
         wiki_client: WikiClient,
         settings: Settings,
-        *,
         category_service: CategoryService | None = None,
     ) -> None:
         self.wiki_client = wiki_client

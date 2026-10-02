@@ -147,7 +147,7 @@ class TestLoad:
 
         assert result is not None
         assert isinstance(result, HdpService)
-        assert result.wiki is mock_wiki
+        assert result.wiki_client is mock_wiki
         mock_from_settings.assert_called_with(
             settings=settings,
             host="www.wikidata.org",

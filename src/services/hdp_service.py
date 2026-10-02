@@ -38,9 +38,9 @@ class HdpService:
     def __init__(
         self,
         wiki_client: WikiClient,
+        *,
         settings: Settings | None = None,
         wd_client: WikiClient | None = None,
-        *,
         category_service: CategoryService | None = None,
         users_resolver: UserResolver | None = None,
         home_wiki_provider: HomeWikiProvider | None = None,
@@ -55,8 +55,12 @@ class HdpService:
         self.category_service = category_service or CategoryService(wiki_client.site)
 
         self.users_resolver = users_resolver or UserResolver(wiki_client, self.settings.users_redirects)
-        self.home_wiki_provider = home_wiki_provider or HomeWikiProvider(self.settings, wiki_client)
-        self.subpages = SubPagesService(wiki_client, self.settings, category_service=self.category_service)
+        self.home_wiki_provider = home_wiki_provider or HomeWikiProvider(
+            wiki_client=wiki_client, settings=self.settings
+        )
+        self.subpages = SubPagesService(
+            wiki_client=wiki_client, settings=self.settings, category_service=self.category_service
+        )
 
         self.xtools_client = xtools_client or XToolsClient(user_agent=self.settings.user_agent)
 
