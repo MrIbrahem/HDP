@@ -168,10 +168,16 @@ class RecentEditCountsProvider:
             r_end = date.fromisoformat(req_end)
 
             one_day = timedelta(days=1)
+            # Figure out if the ranges are contiguous/overlapping (the common
+            # case: same start, end has moved forward by ~a week) so we only
+            # need to fetch the new tail. Also handle the (rarer) case where
+            # the window start has moved forward and we could fetch a new tail
+            # on the front, though this is less common.
             gap_after = r_start > cached_end + one_day
             gap_before = r_end < cached_start - one_day
 
             if not gap_after and not gap_before:
+                # Overlapping or adjacent ranges: only fetch what's missing.
                 fetched_non_wd: dict[str, int] = {}
                 fetched_wd: dict[str, int] = {}
 
@@ -209,6 +215,7 @@ class RecentEditCountsProvider:
         fetched_non_wd, fetched_wd = self.xtools_client.recent_editcount_by_day(username, start, end)
 
         if not fetched_non_wd and not fetched_wd and cov_non_wd is None and cov_wd is None:
+            # Genuine failure / no data: do not record coverage, so we retry next time.
             return None, None
 
         self.cache_client.merge(username, fetched_non_wd, start, end)
