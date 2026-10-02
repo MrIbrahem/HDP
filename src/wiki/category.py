@@ -127,10 +127,8 @@ class CategoryService:
                         f"Fetched category members: {len(members)} page, (total: {len(all_titles)}/{total_pages})"
                     )
 
-                    if "continue" in data:
-                        cmcontinue = data["continue"].get("cmcontinue")
-                        time.sleep(delay)
-                    else:
+                    cmcontinue = data.get("continue", {}).get("cmcontinue")
+                    if not cmcontinue:
                         break
 
                 except mwclient.errors.APIError as e:
