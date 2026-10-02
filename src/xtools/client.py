@@ -240,7 +240,9 @@ class XToolsClient:
 
             response.raise_for_status()
             data = response.json()
-            if "error" in data or ("status" in data and isinstance(data.get("status"), int) and data.get("status") >= 400):
+            if "error" in data or (
+                "status" in data and isinstance(data.get("status"), int) and data.get("status") >= 400
+            ):
                 logger.warning("XTools simple_editcount error for %s on %s: %s", username, project, data)
                 return None
 
@@ -251,24 +253,6 @@ class XToolsClient:
         except (requests.RequestException, ValueError, TypeError) as e:
             logger.error("XTools simple_editcount failed for %s on %s: %s", username, project, e)
             return None
-
-    def get_wikidata_recent_editcount(
-        self,
-        username: str,
-        start: str | None = None,
-        end: str | None = None,
-        recent_days: int = RECENT_DAYS,
-    ) -> int | None:
-        """
-        Convenience wrapper for get_project_recent_editcount for Wikidata.
-        """
-        return self.get_project_recent_editcount(
-            username=username,
-            project="www.wikidata.org",
-            start=start,
-            end=end,
-            recent_days=recent_days,
-        )
 
     def get_wikidata_recent_editcounts(
         self,

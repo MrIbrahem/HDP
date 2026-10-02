@@ -94,9 +94,7 @@ class ApplicationTable:
     """
 
     rows: list[ApplicationRow]
-    columns: list[ApplicationColumn] = field(
-        default_factory=lambda: list(DEFAULT_COLUMNS)
-    )
+    columns: list[ApplicationColumn] = field(default_factory=lambda: list(DEFAULT_COLUMNS))
     unknown: str = ""
 
     def build_wikitable(self, add_last_edit: bool = False) -> str:
@@ -120,10 +118,7 @@ class ApplicationTable:
         """
         Convert rows to the dictionary shape expected by the table updater.
         """
-        return {
-            row.full_title: row.to_table_dict(self.unknown)
-            for row in self.rows
-        }
+        return {row.full_title: row.to_table_dict(self.unknown) for row in self.rows}
 
     @property
     def headers_to_row_keys(self) -> dict[str, str]:
@@ -133,10 +128,7 @@ class ApplicationTable:
         The mapping is derived from ``columns`` to avoid maintaining
         duplicate column definitions.
         """
-        return {
-            column.header: column.row_key
-            for column in self.columns
-        }
+        return {column.header: column.row_key for column in self.columns}
 
     def _get_visible_columns(
         self,
@@ -145,11 +137,7 @@ class ApplicationTable:
         """
         Return columns that should be included in the rendered table.
         """
-        return [
-            column
-            for column in self.columns
-            if not column.optional or add_last_edit
-        ]
+        return [column for column in self.columns if not column.optional or add_last_edit]
 
     @classmethod
     def load(
