@@ -59,3 +59,12 @@ class TestExtractSubPages:
         """
         subpages = LinkExtractor().extract_subpages("Base", wtp.WikiText(wiki_text))
         assert subpages == ["Sub With Underscore"]
+
+    def test_duplicate_titles(self):
+        # Verify that underscores are correctly replaced with spaces using plain wikitext
+        wiki_text = """
+            * [[Base/Sub With Underscore]]
+            * [[Base/Sub_With_Underscore]]
+        """
+        subpages = LinkExtractor().extract_subpages("Base", wtp.WikiText(wiki_text))
+        assert subpages == ["Sub With Underscore"]
