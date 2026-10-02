@@ -734,3 +734,132 @@ class TestFromSettings:
             do_init=False,
         )
         assert result is mock_load.return_value
+
+
+# ===========================================================================
+# last_edit_timestamp
+# ===========================================================================
+
+class TestLastEditTimestamp:
+    """Unit tests for WikiClientLoader.last_edit_timestamp."""
+
+    @pytest.fixture
+    def client_loader(self):
+        """Fixture providing a WikiClientLoader instance with a mocked Site."""
+        mock_site = MagicMock()
+        return WikiClientLoader(site=mock_site, batch_size=50)
+
+    def test_last_edit_timestamp_success(self, client_loader):
+        """Test fetching the last edit timestamp successfully when entries exist."""
+        mock_api_response = {
+            "query": {
+                "globalcontributions": {
+                    "entries": [
+                        {"wikiid": "arwiki", "revid": "76823306", "timestamp": "20261001061625"},
+                        {"wikiid": "metawiki", "revid": "31116293", "timestamp": "20261002001304"},
+                    ]
+                }
+            }
+        }
+        client_loader._site.get.return_value = mock_api_response
+
+        result = client_loader.last_edit_timestamp("TestUser")
+
+        # Verify correct API parameters were passed
+        client_loader._site.get.assert_called_once_with(
+            "query",
+            format="json",
+            list="globalcontributions",
+            utf8=1,
+            formatversion=2,
+            guctarget="TestUser",
+            guclimit="1",
+        )
+        # Should pick the latest timestamp (20261002 -> 2026-10-02) regardless of response order
+        assert result == "2026-10-02"
+
+    def test_last_edit_timestamp_empty_entries(self, client_loader):
+        """Test returning None when the user has no global contributions."""
+        mock_api_response = {
+            "query": {
+                "globalcontributions": {
+                    "entries": []
+                }
+            }
+        }
+        client_loader._site.get.return_value = mock_api_response
+
+        result = client_loader.last_edit_timestamp("InactiveUser")
+
+        assert result is None
+
+    def test_last_edit_timestamp_missing_query_key(self, client_loader):
+        """Test returning None when the API response structure is missing expected keys."""
+        client_loader._site.get.return_value = {}
+
+        result = client_loader.last_edit_timestamp("UnknownUser")
+
+        assert result is None
+
+    def test_last_edit_timestamp_api_exception(self, client_loader):
+        """Test returning None and catching exception when the API call fails."""
+        client_loader._site.get.side_effect = Exception("Network Connection Error")
+
+        result = client_loader.last_edit_timestamp("UserWithError")
+
+        assert result is None
+
+
+# ===========================================================================
+# get_last_edit_timestamps (batch)
+# ===========================================================================
+
+class TestLastEditTimestamps:
+    """Unit tests for WikiClientLoader.get_last_edit_timestamps."""
+
+    @pytest.fixture
+    def client_loader(self):
+        """Fixture providing a WikiClientLoader instance with a mocked Site."""
+        mock_site = MagicMock()
+        return WikiClientLoader(site=mock_site, batch_size=50)
+
+    def test_get_last_edit_timestamps_success(self, client_loader):
+        """Test fetching last edit timestamps for multiple users."""
+        users = ["User1", "User2", "User3"]
+        timestamps = {
+            "User1": "2026-10-01",
+            "User2": "2026-09-15",
+            "User3": None,  # User3 has no edits
+        }
+
+        with patch.object(
+            client_loader,
+            "last_edit_timestamp",
+            side_effect=lambda u: timestamps.get(u)
+        ) as mock_single_fetch:
+            results = client_loader.get_last_edit_timestamps(users)
+
+            # Check that last_edit_timestamp was called for each user
+            assert mock_single_fetch.call_count == 3
+            # Users with None values should be omitted from the result dict
+            assert results == {
+                "User1": "2026-10-01",
+                "User2": "2026-09-15",
+            }
+
+    def test_get_last_edit_timestamps_empty_user_list(self, client_loader):
+        """Test passing an empty user list returns an empty dictionary."""
+        with patch.object(client_loader, "last_edit_timestamp") as mock_single_fetch:
+            results = client_loader.get_last_edit_timestamps([])
+
+            mock_single_fetch.assert_not_called()
+            assert results == {}
+
+    def test_get_last_edit_timestamps_all_users_none(self, client_loader):
+        """Test when none of the users have edit timestamps."""
+        users = ["UserA", "UserB"]
+
+        with patch.object(client_loader, "last_edit_timestamp", return_value=None):
+            results = client_loader.get_last_edit_timestamps(users)
+
+            assert results == {}
