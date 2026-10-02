@@ -41,15 +41,27 @@ class XToolsClient:
     # Date window
     # ------------------------------------------------------------------
     @staticmethod
-    def load_dates(recent_days: int = RECENT_DAYS, today: date | None = None) -> tuple[str, str]:
+    def load_dates(recent_days: int = RECENT_DAYS, today: str | date | None = None) -> tuple[str, str]:
+
         if today is None:
-            today = datetime.now(UTC).date()
-        elif isinstance(today, datetime):
-            today = today.date()
+            today = datetime.now(UTC)
+        else:
+            today = XToolsClient.normalize_date_input(today)
 
         yesterday = today - timedelta(days=1)
         start = yesterday - timedelta(days=recent_days)
         return start.isoformat(), yesterday.isoformat()
+
+    @staticmethod
+    def normalize_date_input(today: str | date) -> datetime:
+        if isinstance(today, str):
+            today = datetime.fromisoformat(today)
+        elif isinstance(today, date) and not isinstance(today, datetime):
+            today = datetime(today.year, today.month, today.day)
+
+        if today.tzinfo is None:
+            today = today.replace(tzinfo=UTC)
+        return today
 
     # ------------------------------------------------------------------
     # Recent edits by day

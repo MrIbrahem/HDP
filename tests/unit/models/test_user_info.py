@@ -2,10 +2,9 @@
 Unit tests for src/models/user_info.py module.
 
 Classes to test: UserInfo
-Functions to test: calculate_age_new, calculate_age
+Functions to test: calculate_age
 """
 
-from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,7 +14,6 @@ from src.models.user_info import (
     UserInfo,
     _as_optional_int,
     calculate_age,
-    calculate_age_new,
 )
 
 # ---------------------------------------------------------------------------
@@ -37,64 +35,6 @@ def mock_logger(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
-
-
-class TestCalculateAgeNew:
-    def test_empty_registration_returns_empty_string(self) -> None:
-        """Test that an empty string returns an empty result."""
-        assert calculate_age_new("") == ""
-
-    def test_invalid_date_format_returns_empty_string(self) -> None:
-        """Test that unparseable date strings return an empty result."""
-        assert calculate_age_new("invalid-date") == ""
-
-    def test_future_date_returns_empty_string(self) -> None:
-        """Test that a registration date in the future returns an empty result."""
-        # The mock_datetime fixture freezes now() to 2023-01-01
-        fixed_now = datetime(2023, 1, 1, tzinfo=UTC)
-        assert calculate_age_new("2024-01-01T00:00:00Z", fixed_now) == ""
-
-    def test_years_and_months(self) -> None:
-        """Test formatting when the delta is over a year and includes months."""
-        # 2023-01-01 minus 2021-07-01 is exactly 1 year and 6 months (549 days)
-        fixed_now = datetime(2023, 1, 1, tzinfo=UTC)
-        assert calculate_age_new("2021-07-01T00:00:00Z", fixed_now) == "1y 6m"
-
-    def test_years_only(self) -> None:
-        """Test formatting when the delta is exactly years without leftover months."""
-        # 2023-01-01 minus 2021-01-01 is exactly 2 years (730 days)
-        fixed_now = datetime(2023, 1, 1, tzinfo=UTC)
-        assert calculate_age_new("2021-01-01T00:00:00Z", fixed_now) == "2y"
-
-    def test_months_and_days(self) -> None:
-        """Test formatting when the delta is less than a year but more than a month."""
-        # 2023-01-01 minus 2022-11-15 is 47 days (1 month and 17 days)
-        fixed_now = datetime(2023, 1, 1, tzinfo=UTC)
-        assert calculate_age_new("2022-11-15T00:00:00Z", fixed_now) == "1m 17d"
-
-    def test_days_only(self) -> None:
-        """Test formatting when the delta is less than a month."""
-        # 2023-01-01 minus 2022-12-15 is 17 days
-        fixed_now = datetime(2023, 1, 1, tzinfo=UTC)
-        assert calculate_age_new("2022-12-15T00:00:00Z", fixed_now) == "17d"
-
-    def test_missing_time_component(self) -> None:
-        """Test that date strings without a time component are padded and parsed correctly."""
-        fixed_now = datetime(2023, 1, 1, tzinfo=UTC)
-        assert calculate_age_new("2021-07-01", fixed_now) == "1y 6m"
-
-    def test_with_today_is_none(self) -> None:
-        """Test that when today is None, it uses the current UTC time."""
-        today = datetime.now(UTC)
-        assert calculate_age_new(today.isoformat(), today=None) == "0d"
-
-    def test_one_day_only(self) -> None:
-        """Test that when today is None, it uses the current UTC time."""
-        today = datetime.now(UTC)
-        registration = timedelta(days=1)
-        registration_str = (today - registration).isoformat()
-        assert calculate_age_new(registration_str, today=today.isoformat()) == "1d"
-
 
 class TestCalculateAge:
     def test_empty_registration_returns_empty_string(self) -> None:

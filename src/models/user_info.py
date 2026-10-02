@@ -7,60 +7,10 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from datetime import UTC, date, datetime
+from datetime import datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
-
-
-def calculate_age_new(registration: str, today: str | date | None = None) -> str:
-    """
-    Turn a CentralAuth registration timestamp into a human-readable age string.
-
-    Accepts values such as ``"2008-07-24T01:18:05Z"`` or ``"2008-07-24"``.
-    Returns ``""`` when the input cannot be parsed.
-    """
-    if not registration:
-        return ""
-
-    raw = registration.strip()
-    # Normalise trailing Z / missing time component
-    if raw.endswith("Z"):
-        raw = raw[:-1] + "+00:00"
-    if "T" not in raw:
-        raw = raw + "T00:00:00+00:00"
-
-    try:
-        registered = datetime.fromisoformat(raw)
-    except ValueError:
-        return ""
-
-    if registered.tzinfo is None:
-        registered = registered.replace(tzinfo=UTC)
-
-    if today is None:
-        today = datetime.now(UTC)
-    elif isinstance(today, str):
-        today = datetime.fromisoformat(today)
-
-    if registered > today:
-        return ""
-
-    delta = today - registered
-    years = delta.days // 365
-    months = (delta.days % 365) // 30
-
-    if years >= 1:
-        if months > 0:
-            return f"{years}y {months}m"
-        return f"{years}y"
-    if months >= 1:
-        days = delta.days % 30
-        if days > 0:
-            return f"{months}m {days}d"
-        return f"{months}m"
-    return f"{delta.days}d"
-
 
 def calculate_age(registration: str) -> str:
     """
