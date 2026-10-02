@@ -1,7 +1,5 @@
 """
 Unit tests for src/cache/home_wiki_cache.py module.
-
-Classes to test: HomeWikiCache (storage).
 """
 
 import pytest

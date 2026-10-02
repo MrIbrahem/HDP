@@ -1,7 +1,7 @@
 """
 Unit tests for src/cache/home_wiki_cache.py module.
 
-Classes to test: HomeWikiCache (storage), HomeWikiProvider (cache vs. wiki).
+Test: HomeWikiCache (storage), HomeWikiProvider (cache vs. wiki).
 """
 
 import os

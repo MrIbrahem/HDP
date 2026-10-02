@@ -1,9 +1,5 @@
 """
 Unit tests for src/parsing/links.py module.
-
-Classes to test: LinkExtractor
-
-TODO: write tests
 """
 
 from unittest.mock import MagicMock

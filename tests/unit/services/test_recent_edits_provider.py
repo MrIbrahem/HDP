@@ -1,7 +1,5 @@
 """
 Unit tests for src/services/recent_edits_provider.py module.
-
-Classes to test: RecentEditCountsProvider
 """
 
 from __future__ import annotations

@@ -1,7 +1,5 @@
 """
 Unit tests for src/cache/xtools_cache.py module.
-
-Classes to test: XtoolsRecentEditCache
 """
 
 import json

@@ -1,7 +1,5 @@
 """
 Unit tests for src/parsing/tables_updater.py module.
-
-Classes to test: WikiTableDataUpdater
 """
 
 from typing import Any
