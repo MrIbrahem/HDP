@@ -110,7 +110,7 @@ class ApplicationTable:
         lines.extend(f"! {column.header}" for column in columns)
 
         for row in self.rows:
-            lines.extend(row.build_row(columns))
+            lines.extend(row.build_row(add_last_edit))
 
         lines.append("|}")
 
