@@ -36,7 +36,7 @@ Lint/format/config is defined in `pyproject.toml`: black (line 120, py313), isor
 
 Entrypoints (`run.py`, `update.py`) -> `src.v3.main` / `src.v3.update` -> `load_rows` (the orchestrator):
 
--   `api/mwclient_req.py` — `MwclientApi` wraps a logged-in `mwclient.Site`. Provides `get_page_wikitext`, `solve_pages_redirects`, `get_global_editcounts` (lifetime, via `list=globalusers`), `get_home_wikis_and_registration` (`meta=globaluserinfo&guiprop=merged`). Stateful (holds the `Site`).
+-   `api/mwclient_req.py` — `MwclientApi` wraps a logged-in `mwclient.Site`. Provides `get_page_wikitext`, `solve_pages_redirects`, `get_global_editcounts` (lifetime, via `list=globalusers`), `get_global_users_info` (`meta=globaluserinfo&guiprop=merged`). Stateful (holds the `Site`).
 -   `api/xtools.py` — raw XTools HTTP calls (uncached).
 -   `api/xtools_cached.py` — cached recent-edits pipeline backed by `edit_counts_cache.json` (committed to the repo; `git status` shows it dirty on every run, that's expected). Cache shape: `{username: {date: count}, "_meta": {username: {"start":..., "end":...}}}`. `META_KEY = "_meta"` is reserved. Key functions:
     -   `get_recent_editcounts_cached(users, load_new=True)` — merges fetched days into cache, throttles 0.3s per network hit, `save_every=5` flushes.

@@ -32,9 +32,15 @@ class WikiClientLoader:
     HIGH_LIMIT_BATCH_SIZE = 100
     HIGH_LIMIT_RIGHT = "apihighlimits"
 
-    def __init__(self, site: Site, batch_size: int | None = None) -> None:
+    def __init__(
+        self,
+        site: Site,
+        batch_size: int | None = None,
+        request_delay: float = 0.1,
+    ) -> None:
         self._site = site
         self._batch_size = batch_size  # None => auto-detect from user rights
+        self._request_delay = request_delay
 
     @property
     def batch_size(self) -> int:
@@ -114,7 +120,7 @@ class WikiClientLoader:
                 content = revisions[0].get("slots", {}).get("main", {}).get("content", "")
                 result[title] = content
 
-            time.sleep(0.1)
+            time.sleep(self._request_delay)
 
         logger.info("Fetched wikitext for %s pages", len(result))
         return result
@@ -307,9 +313,11 @@ class WikiClientLoader:
             # "action": "query",
             "meta": "globaluserinfo",
             "guiuser": username,
-            "guiprop": "editcount",
+            "guiprop": "merged|editcount",
             "formatversion": "2",
             "format": "json",
+            # "redirects": 1,
+            # "converttitles": 1,
         }
         try:
             data = self._site.get("query", **params)
@@ -323,7 +331,7 @@ class WikiClientLoader:
         logger.debug("Fetched globaluserinfo for %s: %s", username, globaluserinfo)
         return globaluserinfo
 
-    def get_home_wikis_and_registration(
+    def get_global_users_info(
         self,
         users: list[str],
     ) -> dict[str, dict[str, str]]:
@@ -333,14 +341,22 @@ class WikiClientLoader:
         Returns ``{username: {"home": ..., "registration": ...}}``.
         """
         home_wikis: dict[str, dict[str, str]] = {}
+
         for username in tqdm(users, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self.get_global_userinfo(username)
             # API schema: {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
             home_wikis[username] = {
                 "home": info.get("home", ""),
                 "registration": info.get("registration", ""),
+                "editcount": info.get("editcount", ""),
             }
-            time.sleep(0.1)
+            # "globaluserinfo": { "merged": [ { "wiki": "wikidatawiki", "url": "https://www.wikidata.org", "editcount": 1711575, "registration": "2012-10-29T19:52:11Z" }
+            merged = info.get("merged", []) or []
+            wikidata_editcount = next((x.get("editcount", 0) for x in merged if x.get("wiki") == "wikidatawiki"), 0)
+            if wikidata_editcount:
+                home_wikis[username]["wikidata_editcount"] = wikidata_editcount
+
+            time.sleep(self._request_delay)
 
         logger.info("Resolved %s home wikis", len(home_wikis))
         return home_wikis

@@ -538,14 +538,14 @@ class TestGetHomeWikisAndRegistration:
         site.get.side_effect = side_effect
 
         with patch("src.wiki.client.time.sleep"):  # avoid real sleep
-            result = loader.get_home_wikis_and_registration(["Alice", "Bob"])
+            result = loader.get_global_users_info(["Alice", "Bob"])
 
         assert result["Alice"]["home"] == "alicewiki"
         assert result["Bob"]["registration"] == "2020-06-01T00:00:00Z"
 
     def test_empty_users(self):
         loader, _ = _loader()
-        assert loader.get_home_wikis_and_registration([]) == {}
+        assert loader.get_global_users_info([]) == {}
 
 
 class TestSolvePagesRedirects:

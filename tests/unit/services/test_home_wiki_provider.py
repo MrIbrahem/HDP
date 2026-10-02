@@ -42,12 +42,15 @@ class TestGetHomeWikisCached:
             def __init__(self):
                 self.calls: list[str] = []
 
-            def get_global_userinfo(self, username):
+            def get_global_userinfo(self, username: str):
                 self.calls.append(username)
                 return {
                     "home": f"{username.lower()}wiki",
                     "registration": "2020-01-01T00:00:00Z",
+                    "editcount": 35,
                 }
+            def get_global_users_info(self, users: list[str]):
+                return {user: self.get_global_userinfo(user) for user in users}
 
         return MockApi()
 
@@ -180,6 +183,7 @@ class TestGetManyEdgeCases:
 
     def test_custom_request_delay_used(self, tmp_path, wiki, mock_sleep):
         wiki.get_global_userinfo.return_value = VALID
+        wiki._request_delay = 0.5
         provider = HomeWikiProvider(
             wiki_client=wiki,
             cache_client=HomeWikiCache(tmp_path / "c.json"),
@@ -220,6 +224,7 @@ class TestGetManyEdgeCases:
 
         result = provider.get_many(["A"])
 
-        wiki.get_global_userinfo.assert_called_once_with("A")
+        # wiki.get_global_userinfo.assert_called_once_with("A")
+        wiki.get_global_users_info.assert_called_once_with(["A"])
         assert result["A"] == VALID
         assert cache._store.load()["A"] == VALID  # invalid entry replaced

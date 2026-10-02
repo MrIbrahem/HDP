@@ -71,6 +71,7 @@ class HomeWikiProvider:
         if not remain:
             return result
 
+        """
         new_count = 0
         for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self.wiki_client.get_global_userinfo(username)
@@ -88,9 +89,15 @@ class HomeWikiProvider:
 
             if new_count % save_every == 0:
                 self.cache_client.save()
+        """
+        live_result = self.wiki_client.get_global_users_info(remain)
+        new_count = len(live_result)
 
         if new_count:
+            self.cache_client.update(live_result)
             self.cache_client.save()
+
+        result.update(live_result)
 
         logger.info(
             "Home wiki cache: %s cached, %s fetched, all records: %s",
