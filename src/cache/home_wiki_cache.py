@@ -112,7 +112,7 @@ class HomeWikiCache:
 
         result.update(cached_result)
 
-        remain = [username for username in users if username not in cache]
+        remain = [username for username in users if username not in cached_result]
         logger.info(
             "Home wiki cache: %s cached, %s to fetch",
             len(cached_result),
