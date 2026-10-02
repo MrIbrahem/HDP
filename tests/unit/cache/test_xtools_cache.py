@@ -41,7 +41,6 @@ class TestInit:
         c = XtoolsRecentEditCache(cache_path)
         assert c.get_counts("Any") == {}
         assert c.get_coverage("Any") is None
-        assert c.has_coverage("Any") is False
 
     def test_accepts_str_path(self, cache_path):
         c = XtoolsRecentEditCache(str(cache_path))
@@ -64,7 +63,7 @@ class TestLoad:
         c = XtoolsRecentEditCache(cache_path)
         c.load()
         assert c.get_counts("User") == {}
-        assert c.has_coverage("User") is False
+        assert c.get_coverage("User") is None
 
     def test_loads_existing_data(self, cache_path):
         write_json(cache_path, {"User": {"2026-01-01": 3, "2026-01-02": 4}})
@@ -85,15 +84,15 @@ class TestLoad:
         # coverage comes from stored dates only, not from the old _meta table
         assert c.get_coverage("User") == {"start": "2026-01-01", "end": "2026-01-01"}
         assert c.get_counts("_meta") == {}
-        assert c.has_coverage("_meta") is False
+        assert c.get_coverage("_meta") is None
 
     def test_load_replaces_in_memory_state(self, cache_path):
         write_json(cache_path, {"Disk": {"2026-01-01": 1}})
         c = XtoolsRecentEditCache(cache_path)
         c.merge("Memory", {"2026-02-01": 2}, "2026-02-01", "2026-02-01")
         c.load()
-        assert c.has_coverage("Memory") is False
-        assert c.has_coverage("Disk") is True
+        assert c.get_coverage("Memory") is None
+        assert c.get_coverage("Disk") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -170,36 +169,6 @@ class TestGetCoverage:
         cache.merge("B", {}, "2026-02-01", "2026-02-28")
         assert cache.get_coverage("A") == {"start": "2026-01-01", "end": "2026-01-31"}
         assert cache.get_coverage("B") == {"start": "2026-02-01", "end": "2026-02-28"}
-
-
-# ---------------------------------------------------------------------------
-# has_coverage
-# ---------------------------------------------------------------------------
-
-
-class TestHasCoverage:
-    def test_false_for_unknown_user(self, cache):
-        assert cache.has_coverage("Nobody") is False
-
-    def test_true_after_merge(self, cache):
-        cache.merge("User", {"2026-01-02": 1}, "2026-01-01", "2026-01-03")
-        assert cache.has_coverage("User") is True
-
-    def test_true_after_merge_with_empty_counts(self, cache):
-        cache.merge("User", {}, "2026-01-01", "2026-01-03")
-        assert cache.has_coverage("User") is True
-
-    def test_false_for_user_with_empty_dict(self, cache_path):
-        write_json(cache_path, {"User": {}})
-        c = XtoolsRecentEditCache(cache_path)
-        c.load()
-        assert c.has_coverage("User") is False
-
-    def test_false_for_user_with_null_value(self, cache_path):
-        write_json(cache_path, {"User": None})
-        c = XtoolsRecentEditCache(cache_path)
-        c.load()
-        assert c.has_coverage("User") is False
 
 
 # ---------------------------------------------------------------------------
@@ -375,7 +344,7 @@ class TestMerge:
     def test_username_with_spaces_and_dots(self, cache):
         cache.merge("Mr. Ibrahem", {"2026-07-02": 11}, "2026-07-02", "2026-07-03")
         assert cache.get_counts("Mr. Ibrahem")["2026-07-02"] == 11
-        assert cache.has_coverage("Mr. Ibrahem") is True
+        assert cache.get_coverage("Mr. Ibrahem") == {"start": "2026-07-02", "end": "2026-07-03"}
 
     def test_does_not_save_automatically(self, cache, cache_path):
         cache.merge("User", {"2026-01-02": 3}, "2026-01-01", "2026-01-03")
