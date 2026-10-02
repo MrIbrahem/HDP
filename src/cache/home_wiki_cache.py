@@ -69,6 +69,10 @@ class HomeWikiCache:
     def set(self, username: str, entry: dict[str, Any]) -> None:
         self._data[username] = entry
 
+    def update(self, entries: dict[str, Any]) -> None:
+        for username, entry in entries.items():
+            self.set(username, entry)
+
     @staticmethod
     def validate_user_entry(entry: dict[str, Any] | None, get_editcount: bool = False) -> dict[str, Any]:
         return validate_user_entry(entry, get_editcount)

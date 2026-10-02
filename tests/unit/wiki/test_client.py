@@ -1,4 +1,3 @@
-# ruff: noqa: F401
 """
 Unit tests for src/wiki/client.py
 
@@ -15,12 +14,14 @@ import mwclient.errors
 import pytest
 
 from src.config import Credentials, Settings
-from src.wiki.client import METAWIKI_HOST, WikiClient, WikiClientLoader
+from src.wiki.client import WikiClient, WikiClientLoader
 
 
 @pytest.fixture(autouse=True)
-def mock_sleep(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("src.wiki.client.time.sleep", MagicMock())
+def mock_sleep(monkeypatch):
+    m = MagicMock()
+    monkeypatch.setattr("src.wiki.client.time.sleep", m)
+    return m
 
 
 @pytest.fixture
@@ -70,6 +71,77 @@ def _loader(site: MagicMock | None = None) -> tuple[WikiClientLoader, MagicMock]
 def _client(site: MagicMock | None = None) -> tuple[WikiClient, MagicMock]:
     site = site or _mock_site()
     return WikiClient(site), site
+
+
+# ===========================================================================
+# WikiClientLoader — batch_size
+# ===========================================================================
+
+
+@pytest.fixture
+def mock_site():
+    """
+    Create a mock Site object with default basic rights.
+    """
+    site = MagicMock()
+    site.rights = ["read", "edit"]
+    return site
+
+
+class TestBatchSize:
+    """Tests for WikiClientLoader _batch_size/batch_size/_detect_batch_size"""
+
+    def test_explicit_batch_size(self, mock_site):
+        """
+        Test that an explicitly provided batch size overrides auto-detection.
+        """
+        loader = WikiClientLoader(mock_site, batch_size=42)
+
+        # Should return the exact number passed during initialization
+        assert loader.batch_size == 42
+
+    def test_detect_batch_size_with_high_limits(self, mock_site):
+        """
+        Test auto-detection when the user has the 'apihighlimits' right.
+        """
+        # Inject the required right into the mock site
+        mock_site.rights = ["apihighlimits", "read", "edit"]
+        loader = WikiClientLoader(mock_site)
+
+        # Should detect and use HIGH_LIMIT_BATCH_SIZE (100)
+        assert loader.batch_size == WikiClientLoader.HIGH_LIMIT_BATCH_SIZE
+        assert loader.batch_size == 100
+
+    def test_detect_batch_size_without_high_limits(self, mock_site):
+        """
+        Test auto-detection when the user lacks the 'apihighlimits' right.
+        """
+        # Ensure the required right is missing
+        mock_site.rights = ["read", "edit"]
+        loader = WikiClientLoader(mock_site)
+
+        # Should fallback to DEFAULT_BATCH_SIZE (50)
+        assert loader.batch_size == WikiClientLoader.DEFAULT_BATCH_SIZE
+        assert loader.batch_size == 50
+
+    def test_batch_size_property_is_cached(self, mock_site):
+        """
+        Test that _detect_batch_size is only called once and the result is cached.
+        """
+        loader = WikiClientLoader(mock_site)
+
+        # Patch the internal detection method to track its calls
+        with patch.object(loader, "_detect_batch_size", return_value=99) as mock_detect:
+            # First access should trigger the detection method
+            first_call_result = loader.batch_size
+            assert first_call_result == 99
+            mock_detect.assert_called_once()
+
+            # Second access should return the cached value directly
+            second_call_result = loader.batch_size
+            assert second_call_result == 99
+            # The call count should remain 1, proving it was cached
+            assert mock_detect.call_count == 1
 
 
 # ===========================================================================
@@ -468,14 +540,14 @@ class TestGetHomeWikisAndRegistration:
         site.get.side_effect = side_effect
 
         with patch("src.wiki.client.time.sleep"):  # avoid real sleep
-            result = loader.get_home_wikis_and_registration(["Alice", "Bob"])
+            result = loader.get_global_users_info(["Alice", "Bob"])
 
         assert result["Alice"]["home"] == "alicewiki"
         assert result["Bob"]["registration"] == "2020-06-01T00:00:00Z"
 
     def test_empty_users(self):
         loader, _ = _loader()
-        assert loader.get_home_wikis_and_registration([]) == {}
+        assert loader.get_global_users_info([]) == {}
 
 
 class TestSolvePagesRedirects:
@@ -664,3 +736,126 @@ class TestFromSettings:
             do_init=False,
         )
         assert result is mock_load.return_value
+
+
+# ===========================================================================
+# last_edit_timestamp
+# ===========================================================================
+
+
+class TestLastEditTimestamp:
+    """Unit tests for WikiClientLoader.last_edit_timestamp."""
+
+    @pytest.fixture
+    def client_loader(self):
+        """Fixture providing a WikiClientLoader instance with a mocked Site."""
+        mock_site = MagicMock()
+        return WikiClientLoader(site=mock_site, batch_size=50)
+
+    def test_last_edit_timestamp_success(self, client_loader):
+        """Test fetching the last edit timestamp successfully when entries exist."""
+        mock_api_response = {
+            "query": {
+                "globalcontributions": {
+                    "entries": [
+                        {"wikiid": "arwiki", "revid": "76823306", "timestamp": "20261001061625"},
+                        {"wikiid": "metawiki", "revid": "31116293", "timestamp": "20261002001304"},
+                    ]
+                }
+            }
+        }
+        client_loader._site.get.return_value = mock_api_response
+
+        result = client_loader.last_edit_timestamp("TestUser")
+
+        # Verify correct API parameters were passed
+        client_loader._site.get.assert_called_once_with(
+            "query",
+            format="json",
+            list="globalcontributions",
+            utf8=1,
+            formatversion=2,
+            guctarget="TestUser",
+            guclimit="1",
+        )
+        # Should pick the latest timestamp (20261002 -> 2026-10-02) regardless of response order
+        assert result == "2026-10-02"
+
+    def test_last_edit_timestamp_empty_entries(self, client_loader):
+        """Test returning None when the user has no global contributions."""
+        mock_api_response = {"query": {"globalcontributions": {"entries": []}}}
+        client_loader._site.get.return_value = mock_api_response
+
+        result = client_loader.last_edit_timestamp("InactiveUser")
+
+        assert result is None
+
+    def test_last_edit_timestamp_missing_query_key(self, client_loader):
+        """Test returning None when the API response structure is missing expected keys."""
+        client_loader._site.get.return_value = {}
+
+        result = client_loader.last_edit_timestamp("UnknownUser")
+
+        assert result is None
+
+    def test_last_edit_timestamp_api_exception(self, client_loader):
+        """Test returning None and catching exception when the API call fails."""
+        client_loader._site.get.side_effect = Exception("Network Connection Error")
+
+        result = client_loader.last_edit_timestamp("UserWithError")
+
+        assert result is None
+
+
+# ===========================================================================
+# get_last_edit_timestamps (batch)
+# ===========================================================================
+
+
+class TestLastEditTimestamps:
+    """Unit tests for WikiClientLoader.get_last_edit_timestamps."""
+
+    @pytest.fixture
+    def client_loader(self):
+        """Fixture providing a WikiClientLoader instance with a mocked Site."""
+        mock_site = MagicMock()
+        return WikiClientLoader(site=mock_site, batch_size=50)
+
+    def test_get_last_edit_timestamps_success(self, client_loader):
+        """Test fetching last edit timestamps for multiple users."""
+        users = ["User1", "User2", "User3"]
+        timestamps = {
+            "User1": "2026-10-01",
+            "User2": "2026-09-15",
+            "User3": None,  # User3 has no edits
+        }
+
+        with patch.object(
+            client_loader, "last_edit_timestamp", side_effect=lambda u: timestamps.get(u)
+        ) as mock_single_fetch:
+            results = client_loader.get_last_edit_timestamps(users)
+
+            # Check that last_edit_timestamp was called for each user
+            assert mock_single_fetch.call_count == 3
+            # Users with None values should be omitted from the result dict
+            assert results == {
+                "User1": "2026-10-01",
+                "User2": "2026-09-15",
+            }
+
+    def test_get_last_edit_timestamps_empty_user_list(self, client_loader):
+        """Test passing an empty user list returns an empty dictionary."""
+        with patch.object(client_loader, "last_edit_timestamp") as mock_single_fetch:
+            results = client_loader.get_last_edit_timestamps([])
+
+            mock_single_fetch.assert_not_called()
+            assert results == {}
+
+    def test_get_last_edit_timestamps_all_users_none(self, client_loader):
+        """Test when none of the users have edit timestamps."""
+        users = ["UserA", "UserB"]
+
+        with patch.object(client_loader, "last_edit_timestamp", return_value=None):
+            results = client_loader.get_last_edit_timestamps(users)
+
+            assert results == {}

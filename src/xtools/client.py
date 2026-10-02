@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import UTC, date, datetime, timedelta
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 import requests
 from tqdm import tqdm
@@ -29,6 +29,7 @@ class XToolsClient:
         self,
         user_agent: str = USER_AGENT,
         timeout: int = 15,
+        request_delay: float = 0.3,
     ) -> None:
         self._headers = {"User-Agent": user_agent}
         self._timeout = timeout
@@ -36,6 +37,7 @@ class XToolsClient:
         self.excluded_projects: list[str] = [
             "www.wikidata.org",
         ]
+        self._request_delay = request_delay
 
     # ------------------------------------------------------------------
     # Date window
@@ -52,7 +54,7 @@ class XToolsClient:
         return start.isoformat(), yesterday.isoformat()
 
     # ------------------------------------------------------------------
-    # Recent edits
+    # Recent edits by day
     # ------------------------------------------------------------------
 
     def recent_editcount_by_day(
@@ -62,6 +64,8 @@ class XToolsClient:
         end: str,
     ) -> dict[str, int]:
         """
+        Main orchestrator: Paginates through XTools API and aggregates edit counts.
+
         Count a user's edits across all Wikimedia projects in the last `days`
         days, using XTools' Global Contributions API
         (GET /api/user/globalcontribs/{username}/{namespace}/{start}/{end}/{offset}),
@@ -76,82 +80,26 @@ class XToolsClient:
 
         total_by_day: dict[str, int] = {}
         offset: str | None = None
-        delay = 0.5
-
-        excluded_contribs = 0
-
-        max_delay = 8.0
-        max_pages = 50  # safety cap against runaway pagination
+        excluded_count = 0
+        max_pages = 50  # Safety cap against runaway pagination
 
         for page_num in range(max_pages):
-            params: dict = {"limit": 500}
-            if offset:
-                params["offset"] = offset
+            data = self._fetch_xtools_page(base_url, username, offset, page_num)
 
-            logger.debug("XTools globalcontribs %s round %s", username, page_num)
-            full_url = f"{base_url}?{urlencode(params)}"
-            try:
-                response = requests.get(
-                    base_url,
-                    params=params,
-                    headers=self._headers,
-                    timeout=self._timeout,
-                )
-                logger.debug("status_code:%s, url:%s", response.status_code, full_url)
+            # Stop if request failed or XTools returned an RFC 7807 error
+            # XTools error responses follow RFC 7807 (status/title/details).
+            if not data or "error" in data or "status" in data:
+                if data:
+                    logger.warning("XTools error for %s: %s", username, data)
+                logger.debug("Excluded contribs: %s", f"{excluded_count:,}")
+                break
 
-                # {"type":"https:\/\/tools.ietf.org\/html\/rfc2616#section-10","title":"Not Found","status":404,"detail":"The requested user does not exist","namespace":"all","limit":50,"username":"Aelita1cdcd4","elapsed_time":0.024}
-
-                if "The requested user does not exist" in response.text:
-                    self.users_not_exists.append(username)
-                    logger.debug("User %s does not exist", username)
-                    return {}
-
-                response.raise_for_status()
-                data = response.json()
-            except (requests.RequestException, ValueError) as e:
-                logger.error("XTools request failed for %s: %s", username, e)
-                if total_by_day:
-                    # We got partial data before the failure; treat as a lower bound.
-                    logger.debug(
-                        "Returning partial data for %s. excluded contribs: %s", username, f"{excluded_contribs:,}"
-                    )
-                    return total_by_day
-
-                if delay >= max_delay:
-                    logger.debug(
-                        "Giving up on %s after %s attempts. excluded contribs: %s",
-                        username,
-                        page_num,
-                        f"{excluded_contribs:,}",
-                    )
-                    return total_by_day
-
-                time.sleep(delay)
-                delay = min(delay * 2, max_delay)
-                continue
-
-            if "error" in data or "status" in data:
-                # XTools error responses follow RFC 7807 (status/title/details).
-                logger.warning("XTools error for %s: %s", username, data)
-                logger.debug("excluded contribs: %s", f"{excluded_contribs:,}")
-                return total_by_day
-
-            for contrib in data.get("globalcontribs") or []:
-                # "timestamp": "2026-04-21T09:58:49Z",
-                day = contrib["timestamp"].split("T")[0]
-                # "project": "ar.wikipedia.org",
-                project = contrib.get("project")
-                if project in self.excluded_projects:
-                    excluded_contribs += 1
-                    continue
-
-                total_by_day[day] = total_by_day.get(day, 0) + 1
+            contribs = data.get("globalcontribs") or []
+            excluded_count += self._aggregate_page(contribs, total_by_day)
 
             offset = data.get("continue")
             if not offset:
                 break
-
-            # time.sleep(0.3)
         else:
             logger.warning("Hit max_pages cap for %s", username)
 
@@ -159,9 +107,71 @@ class XToolsClient:
             "Returning %s edit counts for %s. excluded contribs: %s",
             f"{len(total_by_day):,}",
             username,
-            f"{excluded_contribs:,}",
+            f"{excluded_count:,}",
         )
         return total_by_day
+
+    def _fetch_xtools_page(self, base_url: str, username: str, offset: str | None, page_num: int) -> dict | None:
+        """
+        Handles the network request, specific error detection, and exponential backoff.
+        """
+        params: dict = {"limit": 500}
+        if offset:
+            params["offset"] = offset
+
+        delay = 0.5
+        max_delay = 8.0
+
+        while delay <= max_delay:
+            logger.debug("XTools globalcontribs %s round %s", username, page_num)
+            try:
+                response = requests.get(
+                    base_url,
+                    params=params,
+                    headers=self._headers,
+                    timeout=self._timeout,
+                )
+                logger.debug("status_code:%s, url:%s", response.status_code, response.url)
+
+                # {"type":"https:\/\/tools.ietf.org\/html\/rfc2616#section-10","title":"Not Found","status":404,"detail":"The requested user does not exist","namespace":"all","limit":50,"username":"Aelita1cdcd4","elapsed_time":0.024}
+
+                if "The requested user does not exist" in response.text:
+                    self.users_not_exists.append(username)
+                    logger.debug("User %s does not exist", username)
+                    return None
+
+                response.raise_for_status()
+                return response.json()
+
+            except (requests.RequestException, ValueError) as e:
+                logger.error("XTools request failed for %s: %s", username, e)
+
+                # Retry with exponential backoff
+                time.sleep(delay)
+                delay *= 2
+
+        logger.debug("Giving up on %s after multiple attempts.", username)
+        return None
+
+    def _aggregate_page(self, contribs: list[dict], total_by_day: dict[str, int]) -> int:
+        """
+        Processes a single page of contributions, updates the totals dict in-place,
+        and returns the number of excluded contributions.
+        """
+        excluded_count = 0
+        for contrib in contribs:
+            # "timestamp": "2026-04-21T09:58:49Z",
+            day = contrib["timestamp"].split("T")[0]
+            # "project": "ar.wikipedia.org",
+            project = contrib.get("project")
+
+            if project in self.excluded_projects:
+                excluded_count += 1
+                continue
+
+            total_by_day[day] = total_by_day.get(day, 0) + 1
+
+        return excluded_count
 
     def get_recent_editcount(self, username: str, start: str, end: str) -> int | None:
         """
@@ -171,6 +181,10 @@ class XToolsClient:
         if not by_day:
             return None
         return sum(by_day.values())
+
+    # ------------------------------------------------------------------
+    # recent_editcounts
+    # ------------------------------------------------------------------
 
     def recent_editcounts(
         self,
@@ -189,7 +203,7 @@ class XToolsClient:
             count = self.get_recent_editcount(username, start, end)
             if count is not None:
                 results[username] = count
-            time.sleep(0.3)
+            time.sleep(self._request_delay)
 
         return results
 
@@ -238,7 +252,7 @@ class XToolsClient:
             ts = self.last_edit_timestamp(username)
             if ts is not None:
                 results[username] = ts
-            # time.sleep(0.3)
+            time.sleep(self._request_delay)
 
         return results
 

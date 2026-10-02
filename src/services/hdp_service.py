@@ -168,14 +168,20 @@ class HdpService:
         # 4. Global edit counts
         editcounts = self.wiki_client.get_global_editcounts(users)
 
-        # 5. Recent edit counts
-        wikidata_editcounts = self._fetch_wikidata_editcounts(users)
+        # 5. Home wiki + registration
+        home_wikis = self.home_wiki_provider.get_many(users)
+
+        wikidata_editcounts = {
+            user: v["wikidata_editcount"] for user, v in home_wikis.items() if v.get("wikidata_editcount") is not None
+        }
 
         # 6. Recent edit counts
         recent = self._fetch_recent_edit_counts(users)
 
-        # 7. Home wiki + registration
-        home_wikis = self.home_wiki_provider.get_many(users)
+        # 7. Wikidata edit counts
+        remain_users = [user for user in users if user not in wikidata_editcounts]
+        if remain_users:
+            wikidata_editcounts = self._fetch_wikidata_editcounts(remain_users)
 
         # 8. Optional last-edit timestamps
         last_edits = self._get_last_edit_timestamps(users)
@@ -218,7 +224,7 @@ class HdpService:
 
     def _get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
         if self.load_last_edits and not self.offline:
-            last_edits = self.xtools_client.get_last_edit_timestamps(users)
+            last_edits = self.wiki_client.get_last_edit_timestamps(users)
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
             return last_edits
 

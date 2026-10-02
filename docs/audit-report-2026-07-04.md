@@ -30,7 +30,7 @@
 -   **Python 3.13 target.** Modern union syntax (`str | None`, `X | None`), `datetime.now(UTC)`.
 -   **Logging:** per-project-namespace setup via `src.setup_logging()` (`name="src"`); modules do `logger = logging.getLogger(__name__)`; `propagate = False`. Do NOT add `basicConfig` or root handlers.
 -   **Line length 120**, black + isort (black profile) + ruff + mypy; all targeting py313. Lint config in `pyproject.toml`.
--   **Throttle convention:** 0.3s after each _uncached_ network fetch in the editcounts loop (gated by `was_cached`); 0.1s inside `get_home_wikis_and_registration`. Preserve when refactoring.
+-   **Throttle convention:** 0.3s after each _uncached_ network fetch in the editcounts loop (gated by `was_cached`); 0.1s inside `get_global_users_info`. Preserve when refactoring.
 -   **Cache invariant:** `edit_counts_cache.json` shape is `{username: {date: count}, "_meta": {username: {"start", "end"}}}`; `META_KEY = "_meta"` reserved; `save_cache` is the only writer (atomic temp + `os.replace`). Don't hand-edit.
 -   **Column-add invariant (AGENTS.md §"Conventions"):** when adding a wikitable column, update (a) `build_wikitable` header + row append, (b) `row_data` dict in `load_rows`, (c) `table_headers_to_row_key` in `update`, in that order — otherwise the in-place update path silently drops the column.
 -   **`Johnjoy12` debug log block** in `solve_users_redirects` is intentional (watchpoint) — do not remove without asking.
@@ -90,7 +90,7 @@ Ordered by leverage (impact ÷ effort, discounted by confidence and fix-risk).
 ### [PERF-05] `load_rows` runs API calls sequentially per user with no batching or concurrency
 
 -   **Evidence**:
-    -   `src/v3.py:124-137` — `get_global_editcounts` (one batched call), then `get_recent_editcounts_cached` (sequential XTools per user), then `get_home_wikis_and_registration` (one `meta=globaluserinfo` per user + `time.sleep(0.1)`).
+    -   `src/v3.py:124-137` — `get_global_editcounts` (one batched call), then `get_recent_editcounts_cached` (sequential XTools per user), then `get_global_users_info` (one `meta=globaluserinfo` per user + `time.sleep(0.1)`).
     -   `src/api/mwclient_req.py:287-294` — loop over users calling `get_global_userinfo` one at a time; `meta=globaluserinfo` only accepts a single username so this cannot be batched but _can_ be parallelized.
 -   **Impact**: Scales linearly with user count. On the HDP scale (dozens of users) this is minutes, not hours, so M rather than L. Real cost is on iteration time during development / cache-warm runs.
 -   **Effort**: M.
@@ -125,7 +125,7 @@ Ordered by leverage (impact ÷ effort, discounted by confidence and fix-risk).
 -   **Confidence**: HIGH.
 -   **Fix sketch**: Define a small set of typed exceptions (`MwclientApiError`, `XtoolsApiError`) and a sentinel `UNAVAILABLE` constant. Have callers branch on the sentinel and emit a warning row in the table (e.g. "API unavailable — retry later") instead of inventing a 0. Write the tests in TESTS-03 first.
 
-### [DX-09] `get_home_wikis_and_registration` sleeps 0.1s after the last user (pointless), and the throttle pattern is not centralized
+### [DX-09] `get_global_users_info` sleeps 0.1s after the last user (pointless), and the throttle pattern is not centralized
 
 -   **Evidence**: `src/api/mwclient_req.py:287-296` — `for username in tqdm(...): ... time.sleep(0.1)` sleeps even after the final iteration.
 -   **Impact**: Trivial runtime cost; minor DX inconsistency vs. the cached-XTools path which centralizes the throttle behind `was_cached`.

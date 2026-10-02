@@ -7,55 +7,10 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
-
-
-def calculate_age_new(registration: str) -> str:
-    """
-    Turn a CentralAuth registration timestamp into a human-readable age string.
-
-    Accepts values such as ``"2008-07-24T01:18:05Z"`` or ``"2008-07-24"``.
-    Returns ``""`` when the input cannot be parsed.
-    """
-    if not registration:
-        return ""
-
-    raw = registration.strip()
-    # Normalise trailing Z / missing time component
-    if raw.endswith("Z"):
-        raw = raw[:-1] + "+00:00"
-    if "T" not in raw:
-        raw = raw + "T00:00:00+00:00"
-
-    try:
-        registered = datetime.fromisoformat(raw)
-    except ValueError:
-        return ""
-
-    if registered.tzinfo is None:
-        registered = registered.replace(tzinfo=UTC)
-
-    now = datetime.now(UTC)
-    if registered > now:
-        return ""
-
-    delta = now - registered
-    years = delta.days // 365
-    months = (delta.days % 365) // 30
-
-    if years >= 1:
-        if months > 0:
-            return f"{years}y {months}m"
-        return f"{years}y"
-    if months >= 1:
-        days = delta.days % 30
-        if days > 0:
-            return f"{months}m {days}d"
-        return f"{months}m"
-    return f"{delta.days}d"
 
 
 def calculate_age(registration: str) -> str:
@@ -124,6 +79,16 @@ class UserInfo:
     def update_username(self, username: str) -> None:
         self.refirect_username = self.username
         self.username = username
+
+    def to_json(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["user_link"] = self.user_link
+        data["age"] = self.age
+        data["global_without_wikidata_str"] = self.global_without_wikidata_str
+        data["global_editcount_str"] = self.global_editcount_str
+        data["recent_editcount_str"] = self.recent_editcount_str
+        data["wikidata_editcount_str"] = self.wikidata_editcount_str
+        return data
 
     @property
     def user_link(self) -> str:
@@ -198,9 +163,6 @@ class UserInfo:
             self.last_edit = last_edit
 
         return self
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
 
     # ------------------------------------------------------------------
     # Table / export helpers

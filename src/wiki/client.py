@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import datetime
 from typing import Any
 
 import mwclient.errors
@@ -31,9 +32,15 @@ class WikiClientLoader:
     HIGH_LIMIT_BATCH_SIZE = 100
     HIGH_LIMIT_RIGHT = "apihighlimits"
 
-    def __init__(self, site: Site, batch_size: int | None = None) -> None:
+    def __init__(
+        self,
+        site: Site,
+        batch_size: int | None = None,
+        request_delay: float = 0.1,
+    ) -> None:
         self._site = site
         self._batch_size = batch_size  # None => auto-detect from user rights
+        self._request_delay = request_delay
 
     @property
     def batch_size(self) -> int:
@@ -113,7 +120,7 @@ class WikiClientLoader:
                 content = revisions[0].get("slots", {}).get("main", {}).get("content", "")
                 result[title] = content
 
-            time.sleep(0.1)
+            time.sleep(self._request_delay)
 
         logger.info("Fetched wikitext for %s pages", len(result))
         return result
@@ -306,9 +313,11 @@ class WikiClientLoader:
             # "action": "query",
             "meta": "globaluserinfo",
             "guiuser": username,
-            "guiprop": "editcount",
+            "guiprop": "merged|editcount",
             "formatversion": "2",
             "format": "json",
+            # "redirects": 1,
+            # "converttitles": 1,
         }
         try:
             data = self._site.get("query", **params)
@@ -322,7 +331,7 @@ class WikiClientLoader:
         logger.debug("Fetched globaluserinfo for %s: %s", username, globaluserinfo)
         return globaluserinfo
 
-    def get_home_wikis_and_registration(
+    def get_global_users_info(
         self,
         users: list[str],
     ) -> dict[str, dict[str, str]]:
@@ -332,14 +341,22 @@ class WikiClientLoader:
         Returns ``{username: {"home": ..., "registration": ...}}``.
         """
         home_wikis: dict[str, dict[str, str]] = {}
+
         for username in tqdm(users, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
             info = self.get_global_userinfo(username)
             # API schema: {"home":"enwiki","id":000,"registration":"1970-01-01T01:00:00Z","name":"User","editcount":1000}
             home_wikis[username] = {
                 "home": info.get("home", ""),
                 "registration": info.get("registration", ""),
+                "editcount": info.get("editcount", ""),
             }
-            time.sleep(0.1)
+            # "globaluserinfo": { "merged": [ { "wiki": "wikidatawiki", "url": "https://www.wikidata.org", "editcount": 1711575, "registration": "2012-10-29T19:52:11Z" }
+            merged = info.get("merged", []) or []
+            wikidata_editcount = next((x.get("editcount", 0) for x in merged if x.get("wiki") == "wikidatawiki"), 0)
+            if wikidata_editcount:
+                home_wikis[username]["wikidata_editcount"] = wikidata_editcount
+
+            time.sleep(self._request_delay)
 
         logger.info("Resolved %s home wikis", len(home_wikis))
         return home_wikis
@@ -388,6 +405,58 @@ class WikiClientLoader:
 
         logger.info("Resolved %s redirects", len(result))
         return result
+
+    # ------------------------------------------------------------------
+    # Last edit
+    # ------------------------------------------------------------------
+
+    def last_edit_timestamp(self, username: str) -> str | None:
+        """
+        Most recent global contribution date (``Y-m-d``), or ``None``.
+        """
+        params = {
+            # "action": "query",
+            "format": "json",
+            "list": "globalcontributions",
+            "utf8": 1,
+            "formatversion": 2,
+            "guctarget": username,
+            "guclimit": "1",
+        }
+        try:
+            data = self._site.get("query", **params)
+        except Exception as e:
+            logger.error("API request failed for %s: %s", username, e)
+            return None
+
+        # API schema: "globalcontributions": { "entries": [ { "wikiid": "metawiki", "revid": "31116293", "timestamp": "20261002001304" }, { "wikiid": "arwiki", "revid": "76823306", "timestamp": "20261001061625" } ] }
+        entries = data.get("query", {}).get("globalcontributions", {}).get("entries", []) or []
+        if not entries:
+            return None
+
+        # sort by timestamp descending
+        entries.sort(key=lambda x: int(x.get("timestamp") or 0), reverse=True)
+        timestamp = entries[0].get("timestamp", "")
+
+        if len(timestamp) < 8:
+            return None
+
+        return datetime.strptime(timestamp[:8], "%Y%m%d").strftime("%Y-%m-%d")
+
+    def get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
+        """
+        Fetch the last-edit timestamp for each user. Returns a dict mapping
+        username -> date string (Y-m-d). Users with no data are omitted.
+        """
+        results: dict[str, str] = {}
+
+        for username in tqdm(users, desc="Fetching last edit dates", unit="user", disable=TQDM_DISABLE):
+            ts = self.last_edit_timestamp(username)
+            if ts is not None:
+                results[username] = ts
+            time.sleep(self._request_delay)
+
+        return results
 
 
 class WikiClient(WikiClientLoader):
@@ -449,13 +518,14 @@ class WikiClient(WikiClientLoader):
         """
         Convenience: load credentials from env and connect.
         """
+        if not settings:
+            settings = Settings.from_env()
+
         credentials = Credentials.from_env()
+
         if not credentials and login:
             logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
             return None
-
-        if not settings:
-            settings = Settings.from_env()
 
         return cls.connect(
             credentials=credentials,

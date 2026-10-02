@@ -15,7 +15,7 @@ VALID = {"home": "enwiki", "registration": "2020-01-01T00:00:00Z"}
 
 class TestValidateUserEntry:
     def test_valid_entry_returned(self):
-        assert validate_user_entry(VALID) == VALID
+        assert HomeWikiCache.validate_user_entry(VALID) == VALID
 
     @pytest.mark.parametrize("bad", [None, {}, {"home": "enwiki"}, {"registration": "2020-01-01T00:00:00Z"}])
     def test_invalid_entry_returns_empty(self, bad):

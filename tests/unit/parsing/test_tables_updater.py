@@ -5,6 +5,7 @@ Unit tests for src/parsing/tables_updater.py module.
 from typing import Any
 
 import pytest
+import wikitextparser as wtp
 
 from src.parsing.tables_updater import WikiTableDataUpdater
 
@@ -60,7 +61,7 @@ class TestUpdate:
         }
 
     def test_update_wikitable_data(self) -> None:
-        retult = update_table(
+        result = update_table(
             self.rows,
             self.wikitext,
             self.table_headers_to_row_key,
@@ -76,10 +77,10 @@ class TestUpdate:
             "|-\n"
             "|}"
         )
-        assert retult.strip() == expected_wikitext
+        assert result.strip() == expected_wikitext
 
     def test_update_wikitable_data_replace_values(self) -> None:
-        retult = update_table(
+        result = update_table(
             self.rows,
             self.wikitext,
             self.table_headers_to_row_key,
@@ -96,7 +97,7 @@ class TestUpdate:
             "|-\n"
             "|}"
         )
-        assert retult.strip() == expected_wikitext
+        assert result.strip() == expected_wikitext
 
 
 class TestUpdateWikitableDataEdgeCases:
@@ -427,3 +428,12 @@ class TestUpdateWikitableDataEdgeCases:
         assert "should_not_appear" in result
         assert "New Header" in result
         assert "| 25\n" in result
+
+    def test_update_no_cells(self) -> None:
+        wikitext = '{| class="wikitable sortable"\n|}'
+        result = WikiTableDataUpdater().update_table(
+            wtp.Table(wikitext),
+            {},
+            {},
+        )
+        assert result is None
