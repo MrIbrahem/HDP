@@ -14,14 +14,6 @@ from src.services.home_wiki_provider import HomeWikiProvider
 
 VALID = {"home": "enwiki", "registration": "2020-01-01T00:00:00Z"}
 
-
-@pytest.fixture(autouse=True)
-def mock_sleep(monkeypatch):
-    m = MagicMock()
-    monkeypatch.setattr("src.services.home_wiki_provider.time.sleep", m)
-    return m
-
-
 def make_provider(path, wiki) -> tuple[HomeWikiProvider, HomeWikiCache]:
     """Build a provider together with the cache it uses."""
     cache = HomeWikiCache(path)

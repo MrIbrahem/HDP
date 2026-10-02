@@ -29,6 +29,7 @@ class XToolsClient:
         self,
         user_agent: str = USER_AGENT,
         timeout: int = 15,
+        request_delay: float = 0.3,
     ) -> None:
         self._headers = {"User-Agent": user_agent}
         self._timeout = timeout
@@ -36,32 +37,21 @@ class XToolsClient:
         self.excluded_projects: list[str] = [
             "www.wikidata.org",
         ]
+        self._request_delay = request_delay
 
     # ------------------------------------------------------------------
     # Date window
     # ------------------------------------------------------------------
     @staticmethod
-    def load_dates(recent_days: int = RECENT_DAYS, today: str | date | None = None) -> tuple[str, str]:
-
+    def load_dates(recent_days: int = RECENT_DAYS, today: date | None = None) -> tuple[str, str]:
         if today is None:
-            today = datetime.now(UTC)
-        else:
-            today = XToolsClient.normalize_date_input(today)
+            today = datetime.now(UTC).date()
+        elif isinstance(today, datetime):
+            today = today.date()
 
         yesterday = today - timedelta(days=1)
         start = yesterday - timedelta(days=recent_days)
         return start.isoformat(), yesterday.isoformat()
-
-    @staticmethod
-    def normalize_date_input(today: str | date) -> datetime:
-        if isinstance(today, str):
-            today = datetime.fromisoformat(today)
-        elif isinstance(today, date) and not isinstance(today, datetime):
-            today = datetime(today.year, today.month, today.day)
-
-        if today.tzinfo is None:
-            today = today.replace(tzinfo=UTC)
-        return today
 
     # ------------------------------------------------------------------
     # Recent edits by day
@@ -213,7 +203,7 @@ class XToolsClient:
             count = self.get_recent_editcount(username, start, end)
             if count is not None:
                 results[username] = count
-            time.sleep(0.3)
+            time.sleep(self._request_delay)
 
         return results
 
@@ -262,7 +252,7 @@ class XToolsClient:
             ts = self.last_edit_timestamp(username)
             if ts is not None:
                 results[username] = ts
-            # time.sleep(0.3)
+            time.sleep(self._request_delay)
 
         return results
 

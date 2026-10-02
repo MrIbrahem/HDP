@@ -60,21 +60,12 @@ def fixed_dates(monkeypatch):
         staticmethod(lambda days: (START, END)),
     )
 
-
 @pytest.fixture
-def sleep_mock(monkeypatch):
-    mock = MagicMock()
-    monkeypatch.setattr(provider_module.time, "sleep", mock)
-    return mock
-
-
-@pytest.fixture
-def provider(settings, xtools_client, cache_client, sleep_mock):
+def provider(settings, xtools_client, cache_client):
     return RecentEditCountsProvider(
         xtools_client=xtools_client,
         cache_client=cache_client,
         settings=settings,
-        request_delay=0.3,
     )
 
 
@@ -93,7 +84,6 @@ class TestInit:
         assert provider.xtools_client is xtools_client
         assert provider.cache_client is cache_client
         assert provider._recent_days == 30
-        assert provider._request_delay == 0.3
 
     def test_builds_defaults_from_settings(self, monkeypatch, settings):
         settings_cls = MagicMock()
@@ -111,7 +101,6 @@ class TestInit:
         cache_cls.assert_called_once_with("/tmp/edit_counts.json")
         assert p.xtools_client is client_cls.return_value
         assert p.cache_client is cache_cls.return_value
-        assert p._request_delay == 0.3
 
     def test_does_not_load_env_settings_when_provided(self, monkeypatch, settings, xtools_client, cache_client):
         settings_cls = MagicMock()
@@ -276,10 +265,9 @@ class TestGetOnline:
 
         cache_client.save.assert_called_once_with()
 
-    def test_empty_users(self, provider: RecentEditCountsProvider, cache_client, get_one, sleep_mock):
+    def test_empty_users(self, provider: RecentEditCountsProvider, cache_client, get_one):
         assert provider._get_online([]) == {}
         get_one.assert_not_called()
-        sleep_mock.assert_not_called()
         cache_client.save.assert_called_once_with()
 
     def test_save_called_even_if_fetch_returns_nothing(self, provider: RecentEditCountsProvider, cache_client, get_one):
@@ -342,14 +330,13 @@ class TestGetOffline:
         assert provider._get_offline(["a"], set_zero=False) == {"a": 0}
 
     def test_never_calls_network_client_or_sleeps(
-        self, provider: RecentEditCountsProvider, xtools_client, cache_client, sleep_mock
+        self, provider: RecentEditCountsProvider, xtools_client, cache_client
     ):
         cache_client.get_counts.return_value = {}
 
         provider._get_offline(["a", "b"], set_zero=True)
 
         xtools_client.recent_editcount_by_day.assert_not_called()
-        sleep_mock.assert_not_called()
 
     def test_does_not_save_cache(self, provider: RecentEditCountsProvider, cache_client):
         provider._get_offline(["a"], set_zero=False)

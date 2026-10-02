@@ -435,10 +435,13 @@ class WikiClientLoader:
             return None
 
         # sort by timestamp descending
-        entries.sort(key=lambda x: int(x["timestamp"]), reverse=True)
-        timestamp = entries[0]["timestamp"][:8]  # 20261002
+        entries.sort(key=lambda x: int(x.get("timestamp") or 0), reverse=True)
+        timestamp = entries[0].get("timestamp", "")
 
-        return datetime.strptime(timestamp, "%Y%m%d").strftime("%Y-%m-%d")
+        if len(timestamp) < 8:
+            return None
+
+        return datetime.strptime(timestamp[:8], "%Y%m%d").strftime("%Y-%m-%d")
 
     def get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
         """
@@ -451,7 +454,7 @@ class WikiClientLoader:
             ts = self.last_edit_timestamp(username)
             if ts is not None:
                 results[username] = ts
-            # time.sleep(0.3)
+            time.sleep(self._request_delay)
 
         return results
 

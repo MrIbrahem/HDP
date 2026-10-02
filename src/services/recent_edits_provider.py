@@ -11,7 +11,6 @@ Recent edit counts provider: decides between the cache and the XTools client.
 from __future__ import annotations
 
 import logging
-import time
 from datetime import date, timedelta
 
 from tqdm import tqdm
@@ -32,14 +31,12 @@ class RecentEditCountsProvider:
         xtools_client: XToolsClient | None = None,
         cache_client: XtoolsRecentEditCache | None = None,
         settings: Settings | None = None,
-        request_delay: float = 0.3,
     ) -> None:
         self.settings = settings or Settings.from_env()
         self.xtools_client = xtools_client or XToolsClient(user_agent=self.settings.user_agent)
         self.cache_client = cache_client or XtoolsRecentEditCache(self.settings.edit_counts_cache_path)
 
         self._recent_days = self.settings.recent_days
-        self._request_delay = request_delay
 
     # -- public ----------------------------------------------------------
 
@@ -154,7 +151,6 @@ class RecentEditCountsProvider:
                 fetched: dict[str, int] = {}
                 if req_start < cached_start:
                     new_front_end = (cached_start - one_day).isoformat()
-                    network_fetched = True
                     front = self.xtools_client.recent_editcount_by_day(
                         username,
                         req_start.isoformat(),
@@ -163,7 +159,6 @@ class RecentEditCountsProvider:
                     fetched.update(front)
 
                 if req_end > cached_end:
-                    network_fetched = True
                     tail = self.xtools_client.recent_editcount_by_day(
                         username,
                         (cached_end + one_day).isoformat(),
@@ -179,17 +174,12 @@ class RecentEditCountsProvider:
                 )
                 return self.cache_client.sum_in_range(username, start, end)
 
-        network_fetched = True
         # No cache entry, or a real gap: fetch the full range fresh.
         fetched = self.xtools_client.recent_editcount_by_day(username, start, end)
 
         if not fetched and coverage is None:
             # Genuine failure / no data: do not record coverage, so we retry next time.
             return None
-
-        # Only throttle when the network may have been hit for this user.
-        if network_fetched:
-            time.sleep(self._request_delay)
 
         self.cache_client.merge(username, fetched, start, end)
         return self.cache_client.sum_in_range(username, start, end)

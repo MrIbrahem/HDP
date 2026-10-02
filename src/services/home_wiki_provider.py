@@ -5,14 +5,11 @@ Home wiki data provider (wiki).
 from __future__ import annotations
 
 import logging
-import time
 from collections.abc import Mapping
 from typing import Any
 
-from tqdm import tqdm
-
 from ..cache import HomeWikiCache
-from ..config import TQDM_DISABLE, Settings
+from ..config import Settings
 from ..wiki import WikiClient
 
 logger = logging.getLogger(__name__)
@@ -26,13 +23,11 @@ class HomeWikiProvider:
         *,
         wiki_client: WikiClient,
         cache_client: HomeWikiCache | None = None,
-        request_delay: float = 0.1,
         settings: Settings | None = None,
     ) -> None:
         self.settings = settings or Settings.from_env()
         self.cache_client = cache_client or HomeWikiCache(path=self.settings.home_wiki_cache_path)
         self.wiki_client = wiki_client
-        self._request_delay = request_delay
 
     @property
     def _store(self) -> HomeWikiCache:
