@@ -41,15 +41,9 @@ class HomeWikiProvider:
     def get_many(
         self,
         users: list[str],
-        *,
-        save_every: int = 5,
     ) -> dict[str, Mapping[str, Any]]:
         """
         Retrieve home wiki and registration details for multiple users.
-
-        Users with a valid cached entry are served from the cache. The others are
-        fetched from the wiki, cached, and the cache is flushed every ``save_every``
-        newly fetched users and once more at the end if anything new was fetched.
 
         Returns:
             A dict mapping usernames to their info. Users whose lookup failed are omitted.

@@ -174,7 +174,7 @@ class TestGetManyEdgeCases:
         save = MagicMock()
         monkeypatch.setattr(cache, "save", save)
 
-        provider.get_many(["A", "B", "C", "D", "E"], save_every=2)
+        provider.get_many(["A", "B", "C", "D", "E"])
 
         assert save.call_count == 1
 
