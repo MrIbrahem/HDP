@@ -171,10 +171,6 @@ class XToolsClient:
 
         return excluded_count
 
-    # ------------------------------------------------------------------
-    # get_recent_editcount
-    # ------------------------------------------------------------------
-
     def get_recent_editcount(self, username: str, start: str, end: str) -> int | None:
         """
         Sum of per-day counts, or ``None`` when no data was returned.
@@ -183,6 +179,10 @@ class XToolsClient:
         if not by_day:
             return None
         return sum(by_day.values())
+
+    # ------------------------------------------------------------------
+    # recent_editcounts
+    # ------------------------------------------------------------------
 
     def recent_editcounts(
         self,
