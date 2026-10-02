@@ -110,9 +110,16 @@ class TestUserInfo:
 
     def test_editcount_strs_formatting(self) -> None:
         """Test that edit counts are properly formatted with thousand separators."""
-        user = UserInfo(username="Test", global_editcount=1000000, recent_editcount=5000, wikidata_count=1234)
+        user = UserInfo(
+            username="Test",
+            global_editcount=1000000,
+            recent_editcount=5000,
+            recent_wikidata_editcount=300,
+            wikidata_count=1234,
+        )
         assert user.global_editcount_str == "1,000,000"
         assert user.recent_editcount_str == "5,000"
+        assert user.recent_wikidata_editcount_str == "300"
         assert user.wikidata_editcount_str == "1,234"
 
     def test_update_factory(self) -> None:
@@ -121,12 +128,19 @@ class TestUserInfo:
 
         globaluser_data = {"home": "frwiki", "registration": "2020-01-01T00:00:00Z", "editcount": "500"}
 
-        user.update(globaluser_data=globaluser_data, recent_editcount=50, wikidata_count=10, last_edit="2023-10-01")
+        user.update(
+            globaluser_data=globaluser_data,
+            recent_editcount=50,
+            recent_wikidata_editcount=15,
+            wikidata_count=10,
+            last_edit="2023-10-01",
+        )
 
         assert user.home_wiki == "frwiki"
         assert user.registration == "2020-01-01T00:00:00Z"
         assert user.global_editcount == 500
         assert user.recent_editcount == 50
+        assert user.recent_wikidata_editcount == 15
         assert user.wikidata_count == 10
         assert user.last_edit == "2023-10-01"
 
@@ -138,6 +152,7 @@ class TestUserInfo:
             registration="2008-07-24T01:18:05Z",
             global_editcount=2500,
             recent_editcount=10,
+            recent_wikidata_editcount=5,
             wikidata_count=0,
             last_edit="2023-01-01",
         )
@@ -146,6 +161,7 @@ class TestUserInfo:
 
         assert table_dict["global_editcount_str"] == "2,500"
         assert table_dict["recent_editcount_str"] == "10"
+        assert table_dict["recent_wikidata_editcount_str"] == "5"
         assert table_dict["wikidata_editcount_str"] == "0"
         assert table_dict["global_without_wikidata_str"] == "2,500"
         assert table_dict["user_link"] == "[[User:Alice]]"
@@ -160,6 +176,7 @@ class TestUserInfo:
 
         assert table_dict["global_editcount_str"] == "unknown_value"
         assert table_dict["recent_editcount_str"] == "unknown_value"
+        assert table_dict["recent_wikidata_editcount_str"] == "unknown_value"
         assert table_dict["wikidata_editcount_str"] == "unknown_value"
         assert table_dict["home_wiki"] == "unknown_value"
         assert table_dict["last_edit"] == "unknown_value"
@@ -171,6 +188,7 @@ class TestUserInfo:
 
         assert table_dict["global_editcount_str"] == ""
         assert table_dict["recent_editcount_str"] == ""
+        assert table_dict["recent_wikidata_editcount_str"] == ""
         assert table_dict["wikidata_editcount_str"] == ""
         assert table_dict["home_wiki"] == ""
         assert table_dict["last_edit"] is None

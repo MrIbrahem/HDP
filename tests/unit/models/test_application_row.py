@@ -25,6 +25,7 @@ def make_user_info_stub(**overrides):
         "global_without_wikidata_str": "800",
         "wikidata_editcount_str": "200",
         "recent_editcount_str": "50",
+        "recent_wikidata_editcount_str": "10",
         "age": "5 years",
         "home_wiki": "enwiki",
     }
@@ -219,6 +220,7 @@ class TestApplicationRow:
             "| 800",
             "| 200",
             "| 50",
+            "| 10",
             "| 5 years",
             "| enwiki",
             "| ",
@@ -228,11 +230,11 @@ class TestApplicationRow:
         lines = row.build_row(add_last_edit=True)
         assert lines[-2] == "| 2026-09-01"
         assert lines[-1] == "| "
-        assert len(lines) == 13
+        assert len(lines) == 14
 
     def test_build_row_without_last_edit_has_no_date(self, row):
         assert "| 2026-09-01" not in row.build_row()
-        assert len(row.build_row()) == 12
+        assert len(row.build_row()) == 13
 
     def test_build_row_starts_with_row_separator(self, row):
         assert row.build_row()[0] == "|-"

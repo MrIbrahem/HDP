@@ -30,11 +30,15 @@ class RecentEditCountsProvider:
         *,
         xtools_client: XToolsClient | None = None,
         cache_client: XtoolsRecentEditCache | None = None,
+        wikidata_cache_client: XtoolsRecentEditCache | None = None,
         settings: Settings | None = None,
     ) -> None:
         self.settings = settings or Settings.from_env()
         self.xtools_client = xtools_client or XToolsClient(user_agent=self.settings.user_agent)
         self.cache_client = cache_client or XtoolsRecentEditCache(self.settings.edit_counts_cache_path)
+        self.wikidata_cache_client = wikidata_cache_client or XtoolsRecentEditCache(
+            self.settings.wikidata_edit_counts_cache_path
+        )
 
         self._recent_days = self.settings.recent_days
 
@@ -47,8 +51,9 @@ class RecentEditCountsProvider:
         offline: bool = False,
         set_zero: bool = False,
         save_every: int = 5,
-    ) -> dict[str, int]:
+    ) -> tuple[dict[str, int], dict[str, int]]:
         self.cache_client.load()
+        self.wikidata_cache_client.load()
         if offline:
             return self._get_offline(users, set_zero=set_zero)
 
@@ -66,13 +71,14 @@ class RecentEditCountsProvider:
         *,
         set_zero: bool = False,
         save_every: int = 5,
-    ) -> dict[str, int]:
+    ) -> tuple[dict[str, int], dict[str, int]]:
         """
         Fetch only the days missing from the cache, merge them, and flush the
         cache every ``save_every`` users so a crash does not lose everything.
         """
         start, end = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
+        wd_results: dict[str, int] = {}
 
         logger.info("Fetching recent edits for %s users", len(users))
         for i, username in enumerate(
@@ -84,105 +90,134 @@ class RecentEditCountsProvider:
             ),
             start=1,
         ):
-            count = self._get_one(username, start, end)
+            count, wd_count = self._get_one(username, start, end)
 
             if set_zero or username in self.xtools_client.users_not_exists:
                 results[username] = count or 0
-            elif count is not None:
-                results[username] = count
+                wd_results[username] = wd_count or 0
+            else:
+                if count is not None:
+                    results[username] = count
+                if wd_count is not None:
+                    wd_results[username] = wd_count
 
             if i % save_every == 0:
                 self.cache_client.save()
+                self.wikidata_cache_client.save()
 
         self.cache_client.save()
-        return results
+        self.wikidata_cache_client.save()
+        return results, wd_results
 
-    def _get_offline(self, users: list[str], *, set_zero: bool) -> dict[str, int]:
+    def _get_offline(self, users: list[str], *, set_zero: bool) -> tuple[dict[str, int], dict[str, int]]:
         """
         Cache-only lookup. Never calls the client.
         """
         start, end = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
+        wd_results: dict[str, int] = {}
 
         for username in tqdm(users, desc="Reading cached edits", unit="user", disable=TQDM_DISABLE):
-            if not self.cache_client.get_counts(username):
+            has_non_wd = bool(self.cache_client.get_counts(username))
+            has_wd = bool(self.wikidata_cache_client.get_counts(username))
+
+            if not has_non_wd and not has_wd:
                 if set_zero:
                     results[username] = 0
+                    wd_results[username] = 0
                 continue
+
             results[username] = self.cache_client.sum_in_range(username, start, end)
-        return results
+            wd_results[username] = self.wikidata_cache_client.sum_in_range(username, start, end)
+
+        return results, wd_results
 
     def _get_one(
         self,
         username: str,
         start: str,
         end: str,
-    ) -> int | None:
+    ) -> tuple[int | None, int | None]:
         """
-        Return the edit count for [start, end], or ``None`` when no data exists.
+        Return the edit counts (non-wikidata, wikidata) for [start, end], or ``(None, None)`` when no data exists.
 
         - Fully covered by the cache -> no API call.
         - Overlapping / adjacent -> fetch only the missing head and/or tail.
         - Real gap or no cache entry -> fetch the whole range fresh.
         """
-        coverage = self.cache_client.get_coverage(username)
+        cov_non_wd = self.cache_client.get_coverage(username)
+        cov_wd = self.wikidata_cache_client.get_coverage(username)
 
-        if coverage is not None:
-            cached_start = date.fromisoformat(coverage["start"])
-            cached_end = date.fromisoformat(coverage["end"])
-            req_start = date.fromisoformat(start)
-            req_end = date.fromisoformat(end)
+        if cov_non_wd is not None and cov_wd is not None:
+            c_start = max(cov_non_wd["start"], cov_wd["start"])
+            c_end = min(cov_non_wd["end"], cov_wd["end"])
 
-            if cached_start <= req_start and cached_end >= req_end:
+            req_start = start
+            req_end = end
+
+            if c_start <= req_start and c_end >= req_end:
                 # Fully covered already -- no API call needed.
-                return self.cache_client.sum_in_range(username, start, end)
+                return (
+                    self.cache_client.sum_in_range(username, start, end),
+                    self.wikidata_cache_client.sum_in_range(username, start, end),
+                )
+
+            cached_start = date.fromisoformat(c_start)
+            cached_end = date.fromisoformat(c_end)
+            r_start = date.fromisoformat(req_start)
+            r_end = date.fromisoformat(req_end)
 
             one_day = timedelta(days=1)
-            # Figure out if the ranges are contiguous/overlapping (the common
-            # case: same start, end has moved forward by ~a week) so we only
-            # need to fetch the new tail. Also handle the (rarer) case where
-            # the window start has moved forward and we could fetch a new tail
-            # on the front, though this is less common.
-            gap_after = req_start > cached_end + one_day
-            gap_before = req_end < cached_start - one_day
+            gap_after = r_start > cached_end + one_day
+            gap_before = r_end < cached_start - one_day
 
             if not gap_after and not gap_before:
-                # Overlapping or adjacent ranges: only fetch what's missing.
-                fetched: dict[str, int] = {}
-                if req_start < cached_start:
+                fetched_non_wd: dict[str, int] = {}
+                fetched_wd: dict[str, int] = {}
+
+                if r_start < cached_start:
                     new_front_end = (cached_start - one_day).isoformat()
-                    front = self.xtools_client.recent_editcount_by_day(
+                    front_non_wd, front_wd = self.xtools_client.recent_editcount_by_day(
                         username,
-                        req_start.isoformat(),
+                        r_start.isoformat(),
                         new_front_end,
                     )
-                    fetched.update(front)
+                    fetched_non_wd.update(front_non_wd)
+                    fetched_wd.update(front_wd)
 
-                if req_end > cached_end:
-                    tail = self.xtools_client.recent_editcount_by_day(
+                if r_end > cached_end:
+                    tail_non_wd, tail_wd = self.xtools_client.recent_editcount_by_day(
                         username,
                         (cached_end + one_day).isoformat(),
                         end,
                     )
-                    fetched.update(tail)
+                    fetched_non_wd.update(tail_non_wd)
+                    fetched_wd.update(tail_wd)
 
-                self.cache_client.merge(
-                    username,
-                    fetched,
-                    min(cached_start, req_start).isoformat(),
-                    max(cached_end, req_end).isoformat(),
+                min_start = min(cached_start, r_start).isoformat()
+                max_end = max(cached_end, r_end).isoformat()
+
+                self.cache_client.merge(username, fetched_non_wd, min_start, max_end)
+                self.wikidata_cache_client.merge(username, fetched_wd, min_start, max_end)
+
+                return (
+                    self.cache_client.sum_in_range(username, start, end),
+                    self.wikidata_cache_client.sum_in_range(username, start, end),
                 )
-                return self.cache_client.sum_in_range(username, start, end)
 
         # No cache entry, or a real gap: fetch the full range fresh.
-        fetched = self.xtools_client.recent_editcount_by_day(username, start, end)
+        fetched_non_wd, fetched_wd = self.xtools_client.recent_editcount_by_day(username, start, end)
 
-        if not fetched and coverage is None:
-            # Genuine failure / no data: do not record coverage, so we retry next time.
-            return None
+        if not fetched_non_wd and not fetched_wd and cov_non_wd is None and cov_wd is None:
+            return None, None
 
-        self.cache_client.merge(username, fetched, start, end)
-        return self.cache_client.sum_in_range(username, start, end)
+        self.cache_client.merge(username, fetched_non_wd, start, end)
+        self.wikidata_cache_client.merge(username, fetched_wd, start, end)
+
+        return (
+            self.cache_client.sum_in_range(username, start, end),
+            self.wikidata_cache_client.sum_in_range(username, start, end),
+        )
 
 
 __all__ = [

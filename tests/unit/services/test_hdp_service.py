@@ -79,7 +79,7 @@ def _make_service(
         subpages_svc._subpages_for_section.return_value = list(subpages_return)
         subpages_svc.discover_subpages.return_value = set(subpages_return)
 
-    recent_provider.get_many.return_value = {}
+    recent_provider.get_many.return_value = ({}, {})
 
     service = HdpService(
         wiki_client=wiki_client,
@@ -242,7 +242,7 @@ class TestLoadRows:
     def test_recent_editcounts_online_path(self):
         service, mocks = _make_service(load_recent=True, offline=False)
         mocks["users_resolver"].normalize.return_value = "Alice"
-        mocks["recent_provider"].get_many.return_value = {"Alice": 10}
+        mocks["recent_provider"].get_many.return_value = ({"Alice": 10}, {"Alice": 2})
 
         service.load_rows(["Alice"])
 
@@ -254,7 +254,7 @@ class TestLoadRows:
     def test_recent_editcounts_offline_path(self):
         service, mocks = _make_service(load_recent=False, offline=False)
         mocks["users_resolver"].normalize.return_value = "Alice"
-        mocks["recent_provider"].get_many.return_value = {"Alice": 10}
+        mocks["recent_provider"].get_many.return_value = ({"Alice": 10}, {"Alice": 2})
 
         service.load_rows(["Alice"])
 
@@ -316,7 +316,7 @@ class TestLoadRows:
             "Alice": _sample_user_info("Alice"),
         }
         mocks["wiki_client"].get_global_editcounts.return_value = {"Alice": 1000}
-        mocks["recent_provider"].get_many.return_value = {"Alice": 42}
+        mocks["recent_provider"].get_many.return_value = ({"Alice": 42}, {"Alice": 5})
         mocks["wiki_client"].get_pages_wikitext.return_value = {
             "Hardware donation program/Alice": "; country your from: Kenya\n"
         }

@@ -73,6 +73,7 @@ class UserInfo:
     registration: str = ""  # ISO timestamp from CentralAuth
     global_editcount: int | None = None
     recent_editcount: int | None = None
+    recent_wikidata_editcount: int | None = None
     wikidata_count: int | None = None
     last_edit: str | None = None  # Y-m-d
 
@@ -87,6 +88,7 @@ class UserInfo:
         data["global_without_wikidata_str"] = self.global_without_wikidata_str
         data["global_editcount_str"] = self.global_editcount_str
         data["recent_editcount_str"] = self.recent_editcount_str
+        data["recent_wikidata_editcount_str"] = self.recent_wikidata_editcount_str
         data["wikidata_editcount_str"] = self.wikidata_editcount_str
         return data
 
@@ -119,6 +121,12 @@ class UserInfo:
         return ""
 
     @property
+    def recent_wikidata_editcount_str(self) -> str:
+        if self.recent_wikidata_editcount is not None:
+            return f"{self.recent_wikidata_editcount:,}"
+        return ""
+
+    @property
     def wikidata_editcount_str(self) -> str:
         if self.wikidata_count is not None:
             return f"{self.wikidata_count:,}"
@@ -134,6 +142,7 @@ class UserInfo:
         globaluser_data: Mapping[str, Any],
         global_editcount: int | None = None,
         recent_editcount: int | None = None,
+        recent_wikidata_editcount: int | None = None,
         wikidata_count: int | None = None,
         last_edit: str | None = None,
     ) -> UserInfo:
@@ -156,6 +165,9 @@ class UserInfo:
         if recent_editcount is not None:
             self.recent_editcount = recent_editcount
 
+        if recent_wikidata_editcount is not None:
+            self.recent_wikidata_editcount = recent_wikidata_editcount
+
         if wikidata_count is not None:
             self.wikidata_count = wikidata_count
 
@@ -176,6 +188,7 @@ class UserInfo:
         return {
             "global_editcount_str": self.global_editcount_str or unknown,
             "recent_editcount_str": self.recent_editcount_str or unknown,
+            "recent_wikidata_editcount_str": self.recent_wikidata_editcount_str or unknown,
             "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
             "global_without_wikidata_str": self.global_without_wikidata_str,
             "user_link": self.user_link or unknown,

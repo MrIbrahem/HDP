@@ -176,7 +176,7 @@ class HdpService:
         }
 
         # 6. Recent edit counts
-        recent = self._fetch_recent_edit_counts(users)
+        recent, recent_wikidata = self._fetch_recent_edit_counts(users)
 
         # 7. Wikidata edit counts
         remain_users = [user for user in users if user not in wikidata_editcounts]
@@ -197,6 +197,7 @@ class HdpService:
                 globaluser_data=home_wikis.get(username),
                 global_editcount=editcounts.get(username),
                 recent_editcount=recent.get(username),
+                recent_wikidata_editcount=recent_wikidata.get(username),
                 last_edit=last_edits.get(username),
                 wikidata_count=wikidata_editcounts.get(username),
             )
@@ -207,11 +208,15 @@ class HdpService:
     # Helpers
     # ------------------------------------------------------------------
 
-    def _fetch_recent_edit_counts(self, users: list[str]) -> dict[str, int]:
+    def _fetch_recent_edit_counts(self, users: list[str]) -> tuple[dict[str, int], dict[str, int]]:
         is_offline = not self.load_recent_editcounts or self.offline
-        recent = self.recent_provider.get_many(users, offline=is_offline, set_zero=True)
-        logger.info("Loaded %s recent edit counts", len(recent))
-        return recent
+        recent, recent_wikidata = self.recent_provider.get_many(users, offline=is_offline, set_zero=True)
+        logger.info(
+            "Loaded %s recent edit counts and %s recent wikidata edit counts",
+            len(recent),
+            len(recent_wikidata),
+        )
+        return recent, recent_wikidata
 
     def _fetch_wikidata_editcounts(self, users: list[str]) -> dict[str, int]:
 
