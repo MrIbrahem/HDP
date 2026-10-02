@@ -182,6 +182,8 @@ class XToolsClient:
         """
         start, end = self.load_dates(recent_days)
         results: dict[str, int] = {}
+        logger.info("Fetching recent edits for %s users", len(users))
+
         for username in tqdm(users, desc="Fetching recent edits", unit="user", disable=TQDM_DISABLE):
 
             count = self.get_recent_editcount(username, start, end)

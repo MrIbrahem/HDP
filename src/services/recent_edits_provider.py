@@ -77,6 +77,7 @@ class RecentEditCountsProvider:
         start, end = XToolsClient.load_dates(self._recent_days)
         results: dict[str, int] = {}
 
+        logger.info("Fetching recent edits for %s users", len(users))
         for i, username in enumerate(
             tqdm(
                 users,
