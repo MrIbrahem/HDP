@@ -2,11 +2,11 @@
 """
 Unit tests for src/services/subpages_service.py module.
 
-Classes to test: SubPages
+Classes to test: SubPagesService
 
 TODO: write tests
 """
 
 from src.services.subpages_service import (
-    SubPages,
+    SubPagesService,
 )

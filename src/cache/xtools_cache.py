@@ -82,13 +82,7 @@ class XtoolsRecentEditCache:
 
     # -- mutations -------------------------------------------------------
 
-    def merge(
-        self,
-        username: str,
-        counts: dict[str, int],
-        start: str,
-        end: str,
-    ) -> None:
+    def merge(self, username: str, counts: dict[str, int], start: str, end: str) -> None:
         """
         Merge per-day counts into the user's entry and record [start, end]
         as the covered range. The caller decides what the new range is.

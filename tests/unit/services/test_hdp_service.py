@@ -53,7 +53,7 @@ def _make_service(
     settings = _make_settings()
     category = MagicMock()
     users = MagicMock()
-    home_cache = MagicMock()
+    home_wiki_provider = MagicMock()
     recent_cache = MagicMock()
     xtools = MagicMock()
     subpages_svc = MagicMock()
@@ -71,7 +71,7 @@ def _make_service(
 
     wd_client.get_editcounts.return_value = {"Alice": 50}
 
-    home_cache.get_many.return_value = {}
+    home_wiki_provider.get_many.return_value = {}
     recent_cache.get_many.return_value = {}
     xtools.get_last_edit_timestamps.return_value = {}
 
@@ -87,13 +87,13 @@ def _make_service(
         settings=settings,
         category=category,
         users=users,
-        home_cache=home_cache,
+        home_wiki_provider=home_wiki_provider,
         recent_cache=recent_cache,
         xtools=xtools,
         offline=offline,
         recent_provider=recent_provider,
     )
-    # Inject mocked SubPages (constructed inside __init__)
+    # Inject mocked SubPagesService (constructed inside __init__)
     service.subpages = subpages_svc
 
     # Flags normally set via set_args / CLI
@@ -106,7 +106,7 @@ def _make_service(
         "settings": settings,
         "category": category,
         "users": users,
-        "home_cache": home_cache,
+        "home_wiki_provider": home_wiki_provider,
         "recent_cache": recent_cache,
         "xtools": xtools,
         "subpages": subpages_svc,
@@ -266,13 +266,13 @@ class TestLoadRows:
     def test_home_wiki_cache_called(self):
         service, mocks = _make_service()
         mocks["users"].normalize.return_value = "Alice"
-        mocks["home_cache"].get_many.return_value = {
+        mocks["home_wiki_provider"].get_many.return_value = {
             "Alice": _sample_user_info("Alice"),
         }
 
         service.load_rows(["Alice"])
 
-        mocks["home_cache"].get_many.assert_called_once()
+        mocks["home_wiki_provider"].get_many.assert_called_once()
 
     def test_last_edits_fetched_only_when_enabled(self):
         service, mocks = _make_service(load_last_edits=True, offline=False)
@@ -314,7 +314,7 @@ class TestLoadRows:
         """
         service, mocks = _make_service()
         mocks["users"].normalize.return_value = "Alice"
-        mocks["home_cache"].get_many.return_value = {
+        mocks["home_wiki_provider"].get_many.return_value = {
             "Alice": _sample_user_info("Alice"),
         }
         mocks["wiki"].get_global_editcounts.return_value = {"Alice": 1000}

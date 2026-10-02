@@ -20,12 +20,11 @@ from ..models import (
     ApplicationTable,
 )
 from ..parsing import WikiTableDataUpdater
-from ..wiki.category import CategoryService
-from ..wiki.client import WikiClient
-from ..wiki.users import UserResolver
-from ..xtools.client import XToolsClient
+from ..wiki import CategoryService, UserResolver, WikiClient
+from ..xtools import XToolsClient
+from .home_wiki_provider import HomeWikiProvider
 from .recent_edits_provider import RecentEditCountsProvider
-from .subpages_service import SubPages
+from .subpages_service import SubPagesService
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,7 @@ class HdpService:
         *,
         category: CategoryService | None = None,
         users: UserResolver | None = None,
-        home_cache: HomeWikiCache | None = None,
+        home_wiki_provider: HomeWikiProvider | None = None,
         recent_cache: XtoolsRecentEditCache | None = None,
         recent_provider: RecentEditCountsProvider | None = None,
         xtools: XToolsClient | None = None,
@@ -58,8 +57,11 @@ class HdpService:
         self.category = category or CategoryService(wiki.site)
 
         self.users = users or UserResolver(wiki, self.settings.users_redirects)
-        self.home_cache = home_cache or HomeWikiCache(self.settings.home_wiki_cache_path, wiki)
-        self.subpages = SubPages(wiki, self.settings, category=self.category)
+        self.home_wiki_provider = home_wiki_provider or HomeWikiProvider(
+            cache=HomeWikiCache(self.settings.home_wiki_cache_path),
+            wiki=wiki,
+        )
+        self.subpages = SubPagesService(wiki, self.settings, category=self.category)
 
         self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
 
@@ -175,7 +177,7 @@ class HdpService:
         recent = self._fetch_recent_edit_counts(users)
 
         # 7. Home wiki + registration
-        home_wikis = self.home_cache.get_many(users)
+        home_wikis = self.home_wiki_provider.get_many(users)
 
         # 8. Optional last-edit timestamps
         last_edits = self._get_last_edit_timestamps(users)

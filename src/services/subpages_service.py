@@ -15,7 +15,7 @@ from ..wiki.client import WikiClient
 logger = logging.getLogger(__name__)
 
 
-class SubPages:
+class SubPagesService:
 
     def __init__(
         self,
@@ -110,5 +110,5 @@ class SubPages:
 
 
 __all__ = [
-    "SubPages",
+    "SubPagesService",
 ]
