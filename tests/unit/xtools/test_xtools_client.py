@@ -15,11 +15,11 @@ import requests
 
 from src.xtools.client import XToolsClient
 
-
 @pytest.fixture(autouse=True)
-def mock_sleep(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("src.xtools.client.time.sleep", MagicMock())
-
+def mock_sleep(monkeypatch):
+    m = MagicMock()
+    monkeypatch.setattr("src.xtools.client.time.sleep", m)
+    return m
 
 @pytest.mark.network
 def test_get_recent_editcount() -> None:
@@ -184,17 +184,19 @@ class TestRecentEditcountByDay:
         second_params = mock_get.call_args_list[1][1].get("params") or {}
         assert second_params.get("offset") == "2026-05-10T10:00:00Z"
 
-    @patch("src.xtools.client.time.sleep")
     @patch("src.xtools.client.requests.get")
-    def test_request_exception_retries_then_returns_partial(self, mock_get, mock_sleep):
-        # First call succeeds with one edit, second raises → return partial
+    def test_request_exception_retries_then_returns_partial(self, mock_get):
+        # First call succeeds with one edit, subsequent calls raise -> return partial
         ok = _ok_response(
             {
                 "globalcontribs": [_contrib("2026-05-10T09:00:00Z")],
                 "continue": "next",
             }
         )
-        mock_get.side_effect = [ok, requests.ConnectionError("down")]
+
+        # Provide the 'ok' response first, then enough exceptions to exhaust the retry loop
+        # (The retry loop makes around 5 attempts before giving up)
+        mock_get.side_effect = [ok] + [requests.ConnectionError("down")] * 10
 
         client = _client()
         result = client.recent_editcount_by_day("Alice", "2026-05-10", "2026-05-11")
@@ -202,7 +204,9 @@ class TestRecentEditcountByDay:
         # Partial data preserved
         assert result == {"2026-05-10": 1}
 
-    @patch("src.xtools.client.time.sleep")
+        # Ensure that retries actually happened
+        assert mock_get.call_count > 2
+
     @patch("src.xtools.client.requests.get")
     def test_request_exception_with_no_data_returns_empty_after_backoff(self, mock_get, mock_sleep):
         mock_get.side_effect = requests.ConnectionError("down")
@@ -257,8 +261,7 @@ class TestRecentEditcount:
 class TestRecentEditcounts:
     @patch.object(XToolsClient, "get_recent_editcount")
     @patch.object(XToolsClient, "load_dates", return_value=("2026-01-01", "2026-03-31"))
-    @patch("src.xtools.client.time.sleep")
-    def test_collects_per_user(self, mock_sleep, mock_dates, mock_count):
+    def test_collects_per_user(self, mock_dates, mock_count, mock_sleep):
         mock_count.side_effect = [10, None, 5]
         client = _client()
 
@@ -271,8 +274,7 @@ class TestRecentEditcounts:
 
     @patch.object(XToolsClient, "get_recent_editcount")
     @patch.object(XToolsClient, "load_dates", return_value=("2026-01-01", "2026-03-31"))
-    @patch("src.xtools.client.time.sleep")
-    def test_empty_users(self, mock_sleep, mock_dates, mock_count):
+    def test_empty_users(self, mock_dates, mock_count):
         client = _client()
         assert client.recent_editcounts([]) == {}
         mock_count.assert_not_called()

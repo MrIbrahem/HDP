@@ -16,11 +16,11 @@ import pytest
 from src.config import Credentials, Settings
 from src.wiki.client import WikiClient, WikiClientLoader
 
-
 @pytest.fixture(autouse=True)
-def mock_sleep(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("src.wiki.client.time.sleep", MagicMock())
-
+def mock_sleep(monkeypatch):
+    m = MagicMock()
+    monkeypatch.setattr("src.wiki.client.time.sleep", m)
+    return m
 
 @pytest.fixture
 def mock_site_cls(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
