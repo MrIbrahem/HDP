@@ -80,6 +80,7 @@ def _make_service(
         subpages_svc.discover_subpages.return_value = set(subpages_return)
 
     recent_provider.get_many.return_value = {}
+    xtools_client.get_wikidata_recent_editcounts.return_value = {}
 
     service = HdpService(
         wiki_client=wiki_client,
@@ -225,6 +226,23 @@ class TestLoadRows:
 
         wd_client.get_editcounts.assert_called_once()
 
+    def test_preserves_home_wiki_wikidata_editcounts_when_fetching_remaining(self):
+        service, mocks = _make_service(offline=False)
+        mocks["users_resolver"].normalize.side_effect = lambda u: u
+        mocks["home_wiki_provider"].get_many.return_value = {
+            "Alice": {"wikidata_editcount": 100},
+            "Bob": {},
+        }
+        mocks["wd_client"].get_editcounts.return_value = {"Bob": 50}
+
+        table = service.load_rows(["Alice", "Bob"])
+
+        mocks["wd_client"].get_editcounts.assert_called_once_with(["Bob"])
+        alice_row = next(r for r in table.rows if r.username == "Alice")
+        bob_row = next(r for r in table.rows if r.username == "Bob")
+        assert alice_row.user_info.wikidata_count == 100
+        assert bob_row.user_info.wikidata_count == 50
+
     @patch("src.services.hdp_service.WikiClient.load")
     def test_skips_wikidata_when_offline(self, mock_wd_load):
         service, mocks = _make_service(offline=True)
@@ -317,6 +335,7 @@ class TestLoadRows:
         }
         mocks["wiki_client"].get_global_editcounts.return_value = {"Alice": 1000}
         mocks["recent_provider"].get_many.return_value = {"Alice": 42}
+        mocks["xtools_client"].get_wikidata_recent_editcounts.return_value = {"Alice": 5}
         mocks["wiki_client"].get_pages_wikitext.return_value = {
             "Hardware donation program/Alice": "; country your from: Kenya\n"
         }

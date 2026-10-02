@@ -156,6 +156,7 @@ class ApplicationRow:
         lines.append(f"| {self.user_info.wikidata_editcount_str}")
 
         lines.append(f"| {self.user_info.recent_editcount_str}")
+        lines.append(f"| {self.user_info.recent_wikidata_editcount_str}")
         lines.append(f"| {self.user_info.age}")
         lines.append(f"| {self.user_info.home_wiki}")
 

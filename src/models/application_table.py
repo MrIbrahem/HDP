@@ -32,6 +32,7 @@ class ApplicationTable:
             "Global edits without wikidata",
             "Wikidata edits",
             "Edits in last 3 months",
+            "Wikidata edits in last 3 months",
             "Age of account",
             "Home Wiki",
             "Last edit" if add_last_edit else "",

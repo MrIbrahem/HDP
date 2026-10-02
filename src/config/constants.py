@@ -21,6 +21,7 @@ TABLE_HEADERS_TO_ROW_KEY: dict[str, str] = {
     "Global edits without wikidata": "global_without_wikidata_str",
     "Wikidata edits": "wikidata_editcount_str",
     "Edits in last 3 months": "recent_editcount_str",
+    "Wikidata edits in last 3 months": "recent_wikidata_editcount_str",
     "Age of account": "age",
     "Home Wiki": "home_wiki",
     "Last edit": "last_edit",
