@@ -2,15 +2,19 @@
 Configuration, credentials, and project-wide constants for the HDP tools.
 """
 
-from .config import (
-    DEFAULT_USERS_REDIRECTS,
-    TABLE_HEADERS_TO_ROW_KEY,
+from .settings import (
     TQDM_DISABLE,
     Settings,
-    USER_AGENT,
-    RECENT_DAYS,
-    XTOOLS_GLOBALCONTRIBS_URL,
+)
+from .constants import (
+    BASE_PAGE,
     DEFAULT_SECTION_NAMES,
+    DEFAULT_USERS_REDIRECTS,
+    RECENT_DAYS,
+    SECTION_TO_CATEGORY,
+    TABLE_HEADERS_TO_ROW_KEY,
+    USER_AGENT,
+    XTOOLS_GLOBALCONTRIBS_URL,
 )
 from .credentials import Credentials
 
@@ -24,4 +28,6 @@ __all__ = [
     "Settings",
     "TABLE_HEADERS_TO_ROW_KEY",
     "DEFAULT_USERS_REDIRECTS",
+    "BASE_PAGE",
+    "SECTION_TO_CATEGORY",
 ]
