@@ -103,7 +103,7 @@ class HomeWikiProvider:
         Users with a valid cached entry are served from the cache. The others are
         fetched from the wiki, cached, and the cache is flushed every ``save_every``
         newly fetched users and once more at the end if anything new was fetched.
-        Returns:
+
         Returns:
             A dict mapping usernames to their info. Users whose lookup failed are omitted.
         """
