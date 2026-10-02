@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import time
 from typing import Any
+from datetime import datetime
 
 import mwclient.errors
 from mwclient.client import Site
@@ -389,6 +390,55 @@ class WikiClientLoader:
         logger.info("Resolved %s redirects", len(result))
         return result
 
+    # ------------------------------------------------------------------
+    # Last edit
+    # ------------------------------------------------------------------
+
+    def last_edit_timestamp(self, username: str) -> str | None:
+        """
+        Most recent global contribution date (``Y-m-d``), or ``None``.
+        """
+        params = {
+            # "action": "query",
+            "format": "json",
+            "list": "globalcontributions",
+            "utf8": 1,
+            "formatversion": 2,
+            "guctarget": username,
+            "guclimit": "1"
+        }
+        try:
+            data = self._site.get("query", **params)
+        except Exception as e:
+            logger.error("API request failed for %s: %s", username, e)
+            return None
+
+        # API schema: "globalcontributions": { "entries": [ { "wikiid": "metawiki", "revid": "31116293", "timestamp": "20261002001304" }, { "wikiid": "arwiki", "revid": "76823306", "timestamp": "20261001061625" } ] }
+        entries = data.get("query", {}).get("globalcontributions", {}).get("entries", []) or []
+        if not entries:
+            return None
+
+        # sort by timestamp descending
+        entries.sort(key=lambda x: int(x["timestamp"]), reverse=True)
+        timestamp = entries[0]["timestamp"][:8] # 20261002
+
+        return datetime.strptime(timestamp, "%Y%m%d").strftime("%Y-%m-%d")
+
+    def get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
+        """
+        Fetch the last-edit timestamp for each user. Returns a dict mapping
+        username -> date string (Y-m-d). Users with no data are omitted.
+        """
+        results: dict[str, str] = {}
+
+        for username in tqdm(users, desc="Fetching last edit dates", unit="user", disable=TQDM_DISABLE):
+            ts = self.last_edit_timestamp(username)
+            if ts is not None:
+                results[username] = ts
+            # time.sleep(0.3)
+
+        return results
+
 
 class WikiClient(WikiClientLoader):
     """
@@ -449,13 +499,14 @@ class WikiClient(WikiClientLoader):
         """
         Convenience: load credentials from env and connect.
         """
+        if not settings:
+            settings = Settings.from_env()
+
         credentials = Credentials.from_env()
+
         if not credentials and login:
             logger.error("Failed to load credentials. Set WIKIPEDIA_BOT_USERNAME and WIKIPEDIA_BOT_PASSWORD.")
             return None
-
-        if not settings:
-            settings = Settings.from_env()
 
         return cls.connect(
             credentials=credentials,

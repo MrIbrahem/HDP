@@ -9,9 +9,12 @@ import os
 import pytest
 from pytest_socket import disable_socket
 
-os.environ.setdefault("WIKIPEDIA_BOT_USERNAME", "WIKIPEDIA_BOT_USERNAME")
-os.environ.setdefault("WIKIPEDIA_BOT_PASSWORD", "WIKIPEDIA_BOT_PASSWORD")
 
+@pytest.fixture(autouse=True)
+def setdefault_envs(request):
+    if "network" not in request.node.keywords:
+        os.environ.setdefault("WIKIPEDIA_BOT_USERNAME", "WIKIPEDIA_BOT_USERNAME")
+        os.environ.setdefault("WIKIPEDIA_BOT_PASSWORD", "WIKIPEDIA_BOT_PASSWORD")
 
 @pytest.fixture(autouse=True)
 def stop_nets(request):

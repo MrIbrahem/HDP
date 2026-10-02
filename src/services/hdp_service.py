@@ -218,7 +218,7 @@ class HdpService:
 
     def _get_last_edit_timestamps(self, users: list[str]) -> dict[str, str]:
         if self.load_last_edits and not self.offline:
-            last_edits = self.xtools_client.get_last_edit_timestamps(users)
+            last_edits = self.wiki_client.get_last_edit_timestamps(users)
             logger.info("Loaded %s last-edit timestamps", len(last_edits))
             return last_edits
 

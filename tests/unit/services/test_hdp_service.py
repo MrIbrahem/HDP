@@ -73,6 +73,8 @@ def _make_service(
     home_wiki_provider.get_many.return_value = {}
     xtools_client.get_last_edit_timestamps.return_value = {}
 
+    wiki_client.get_last_edit_timestamps.return_value = {}
+
     if subpages_return is not None:
         subpages_svc._subpages_for_section.return_value = list(subpages_return)
         subpages_svc.discover_subpages.return_value = set(subpages_return)
@@ -273,11 +275,11 @@ class TestLoadRows:
     def test_last_edits_fetched_only_when_enabled(self):
         service, mocks = _make_service(load_last_edits=True, offline=False)
         mocks["users_resolver"].normalize.return_value = "Alice"
-        mocks["xtools_client"].get_last_edit_timestamps.return_value = {"Alice": "2026-09-01"}
+        mocks["wiki_client"].get_last_edit_timestamps.return_value = {"Alice": "2026-09-01"}
 
         service.load_rows(["Alice"])
 
-        mocks["xtools_client"].get_last_edit_timestamps.assert_called_once()
+        mocks["wiki_client"].get_last_edit_timestamps.assert_called_once()
 
     def test_last_edits_skipped_when_disabled(self):
         service, mocks = _make_service(load_last_edits=False)
@@ -285,7 +287,7 @@ class TestLoadRows:
 
         service.load_rows(["Alice"])
 
-        mocks["xtools_client"].get_last_edit_timestamps.assert_not_called()
+        mocks["wiki_client"].get_last_edit_timestamps.assert_not_called()
 
     def test_returns_application_table(self):
         service, mocks = _make_service()

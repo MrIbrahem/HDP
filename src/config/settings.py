@@ -14,6 +14,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from .credentials import Credentials
+
 from .constants import (
     BASE_PAGE,
     DEFAULT_USERS_REDIRECTS,
@@ -52,6 +54,7 @@ def _load_users_redirects(path: Path) -> dict[str, str]:
 class Settings:
     """Immutable runtime settings. Prefer injecting this instead of reading globals."""
 
+    credentials: Credentials
     base_page: str = BASE_PAGE
     recent_days: int = RECENT_DAYS
     cache_dir: Path = DEFAULT_CACHE_DIR
@@ -83,6 +86,13 @@ class Settings:
     # ------------------------------------------------------------------
 
     @classmethod
+    def load(cls, cache_dir: Path | None = None) -> Settings:
+        return cls(
+            credentials=Credentials.load(),
+            cache_dir=cache_dir,
+        )
+
+    @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> Settings:
         """
         Build Settings from environment / optional .env file.
@@ -94,6 +104,8 @@ class Settings:
             load_dotenv(env_file)
         else:
             load_dotenv()
+
+        credentials = Credentials.load()
 
         cache_dir = Path(os.getenv("HDP_CACHE_DIR", str(DEFAULT_CACHE_DIR)))
         recent_days = int(os.getenv("HDP_RECENT_DAYS", str(RECENT_DAYS)))
@@ -107,6 +119,7 @@ class Settings:
             redirects.update(_load_users_redirects(redirects_path))
 
         return cls(
+            credentials=credentials,
             base_page=base_page,
             recent_days=recent_days,
             cache_dir=cache_dir,

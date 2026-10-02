@@ -34,6 +34,12 @@ def test_get_recent_editcount_m() -> None:
     assert result == {"2026-05-10": 6}
 
 
+@pytest.mark.network
+def test_last_edit_timestamp() -> None:
+    result = XToolsClient().last_edit_timestamp("Mr. Ibrahem")
+    assert result == "2026-10-02"
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

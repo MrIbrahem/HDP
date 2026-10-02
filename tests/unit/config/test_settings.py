@@ -92,7 +92,7 @@ class TestLoadUsersRedirects:
 class TestSettingsProperties:
     def test_cache_paths_are_correctly_derived(self, tmp_path: Path) -> None:
         """Test that dynamic path properties build correctly on top of cache_dir."""
-        settings = Settings(cache_dir=tmp_path)
+        settings = Settings.load(cache_dir=tmp_path)
 
         assert settings.home_wiki_cache_path == tmp_path / "home_wiki_cache.json"
         assert settings.edit_counts_cache_path == tmp_path / "edit_counts_cache.json"
@@ -102,7 +102,7 @@ class TestSettingsProperties:
 class TestSettingsWriteToCacheDir:
     def test_creates_directories_and_writes_text(self, tmp_path: Path, mock_logger: MagicMock) -> None:
         """Test that writing to cache safely creates parent dirs and saves utf-8 text."""
-        settings = Settings(cache_dir=tmp_path)
+        settings = Settings.load(cache_dir=tmp_path)
         relative_path = "subfolder/deep/test_file.txt"
         content = "Hello, Wiki!"
 

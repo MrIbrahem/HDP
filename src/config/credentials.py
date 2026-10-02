@@ -33,6 +33,14 @@ class Credentials:
     # ------------------------------------------------------------------
 
     @classmethod
+    def load(cls) -> Credentials | None:
+        username = (os.getenv("WIKIPEDIA_BOT_USERNAME") or "").strip()
+        password = (os.getenv("WIKIPEDIA_BOT_PASSWORD") or "").strip()
+        if not username or not password:
+            return None
+        return cls(username=username, password=password)
+
+    @classmethod
     def from_env(cls, env_file: str | Path | None = None) -> Credentials | None:
         """
         Load WIKIPEDIA_BOT_USERNAME / WIKIPEDIA_BOT_PASSWORD from the environment
@@ -43,11 +51,7 @@ class Credentials:
         else:
             load_dotenv()
 
-        username = (os.getenv("WIKIPEDIA_BOT_USERNAME") or "").strip()
-        password = (os.getenv("WIKIPEDIA_BOT_PASSWORD") or "").strip()
-        if not username or not password:
-            return None
-        return cls(username=username, password=password)
+        return cls.load()
 
 
 __all__ = [
