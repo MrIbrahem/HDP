@@ -7,7 +7,7 @@ Functions to test: calculate_age_new, calculate_age
 
 import pytest
 from unittest.mock import MagicMock
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 
 # Adjust this import based on your actual file name
 from src.models.user_info import (
@@ -79,6 +79,17 @@ class TestCalculateAgeNew:
         fixed_now = datetime(2023, 1, 1, tzinfo=UTC)
         assert calculate_age_new("2021-07-01", fixed_now) == "1y 6m"
 
+    def test_with_today_is_none(self) -> None:
+        """Test that when today is None, it uses the current UTC time."""
+        today = datetime.now(UTC)
+        assert calculate_age_new(today.isoformat(), today=None) == "0d"
+
+    def test_one_day_only(self) -> None:
+        """Test that when today is None, it uses the current UTC time."""
+        today = datetime.now(UTC)
+        registration = timedelta(days=1)
+        registration_str = (today - registration).isoformat()
+        assert calculate_age_new(registration_str, today=today.isoformat()) == "1d"
 
 class TestCalculateAge:
     def test_empty_registration_returns_empty_string(self) -> None:
@@ -222,3 +233,14 @@ class TestUserInfo:
         assert table_dict["wikidata_editcount_str"] == "unknown_value"
         assert table_dict["home_wiki"] == "unknown_value"
         assert table_dict["last_edit"] == "unknown_value"
+
+    def test_to_json(self) -> None:
+        """Test exporting falls back to the specified 'unknown' placeholder."""
+        user = UserInfo(username="Bob")
+        table_dict = user.to_json()
+
+        assert table_dict["global_editcount_str"] == ""
+        assert table_dict["recent_editcount_str"] == ""
+        assert table_dict["wikidata_editcount_str"] == ""
+        assert table_dict["home_wiki"] == ""
+        assert table_dict["last_edit"] is None

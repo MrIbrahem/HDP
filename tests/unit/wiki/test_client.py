@@ -1,4 +1,3 @@
-# ruff: noqa: F401
 """
 Unit tests for src/wiki/client.py
 
@@ -15,7 +14,7 @@ import mwclient.errors
 import pytest
 
 from src.config import Credentials, Settings
-from src.wiki.client import METAWIKI_HOST, WikiClient, WikiClientLoader
+from src.wiki.client import WikiClient, WikiClientLoader
 
 
 @pytest.fixture(autouse=True)
@@ -72,6 +71,74 @@ def _client(site: MagicMock | None = None) -> tuple[WikiClient, MagicMock]:
     return WikiClient(site), site
 
 
+# ===========================================================================
+# WikiClientLoader — batch_size
+# ===========================================================================
+
+@pytest.fixture
+def mock_site():
+    """
+    Create a mock Site object with default basic rights.
+    """
+    site = MagicMock()
+    site.rights = ['read', 'edit']
+    return site
+
+
+class TestBatchSize:
+    """Tests for WikiClientLoader _batch_size/batch_size/_detect_batch_size """
+
+    def test_explicit_batch_size(self, mock_site):
+        """
+        Test that an explicitly provided batch size overrides auto-detection.
+        """
+        loader = WikiClientLoader(mock_site, batch_size=42)
+
+        # Should return the exact number passed during initialization
+        assert loader.batch_size == 42
+
+    def test_detect_batch_size_with_high_limits(self, mock_site):
+        """
+        Test auto-detection when the user has the 'apihighlimits' right.
+        """
+        # Inject the required right into the mock site
+        mock_site.rights = ['apihighlimits', 'read', 'edit']
+        loader = WikiClientLoader(mock_site)
+
+        # Should detect and use HIGH_LIMIT_BATCH_SIZE (100)
+        assert loader.batch_size == WikiClientLoader.HIGH_LIMIT_BATCH_SIZE
+        assert loader.batch_size == 100
+
+    def test_detect_batch_size_without_high_limits(self, mock_site):
+        """
+        Test auto-detection when the user lacks the 'apihighlimits' right.
+        """
+        # Ensure the required right is missing
+        mock_site.rights = ['read', 'edit']
+        loader = WikiClientLoader(mock_site)
+
+        # Should fallback to DEFAULT_BATCH_SIZE (50)
+        assert loader.batch_size == WikiClientLoader.DEFAULT_BATCH_SIZE
+        assert loader.batch_size == 50
+
+    def test_batch_size_property_is_cached(self, mock_site):
+        """
+        Test that _detect_batch_size is only called once and the result is cached.
+        """
+        loader = WikiClientLoader(mock_site)
+
+        # Patch the internal detection method to track its calls
+        with patch.object(loader, '_detect_batch_size', return_value=99) as mock_detect:
+            # First access should trigger the detection method
+            first_call_result = loader.batch_size
+            assert first_call_result == 99
+            mock_detect.assert_called_once()
+
+            # Second access should return the cached value directly
+            second_call_result = loader.batch_size
+            assert second_call_result == 99
+            # The call count should remain 1, proving it was cached
+            assert mock_detect.call_count == 1
 # ===========================================================================
 # WikiClientLoader — page content
 # ===========================================================================

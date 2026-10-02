@@ -13,7 +13,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def calculate_age_new(registration: str, today: date | None = None) -> str:
+def calculate_age_new(registration: str, today: str | date | None = None) -> str:
     """
     Turn a CentralAuth registration timestamp into a human-readable age string.
 
@@ -40,6 +40,8 @@ def calculate_age_new(registration: str, today: date | None = None) -> str:
 
     if today is None:
         today = datetime.now(UTC)
+    elif isinstance(today, str):
+        today = datetime.fromisoformat(today)
 
     if registered > today:
         return ""
@@ -127,6 +129,17 @@ class UserInfo:
         self.refirect_username = self.username
         self.username = username
 
+    def to_json(self) -> dict[str, Any]:
+        data = asdict(self)
+        data["user_link"] = self.user_link
+        data["age"] = self.age
+        data["global_without_wikidata_str"] = self.global_without_wikidata_str
+        data["global_editcount_str"] = self.global_editcount_str
+        data["recent_editcount_str"] = self.recent_editcount_str
+        data["wikidata_editcount_str"] = self.wikidata_editcount_str
+        return data
+
+
     @property
     def user_link(self) -> str:
         return f"[[User:{self.username}]]" if self.username else None
@@ -200,9 +213,6 @@ class UserInfo:
             self.last_edit = last_edit
 
         return self
-
-    def to_json(self) -> dict[str, Any]:
-        return asdict(self)
 
     # ------------------------------------------------------------------
     # Table / export helpers
