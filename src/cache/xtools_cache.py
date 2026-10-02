@@ -57,12 +57,12 @@ class XtoolsRecentEditCache:
 
     # -- queries ---------------------------------------------------------
 
-    def get_coverage(self, username: str) -> tuple[str, str] | None:
+    def get_coverage(self, username: str) -> dict[str, Any] | None:
         """Return the (start, end) ISO dates already fetched for the user, if any."""
         meta = self._data[META_KEY].get(username)
         if meta is None:
             return None
-        return meta["start"], meta["end"]
+        return meta
 
     def has_coverage(self, username: str) -> bool:
         return username in self._data[META_KEY]

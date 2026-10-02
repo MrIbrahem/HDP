@@ -57,6 +57,7 @@ def _make_service(
     recent_cache = MagicMock()
     xtools = MagicMock()
     subpages_svc = MagicMock()
+    recent_provider = MagicMock()
 
     # Default collaborator behaviour
     users.normalize.side_effect = lambda raw: (
@@ -78,6 +79,8 @@ def _make_service(
         subpages_svc._subpages_for_section.return_value = list(subpages_return)
         subpages_svc.discover_subpages.return_value = set(subpages_return)
 
+    recent_provider.get_many.return_value = {}
+
     service = HdpService(
         wiki=wiki,
         wd_client=wd_client,
@@ -88,6 +91,7 @@ def _make_service(
         recent_cache=recent_cache,
         xtools=xtools,
         offline=offline,
+        recent_provider=recent_provider,
     )
     # Inject mocked SubPages (constructed inside __init__)
     service.subpages = subpages_svc
@@ -106,6 +110,7 @@ def _make_service(
         "recent_cache": recent_cache,
         "xtools": xtools,
         "subpages": subpages_svc,
+        "recent_provider": recent_provider,
     }
     return service, mocks
 
@@ -239,23 +244,23 @@ class TestLoadRows:
     def test_recent_editcounts_online_path(self):
         service, mocks = _make_service(load_recent=True, offline=False)
         mocks["users"].normalize.return_value = "Alice"
-        mocks["recent_cache"].get_many.return_value = {"Alice": 10}
+        mocks["recent_provider"].get_many.return_value = {"Alice": 10}
 
         service.load_rows(["Alice"])
 
-        mocks["recent_cache"].get_many.assert_called_once()
-        call_kwargs = mocks["recent_cache"].get_many.call_args
+        mocks["recent_provider"].get_many.assert_called_once()
+        call_kwargs = mocks["recent_provider"].get_many.call_args
         # online: offline=False (or not passed as True)
         assert call_kwargs[1].get("offline") is not True
 
     def test_recent_editcounts_offline_path(self):
         service, mocks = _make_service(load_recent=False, offline=False)
         mocks["users"].normalize.return_value = "Alice"
-        mocks["recent_cache"].get_many.return_value = {"Alice": 10}
+        mocks["recent_provider"].get_many.return_value = {"Alice": 10}
 
         service.load_rows(["Alice"])
 
-        call_kwargs = mocks["recent_cache"].get_many.call_args[1]
+        call_kwargs = mocks["recent_provider"].get_many.call_args[1]
         assert call_kwargs.get("offline") is True
 
     def test_home_wiki_cache_called(self):

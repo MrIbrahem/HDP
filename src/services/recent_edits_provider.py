@@ -132,8 +132,8 @@ class RecentEditCountsProvider:
         coverage = self._cache.get_coverage(username)
 
         if coverage is not None:
-            cached_start = date.fromisoformat(coverage[0])
-            cached_end = date.fromisoformat(coverage[1])
+            cached_start = date.fromisoformat(coverage["start"])
+            cached_end = date.fromisoformat(coverage["end"])
             req_start = date.fromisoformat(start)
             req_end = date.fromisoformat(end)
 
