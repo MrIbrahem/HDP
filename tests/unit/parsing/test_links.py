@@ -3,6 +3,7 @@ Unit tests for src/parsing/links.py module.
 """
 
 import wikitextparser as wtp
+
 from src.parsing.links import LinkExtractor
 
 
@@ -16,11 +17,11 @@ class TestGetSection:
         assert section.title.strip() == "Section 1"
         assert "Body 1" in section.string
 
-
     def test_get_section_no_sections(self):
         wikitext = "wiki texts without sections"
         section = LinkExtractor().get_section(wikitext, "Section 1")
         assert section is None
+
 
 class TestExtractSubPages:
     """Test the extract_subpages method of the LinkExtractor class."""

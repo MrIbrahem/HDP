@@ -4,10 +4,10 @@ Configuration, and project-wide constants for the HDP tools.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -31,6 +31,7 @@ DEFAULT_CACHE_DIR = Path("data")
 # ---------------------------------------------------------------------------
 # Settings
 # ---------------------------------------------------------------------------
+
 
 def _load_users_redirects(path: Path) -> dict[str, str]:
     """Load a JSON object of lowercase-name → canonical-name mappings."""
@@ -77,7 +78,6 @@ class Settings:
         out.write_text(text, encoding="utf-8")
         logger.info("Saved to %s", out.resolve())
 
-
     # ------------------------------------------------------------------
     # Factory
     # ------------------------------------------------------------------
@@ -114,6 +114,7 @@ class Settings:
             section_to_category=dict(SECTION_TO_CATEGORY),
             users_redirects=redirects,
         )
+
 
 __all__ = [
     "TQDM_DISABLE",

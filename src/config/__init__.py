@@ -2,10 +2,6 @@
 Configuration, credentials, and project-wide constants for the HDP tools.
 """
 
-from .settings import (
-    TQDM_DISABLE,
-    Settings,
-)
 from .constants import (
     BASE_PAGE,
     DEFAULT_SECTION_NAMES,
@@ -17,6 +13,10 @@ from .constants import (
     XTOOLS_GLOBALCONTRIBS_URL,
 )
 from .credentials import Credentials
+from .settings import (
+    TQDM_DISABLE,
+    Settings,
+)
 
 __all__ = [
     "TQDM_DISABLE",

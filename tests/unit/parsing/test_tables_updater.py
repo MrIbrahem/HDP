@@ -5,8 +5,8 @@ Unit tests for src/parsing/tables_updater.py module.
 from typing import Any
 
 import pytest
-
 import wikitextparser as wtp
+
 from src.parsing.tables_updater import WikiTableDataUpdater
 
 
@@ -430,10 +430,7 @@ class TestUpdateWikitableDataEdgeCases:
         assert "| 25\n" in result
 
     def test_update_no_cells(self) -> None:
-        wikitext = (
-            '{| class="wikitable sortable"\n'
-            "|}"
-        )
+        wikitext = '{| class="wikitable sortable"\n|}'
         retult = WikiTableDataUpdater().update_table(
             wtp.Table(wikitext),
             {},

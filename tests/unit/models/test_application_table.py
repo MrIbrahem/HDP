@@ -4,8 +4,9 @@ Unit tests for src/models/application_table.py module.
 Classes to test: ApplicationTable
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 # Adjust imports based on your actual module structure
 from src.models.application_table import ApplicationTable
@@ -14,21 +15,14 @@ from src.models.application_table import ApplicationTable
 # Fixtures for mocked ApplicationRow objects
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def mock_row_1() -> MagicMock:
     """Fixture providing a mocked ApplicationRow for Alice."""
     row = MagicMock()
     row.full_title = "User:Alice/Application"
-    row.build_row.return_value = [
-        "|-",
-        "| [[User:Alice/Application|Alice]]",
-        "| 2026-05-30"
-    ]
-    row.to_table_dict.return_value = {
-        "Page": "User:Alice/Application",
-        "User": "Alice",
-        "Country": "Wonderland"
-    }
+    row.build_row.return_value = ["|-", "| [[User:Alice/Application|Alice]]", "| 2026-05-30"]
+    row.to_table_dict.return_value = {"Page": "User:Alice/Application", "User": "Alice", "Country": "Wonderland"}
     return row
 
 
@@ -37,22 +31,15 @@ def mock_row_2() -> MagicMock:
     """Fixture providing a mocked ApplicationRow for Bob."""
     row = MagicMock()
     row.full_title = "User:Bob/Application"
-    row.build_row.return_value = [
-        "|-",
-        "| [[User:Bob/Application|Bob]]",
-        "| 2026-06-01"
-    ]
-    row.to_table_dict.return_value = {
-        "Page": "User:Bob/Application",
-        "User": "Bob",
-        "Country": "Builderland"
-    }
+    row.build_row.return_value = ["|-", "| [[User:Bob/Application|Bob]]", "| 2026-06-01"]
+    row.to_table_dict.return_value = {"Page": "User:Bob/Application", "User": "Bob", "Country": "Builderland"}
     return row
 
 
 # ---------------------------------------------------------------------------
 # Tests for ApplicationTable
 # ---------------------------------------------------------------------------
+
 
 class TestApplicationTableLoad:
     def test_load_defaults(self) -> None:
@@ -72,9 +59,7 @@ class TestApplicationTableLoad:
 
 
 class TestApplicationTableBuildWikitable:
-    def test_build_wikitable_without_last_edit(
-        self, mock_row_1: MagicMock, mock_row_2: MagicMock
-    ) -> None:
+    def test_build_wikitable_without_last_edit(self, mock_row_1: MagicMock, mock_row_2: MagicMock) -> None:
         """Test rendering the MediaWiki table without the 'Last edit' column."""
         table = ApplicationTable(rows=[mock_row_1, mock_row_2])
 
@@ -82,7 +67,7 @@ class TestApplicationTableBuildWikitable:
 
         # Verify the structure of the rendered table
         assert result.startswith('{| class="wikitable sortable"')
-        assert result.endswith('|}')
+        assert result.endswith("|}")
 
         # Verify default headers are present
         assert "! Page" in result
@@ -114,9 +99,7 @@ class TestApplicationTableBuildWikitable:
 
 
 class TestApplicationTableAsRowDicts:
-    def test_as_row_dicts(
-        self, mock_row_1: MagicMock, mock_row_2: MagicMock
-    ) -> None:
+    def test_as_row_dicts(self, mock_row_1: MagicMock, mock_row_2: MagicMock) -> None:
         """Test that rows are converted to a mapping of full_title -> table_dict."""
         table = ApplicationTable(rows=[mock_row_1, mock_row_2], unknown="UnknownData")
 
@@ -124,16 +107,8 @@ class TestApplicationTableAsRowDicts:
 
         # Verify the resulting dictionary structure
         expected_result = {
-            "User:Alice/Application": {
-                "Page": "User:Alice/Application",
-                "User": "Alice",
-                "Country": "Wonderland"
-            },
-            "User:Bob/Application": {
-                "Page": "User:Bob/Application",
-                "User": "Bob",
-                "Country": "Builderland"
-            }
+            "User:Alice/Application": {"Page": "User:Alice/Application", "User": "Alice", "Country": "Wonderland"},
+            "User:Bob/Application": {"Page": "User:Bob/Application", "User": "Bob", "Country": "Builderland"},
         }
         assert result == expected_result
 

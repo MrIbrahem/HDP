@@ -75,18 +75,19 @@ def _client(site: MagicMock | None = None) -> tuple[WikiClient, MagicMock]:
 # WikiClientLoader — batch_size
 # ===========================================================================
 
+
 @pytest.fixture
 def mock_site():
     """
     Create a mock Site object with default basic rights.
     """
     site = MagicMock()
-    site.rights = ['read', 'edit']
+    site.rights = ["read", "edit"]
     return site
 
 
 class TestBatchSize:
-    """Tests for WikiClientLoader _batch_size/batch_size/_detect_batch_size """
+    """Tests for WikiClientLoader _batch_size/batch_size/_detect_batch_size"""
 
     def test_explicit_batch_size(self, mock_site):
         """
@@ -102,7 +103,7 @@ class TestBatchSize:
         Test auto-detection when the user has the 'apihighlimits' right.
         """
         # Inject the required right into the mock site
-        mock_site.rights = ['apihighlimits', 'read', 'edit']
+        mock_site.rights = ["apihighlimits", "read", "edit"]
         loader = WikiClientLoader(mock_site)
 
         # Should detect and use HIGH_LIMIT_BATCH_SIZE (100)
@@ -114,7 +115,7 @@ class TestBatchSize:
         Test auto-detection when the user lacks the 'apihighlimits' right.
         """
         # Ensure the required right is missing
-        mock_site.rights = ['read', 'edit']
+        mock_site.rights = ["read", "edit"]
         loader = WikiClientLoader(mock_site)
 
         # Should fallback to DEFAULT_BATCH_SIZE (50)
@@ -128,7 +129,7 @@ class TestBatchSize:
         loader = WikiClientLoader(mock_site)
 
         # Patch the internal detection method to track its calls
-        with patch.object(loader, '_detect_batch_size', return_value=99) as mock_detect:
+        with patch.object(loader, "_detect_batch_size", return_value=99) as mock_detect:
             # First access should trigger the detection method
             first_call_result = loader.batch_size
             assert first_call_result == 99
@@ -139,6 +140,8 @@ class TestBatchSize:
             assert second_call_result == 99
             # The call count should remain 1, proving it was cached
             assert mock_detect.call_count == 1
+
+
 # ===========================================================================
 # WikiClientLoader — page content
 # ===========================================================================

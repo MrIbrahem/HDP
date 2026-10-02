@@ -5,21 +5,23 @@ Classes to test: UserInfo
 Functions to test: calculate_age_new, calculate_age
 """
 
-import pytest
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
-from datetime import datetime, UTC, timedelta
+
+import pytest
 
 # Adjust this import based on your actual file name
 from src.models.user_info import (
-    calculate_age_new,
-    calculate_age,
-    _as_optional_int,
     UserInfo,
+    _as_optional_int,
+    calculate_age,
+    calculate_age_new,
 )
 
 # ---------------------------------------------------------------------------
 # Fixtures (Applying patch-to-fixture pattern)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def mock_logger(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -31,9 +33,11 @@ def mock_logger(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     monkeypatch.setattr("src.models.user_info.logger", _mock)
     return _mock
 
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestCalculateAgeNew:
     def test_empty_registration_returns_empty_string(self) -> None:
@@ -91,6 +95,7 @@ class TestCalculateAgeNew:
         registration_str = (today - registration).isoformat()
         assert calculate_age_new(registration_str, today=today.isoformat()) == "1d"
 
+
 class TestCalculateAge:
     def test_empty_registration_returns_empty_string(self) -> None:
         """Test that an empty string returns an empty result."""
@@ -101,9 +106,7 @@ class TestCalculateAge:
         result = calculate_age("2008-07-24T01:18:05Z")
         assert result == "{{age in years and months|2008|07|24}}"
 
-    def test_invalid_registration_logs_error_and_returns_fallback(
-        self, mock_logger: MagicMock
-    ) -> None:
+    def test_invalid_registration_logs_error_and_returns_fallback(self, mock_logger: MagicMock) -> None:
         """Test that invalid date strings log an error and return the original raw string."""
         invalid_date = "invalid-date-format"
         result = calculate_age(invalid_date)
@@ -166,12 +169,7 @@ class TestUserInfo:
 
     def test_editcount_strs_formatting(self) -> None:
         """Test that edit counts are properly formatted with thousand separators."""
-        user = UserInfo(
-            username="Test",
-            global_editcount=1000000,
-            recent_editcount=5000,
-            wikidata_count=1234
-        )
+        user = UserInfo(username="Test", global_editcount=1000000, recent_editcount=5000, wikidata_count=1234)
         assert user.global_editcount_str == "1,000,000"
         assert user.recent_editcount_str == "5,000"
         assert user.wikidata_editcount_str == "1,234"
@@ -180,18 +178,9 @@ class TestUserInfo:
         """Test updating a UserInfo instance with a dictionary of new metrics."""
         user = UserInfo(username="TestUser")
 
-        globaluser_data = {
-            "home": "frwiki",
-            "registration": "2020-01-01T00:00:00Z",
-            "editcount": "500"
-        }
+        globaluser_data = {"home": "frwiki", "registration": "2020-01-01T00:00:00Z", "editcount": "500"}
 
-        user.update(
-            globaluser_data=globaluser_data,
-            recent_editcount=50,
-            wikidata_count=10,
-            last_edit="2023-10-01"
-        )
+        user.update(globaluser_data=globaluser_data, recent_editcount=50, wikidata_count=10, last_edit="2023-10-01")
 
         assert user.home_wiki == "frwiki"
         assert user.registration == "2020-01-01T00:00:00Z"
@@ -209,7 +198,7 @@ class TestUserInfo:
             global_editcount=2500,
             recent_editcount=10,
             wikidata_count=0,
-            last_edit="2023-01-01"
+            last_edit="2023-01-01",
         )
 
         table_dict = user.to_table_dict(unknown="N/A")

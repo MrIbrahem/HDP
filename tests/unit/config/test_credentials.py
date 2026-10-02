@@ -4,14 +4,17 @@ Unit tests for src/config/credentials.py module.
 Classes to test: Credentials
 """
 
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
+
 from src.config.credentials import Credentials
 
 # ---------------------------------------------------------------------------
 # Fixtures (Applying patch-to-fixture pattern)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def mock_load_dotenv(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -27,6 +30,7 @@ def mock_load_dotenv(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestCredentialsBool:
     def test_bool_true_when_both_present(self) -> None:
@@ -51,9 +55,7 @@ class TestCredentialsBool:
 
 
 class TestCredentialsFromEnv:
-    def test_from_env_success_without_file(
-        self, mock_load_dotenv: MagicMock, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_from_env_success_without_file(self, mock_load_dotenv: MagicMock, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test successful credential loading when environment variables are set."""
         monkeypatch.setenv("WIKIPEDIA_BOT_USERNAME", "test_user")
         monkeypatch.setenv("WIKIPEDIA_BOT_PASSWORD", "test_pass")
@@ -66,9 +68,7 @@ class TestCredentialsFromEnv:
         # Ensure load_dotenv was called without arguments
         mock_load_dotenv.assert_called_once_with()
 
-    def test_from_env_with_custom_env_file(
-        self, mock_load_dotenv: MagicMock, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_from_env_with_custom_env_file(self, mock_load_dotenv: MagicMock, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test that a custom env_file path is correctly passed to load_dotenv."""
         monkeypatch.setenv("WIKIPEDIA_BOT_USERNAME", "test_user")
         monkeypatch.setenv("WIKIPEDIA_BOT_PASSWORD", "test_pass")
@@ -97,9 +97,7 @@ class TestCredentialsFromEnv:
 
         assert Credentials.from_env() is None
 
-    def test_from_env_strips_whitespace(
-        self, mock_load_dotenv: MagicMock, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_from_env_strips_whitespace(self, mock_load_dotenv: MagicMock, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test that whitespace is correctly stripped from the environment variables."""
         monkeypatch.setenv("WIKIPEDIA_BOT_USERNAME", "  test_user  ")
         monkeypatch.setenv("WIKIPEDIA_BOT_PASSWORD", " test_pass\n ")

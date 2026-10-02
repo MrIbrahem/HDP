@@ -145,10 +145,15 @@ class TestBuildParser:
         args = cli._build_parser().parse_args(
             [
                 "generate",
-                "--page", "User:X/y",
-                "--output", "out.wiki",
-                "--unknown", "N/A",
-                "--sections", "Alpha", "Category:Beta",
+                "--page",
+                "User:X/y",
+                "--output",
+                "out.wiki",
+                "--unknown",
+                "N/A",
+                "--sections",
+                "Alpha",
+                "Category:Beta",
                 "--offline",
                 "--no-recent",
                 "--last-edits",
@@ -183,11 +188,15 @@ class TestBuildParser:
         args = cli._build_parser().parse_args(
             [
                 "update",
-                "--page", "User:Other/page",
-                "--output", "o.wiki",
-                "--unknown", "?",
+                "--page",
+                "User:Other/page",
+                "--output",
+                "o.wiki",
+                "--unknown",
+                "?",
                 "--test",
-                "--sections", "One",
+                "--sections",
+                "One",
                 "--offline",
             ]
         )
@@ -413,14 +422,10 @@ class TestCmdUpdate:
 
 class TestRunIntegration:
     def test_generate_full_flow(self, cli, mock_settings, mock_deps):
-        code = cli.run(
-            ["generate", "--page", "User:P", "--sections", "A", "--output", "x.wiki", "--unknown", "?"]
-        )
+        code = cli.run(["generate", "--page", "User:P", "--sections", "A", "--output", "x.wiki", "--unknown", "?"])
 
         assert code == 0
-        mock_deps.service.generate.assert_called_once_with(
-            page_title="User:P", section_names=["A"], unknown="?"
-        )
+        mock_deps.service.generate.assert_called_once_with(page_title="User:P", section_names=["A"], unknown="?")
         mock_settings.write_to_cache_dir.assert_called_once_with("x.wiki", "generated text")
 
     def test_update_test_flag_full_flow(self, cli, mock_settings, mock_deps):

@@ -139,7 +139,6 @@ class UserInfo:
         data["wikidata_editcount_str"] = self.wikidata_editcount_str
         return data
 
-
     @property
     def user_link(self) -> str:
         return f"[[User:{self.username}]]" if self.username else None
