@@ -21,23 +21,24 @@ def mock_sleep(monkeypatch):
     monkeypatch.setattr("src.xtools.client.time.sleep", m)
     return m
 
-@pytest.mark.network
-def test_get_recent_editcount() -> None:
-    start_s, end_s = XToolsClient.load_dates()
-    result = XToolsClient().recent_editcount_by_day("Arpitha05", start_s, end_s)
-    assert result == {}
+class TestRealNetwork:
+    @pytest.mark.network
+    def test_get_recent_editcount(self) -> None:
+        start_s, end_s = XToolsClient.load_dates()
+        result = XToolsClient().recent_editcount_by_day("Arpitha05", start_s, end_s)
+        assert result == {}
 
 
-@pytest.mark.network
-def test_get_recent_editcount_m() -> None:
-    result = XToolsClient().recent_editcount_by_day("Mr. Ibrahem", "2026-05-10", "2026-05-12")
-    assert result == {"2026-05-10": 6}
+    @pytest.mark.network
+    def test_get_recent_editcount_m(self) -> None:
+        result = XToolsClient().recent_editcount_by_day("Mr. Ibrahem", "2026-05-10", "2026-05-12")
+        assert result == {"2026-05-10": 6}
 
 
-@pytest.mark.network
-def test_last_edit_timestamp() -> None:
-    result = XToolsClient().last_edit_timestamp("Mr. Ibrahem")
-    assert result == "2026-10-02"
+    @pytest.mark.network
+    def test_last_edit_timestamp(self) -> None:
+        result = XToolsClient().last_edit_timestamp("Mr. Ibrahem")
+        assert result == "2026-10-02"
 
 
 # ---------------------------------------------------------------------------
