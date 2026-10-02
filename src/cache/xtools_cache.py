@@ -80,7 +80,6 @@ class XtoolsRecentEditCache:
     def _sum_in_range(user_counts: dict[str, Any], start: str, end: str) -> int:
         return sum(count for day, count in user_counts.items() if isinstance(count, int) and start <= day <= end)
 
-
     # -- mutations -------------------------------------------------------
 
     def merge(

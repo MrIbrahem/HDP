@@ -63,13 +63,11 @@ class HdpService:
 
         self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
 
-        if recent_provider is None:
-            recent_provider = RecentEditCountsProvider(
-                client=self.xtools,
-                cache=recent_cache or XtoolsRecentEditCache(self.settings.edit_counts_cache_path),
-                recent_days=self.settings.recent_days,
-            )
-        self.recent_provider = recent_provider
+        self.recent_provider = recent_provider or RecentEditCountsProvider(
+            client=self.xtools,
+            cache=recent_cache or XtoolsRecentEditCache(self.settings.edit_counts_cache_path),
+            recent_days=self.settings.recent_days,
+        )
 
     def set_args(self, args: argparse.Namespace) -> None:
         self.offline = args.offline
