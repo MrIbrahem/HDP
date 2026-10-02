@@ -73,9 +73,13 @@ class XtoolsRecentEditCache:
 
     def sum_in_range(self, username: str, start: str, end: str) -> int:
         """Sum the stored counts for days within [start, end] (ISO strings, inclusive)."""
-        return sum(
-            count for day, count in self.get_counts(username).items() if isinstance(count, int) and start <= day <= end
-        )
+        user_counts = self.get_counts(username)
+        return self._sum_in_range(user_counts, start, end)
+
+    @staticmethod
+    def _sum_in_range(user_counts: dict[str, Any], start: str, end: str) -> int:
+        return sum(count for day, count in user_counts.items() if isinstance(count, int) and start <= day <= end)
+
 
     # -- mutations -------------------------------------------------------
 
