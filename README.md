@@ -313,7 +313,8 @@ pytest tests/ -q
 pytest tests/ -m network
 
 # Coverage report for src/
-pytest tests/unit/src --cov=src
+pytest tests/unit/config --cov=src/config
+pytest tests/unit/cli --cov=src/cli
 pytest tests/unit/cache --cov=src/cache
 pytest tests/unit/wiki --cov=src/wiki
 pytest tests/unit/models --cov=src/models
