@@ -43,20 +43,10 @@ class ApplicationTable:
         Render a fresh MediaWiki table from rows.
         """
         hr_heads = [
-            "Page",
-            "Last edited to application",
-            "User",
-            "Country",
-            # "Global edits",
-            "Global edits without wikidata",
-            "Wikidata edits",
-            "Edits in last 3 months",
-            "Wikidata edits in last 3 months",
-            "Age of account",
-            "Home Wiki",
-            "Last edit" if add_last_edit else "",
-            "Approved",
-        ]
+            header
+            for header in TABLE_HEADERS_TO_ROW_KEY
+            if header != "Global edits" and (header != "Last edit" or add_last_edit)
+        ] + ["Approved"]
 
         lines = ['{| class="wikitable sortable"']
 
