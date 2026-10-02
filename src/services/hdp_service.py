@@ -13,8 +13,9 @@ import argparse
 import logging
 from collections.abc import Sequence
 
-from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
+from ..config import Settings
 from ..models import (
+    TABLE_HEADERS_TO_ROW_KEY,
     ApplicationRow,
     ApplicationTable,
 )

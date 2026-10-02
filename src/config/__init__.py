@@ -8,7 +8,6 @@ from .constants import (
     DEFAULT_USERS_REDIRECTS,
     RECENT_DAYS,
     SECTION_TO_CATEGORY,
-    TABLE_HEADERS_TO_ROW_KEY,
     USER_AGENT,
     XTOOLS_GLOBALCONTRIBS_URL,
 )
@@ -26,7 +25,6 @@ __all__ = [
     "USER_AGENT",
     "Credentials",
     "Settings",
-    "TABLE_HEADERS_TO_ROW_KEY",
     "DEFAULT_USERS_REDIRECTS",
     "BASE_PAGE",
     "SECTION_TO_CATEGORY",

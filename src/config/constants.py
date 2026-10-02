@@ -9,25 +9,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Header ↔ row-key mapping used when updating existing wikitables
-# ---------------------------------------------------------------------------
-
-TABLE_HEADERS_TO_ROW_KEY: dict[str, str] = {
-    "Page": "page_link",
-    "Last edited to application": "last_update",
-    "User": "user_link",
-    "Country": "country",
-    "Global edits": "global_editcount_str",
-    "Global edits without wikidata": "global_without_wikidata_str",
-    "Wikidata edits": "wikidata_editcount_str",
-    "Edits in last 3 months": "recent_editcount_str",
-    "Wikidata edits in last 3 months": "recent_wikidata_editcount_str",
-    "Age of account": "age",
-    "Home Wiki": "home_wiki",
-    "Last edit": "last_edit",
-}
-
-# ---------------------------------------------------------------------------
 # Constants (rarely overridden)
 # ---------------------------------------------------------------------------
 
@@ -69,7 +50,6 @@ __all__ = [
     "XTOOLS_GLOBALCONTRIBS_URL",
     "SECTION_TO_CATEGORY",
     "BASE_PAGE",
-    "TABLE_HEADERS_TO_ROW_KEY",
     "DEFAULT_SECTION_NAMES",
     "DEFAULT_USERS_REDIRECTS",
     "RECENT_DAYS",

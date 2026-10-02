@@ -470,7 +470,7 @@ class TestUpdate:
 
         header_map = mock_updater.update_wikitable_data.call_args[1]["table_headers_to_row_key"]
         # Only assert if the key exists in TABLE_HEADERS_TO_ROW_KEY
-        from src.config import TABLE_HEADERS_TO_ROW_KEY
+        from src.models import TABLE_HEADERS_TO_ROW_KEY
 
         if "Last edited to application" in TABLE_HEADERS_TO_ROW_KEY:
             assert "Last edited to application" in header_map
