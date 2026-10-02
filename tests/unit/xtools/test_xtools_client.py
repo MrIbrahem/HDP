@@ -282,19 +282,30 @@ class TestRecentEditcounts:
 
 
 # ===========================================================================
-# get_wikidata_recent_editcount
+# get_project_recent_editcount / get_wikidata_recent_editcount
 # ===========================================================================
 
 
-class TestGetWikidataRecentEditcount:
+class TestGetProjectRecentEditcount:
     @patch("src.xtools.client.requests.get")
     def test_returns_live_edit_count(self, mock_get):
         mock_get.return_value = _ok_response({"live_edit_count": 105})
         client = _client()
 
-        count = client.get_wikidata_recent_editcount("Mr. Ibrahem", "2026-08-15", "2026-10-01")
+        count = client.get_project_recent_editcount("Mr. Ibrahem", "www.wikidata.org", "2026-08-15", "2026-10-01")
 
         assert count == 105
+        url = mock_get.call_args[0][0]
+        assert "simple_editcount/www.wikidata.org/Mr.%20Ibrahem/all/2026-08-15/2026-10-01/true" in url
+
+    @patch("src.xtools.client.requests.get")
+    def test_convenience_wrapper_calls_get_project_recent_editcount(self, mock_get):
+        mock_get.return_value = _ok_response({"live_edit_count": 42})
+        client = _client()
+
+        count = client.get_wikidata_recent_editcount("Mr. Ibrahem", "2026-08-15", "2026-10-01")
+
+        assert count == 42
         url = mock_get.call_args[0][0]
         assert "simple_editcount/www.wikidata.org/Mr.%20Ibrahem/all/2026-08-15/2026-10-01/true" in url
 
@@ -305,7 +316,7 @@ class TestGetWikidataRecentEditcount:
         mock_get.return_value = resp
         client = _client()
 
-        assert client.get_wikidata_recent_editcount("GhostUser", "2026-08-15", "2026-10-01") == 0
+        assert client.get_project_recent_editcount("GhostUser", "www.wikidata.org", "2026-08-15", "2026-10-01") == 0
 
 
 # ===========================================================================

@@ -211,21 +211,22 @@ class XToolsClient:
     # Recent Wikidata edits
     # ------------------------------------------------------------------
 
-    def get_wikidata_recent_editcount(
+    def get_project_recent_editcount(
         self,
         username: str,
+        project: str = "www.wikidata.org",
         start: str | None = None,
         end: str | None = None,
         recent_days: int = RECENT_DAYS,
     ) -> int | None:
         """
-        Fetch recent Wikidata edit count using XTools simple_editcount API endpoint.
+        Fetch recent project edit count using XTools simple_editcount API endpoint.
         """
         if not start or not end:
             start, end = self.load_dates(recent_days)
 
         encoded = quote(username)
-        url = f"https://xtools.wmcloud.org/api/user/simple_editcount/www.wikidata.org/{encoded}/all/{start}/{end}/true"
+        url = f"https://xtools.wmcloud.org/api/user/simple_editcount/{project}/{encoded}/all/{start}/{end}/true"
 
         try:
             response = requests.get(
@@ -234,13 +235,13 @@ class XToolsClient:
                 timeout=self._timeout,
             )
             if "The requested user does not exist" in response.text:
-                logger.debug("User %s does not exist on Wikidata", username)
+                logger.debug("User %s does not exist on %s", username, project)
                 return 0
 
             response.raise_for_status()
             data = response.json()
             if "error" in data or ("status" in data and isinstance(data.get("status"), int) and data.get("status") >= 400):
-                logger.warning("XTools simple_editcount error for %s: %s", username, data)
+                logger.warning("XTools simple_editcount error for %s on %s: %s", username, project, data)
                 return None
 
             live_count = data.get("live_edit_count")
@@ -248,8 +249,26 @@ class XToolsClient:
                 return int(live_count)
             return None
         except (requests.RequestException, ValueError, TypeError) as e:
-            logger.error("XTools simple_editcount failed for %s: %s", username, e)
+            logger.error("XTools simple_editcount failed for %s on %s: %s", username, project, e)
             return None
+
+    def get_wikidata_recent_editcount(
+        self,
+        username: str,
+        start: str | None = None,
+        end: str | None = None,
+        recent_days: int = RECENT_DAYS,
+    ) -> int | None:
+        """
+        Convenience wrapper for get_project_recent_editcount for Wikidata.
+        """
+        return self.get_project_recent_editcount(
+            username=username,
+            project="www.wikidata.org",
+            start=start,
+            end=end,
+            recent_days=recent_days,
+        )
 
     def get_wikidata_recent_editcounts(
         self,
@@ -264,7 +283,7 @@ class XToolsClient:
         logger.info("Fetching Wikidata recent edits for %s users", len(users))
 
         for username in tqdm(users, desc="Fetching Wikidata recent edits", unit="user", disable=TQDM_DISABLE):
-            count = self.get_wikidata_recent_editcount(username, start, end)
+            count = self.get_project_recent_editcount(username, project="www.wikidata.org", start=start, end=end)
             if count is not None:
                 results[username] = count
             time.sleep(self._request_delay)
