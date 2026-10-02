@@ -102,9 +102,7 @@ class TestSave:
     def test_writes_data_to_disk(self, cache, cache_path):
         cache.merge("User", {"2026-01-02": 5}, "2026-01-01", "2026-01-03")
         cache.save()
-        assert read_json(cache_path) == {
-            "User": {"2026-01-01": 0, "2026-01-02": 5, "2026-01-03": 0}
-        }
+        assert read_json(cache_path) == {"User": {"2026-01-01": 0, "2026-01-02": 5, "2026-01-03": 0}}
 
     def test_roundtrip(self, cache, cache_path):
         cache.merge("User", {"2026-01-02": 5}, "2026-01-01", "2026-01-03")

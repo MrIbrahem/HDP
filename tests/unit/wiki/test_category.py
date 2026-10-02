@@ -346,6 +346,7 @@ class TestMemberTitlesMaxItems:
         assert service.member_titles("X", max_items=0) == []
         site.get.assert_not_called()
 
+
 # ---------------------------------------------------------------------------
 # member_titles: error handling
 # ---------------------------------------------------------------------------
@@ -455,6 +456,7 @@ class TestMemberTitlesErrors:
         site.get.side_effect = api_error()
         assert service.member_titles("X") == []
 
+
 # ---------------------------------------------------------------------------
 # EdgeCases
 # ---------------------------------------------------------------------------
@@ -468,7 +470,6 @@ class TestEdgeCases:
         )"""
         site.get.return_value = members_response(["A", "B", "C"], cmcontinue="t1")
         assert service.member_titles("X", max_items=2) == ["A", "B"]
-
 
     def test_first_request_error_is_retried(self, service: CategoryService, site):
         """@pytest.mark.xfail(

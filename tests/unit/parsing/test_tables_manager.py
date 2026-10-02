@@ -7,6 +7,7 @@ import wikitextparser as wtp
 
 from src.parsing.tables_manager import WikiTableColumnManager
 
+
 def ensure_column_in_wikitext(
     text: str,
     col_name: str,
