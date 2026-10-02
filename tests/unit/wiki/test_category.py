@@ -461,22 +461,28 @@ class TestMemberTitlesErrors:
 
 
 class TestEdgeCases:
-    @pytest.mark.xfail(
+    """@pytest.mark.xfail(
         reason="member_titles may return more than max_items when a page overshoots it",
         strict=False,
-    )
+    )"""
     def test_result_is_truncated_to_max_items(self, service, site):
         site.get.return_value = members_response(["A", "B", "C"], cmcontinue="t1")
         assert service.member_titles("X", max_items=2) == ["A", "B"]
 
 
-    @pytest.mark.xfail(
+    """@pytest.mark.xfail(
         reason=(
             "The loop condition is `first or cmcontinue is not None`; after a failure on the "
             "very first request `first` is False and cmcontinue is None, so no retry happens"
         ),
         strict=False,
-    )
+    )"""
     def test_first_request_error_is_retried(self, service, site):
         site.get.side_effect = [api_error(), members_response(["A"])]
         assert service.member_titles("X") == ["A"]
+
+    def test_first_request_gives_up_after_max_backoff(self, service, site, mock_sleep):
+        site.get.side_effect = api_error()
+        assert service.member_titles("X") == []
+        assert site.get.call_count == 8
+        assert sleep_values(mock_sleep) == pytest.approx([0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4])

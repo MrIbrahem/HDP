@@ -308,6 +308,6 @@ class TestNormalizeAndResolve:
     def test_accepts_tuple(self, resolver):
         assert resolver.normalize_and_resolve(("alice",)) == ["Alice"]
 
-    def test_sends_normalised_names_to_wiki(self, resolver, wiki_client):
+    def test_sends_normalised_names_to_wiki(self, resolver: UserResolver, wiki_client):
         resolver.normalize_and_resolve(["alice", "bob_smith"])
         wiki_client.solve_pages_redirects.assert_called_once_with(["User:Alice", "User:Bob smith"])
