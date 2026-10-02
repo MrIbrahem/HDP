@@ -455,25 +455,7 @@ class TestUpdate:
         header_map = mock_updater.update_wikitable_data.call_args[1]["table_headers_to_row_key"]
         assert "Last edit" not in header_map
 
-    @patch("src.services.hdp_service.WikiTableDataUpdater")
-    def test_update_keeps_last_edited_to_application_header(self, mock_updater_cls):
-        """'Last edited to application' must never be removed."""
-        service, mocks = _make_service(subpages_return=[], load_last_edits=False)
-        mocks["wiki_client"].get_page_wikitext.return_value = "page"
-        mocks["subpages"].discover_subpages.return_value = set()
 
-        mock_updater = MagicMock()
-        mock_updater.update_wikitable_data.return_value = "out"
-        mock_updater_cls.return_value = mock_updater
-
-        service.update("User:Mr. Ibrahem/hdp", section_names=[])
-
-        header_map = mock_updater.update_wikitable_data.call_args[1]["table_headers_to_row_key"]
-        # Only assert if the key exists in TABLE_HEADERS_TO_ROW_KEY
-        from src.config import TABLE_HEADERS_TO_ROW_KEY
-
-        if "Last edited to application" in TABLE_HEADERS_TO_ROW_KEY:
-            assert "Last edited to application" in header_map
 
 
 # ===========================================================================

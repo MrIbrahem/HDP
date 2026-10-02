@@ -13,7 +13,7 @@ import argparse
 import logging
 from collections.abc import Sequence
 
-from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
+from ..config import Settings
 from ..models import (
     ApplicationRow,
     ApplicationTable,
@@ -290,7 +290,7 @@ class HdpService:
 
         table = self.load_rows(subpages, unknown=unknown)
 
-        header_map = dict(TABLE_HEADERS_TO_ROW_KEY)
+        header_map = dict(table.headers_to_row_keys)
         if not self.load_last_edits:
             header_map.pop("Last edit", None)
 
