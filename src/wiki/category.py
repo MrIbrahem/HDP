@@ -131,6 +131,8 @@ class CategoryService:
                     if not cmcontinue:
                         break
 
+                    time.sleep(delay)
+
                 except mwclient.errors.APIError as e:
                     if e.code == "invalidcategory":
                         logger.warning("Invalid category: %s", category_name)
