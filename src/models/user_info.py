@@ -35,7 +35,7 @@ def calculate_age(registration: str) -> str:
         # Replace UTC "Z" with an explicit offset for fromisoformat().
         reg_date = datetime.fromisoformat(registration.replace("Z", "+00:00"))
     except ValueError:
-        logger.warning("Invalid registration date: %s", registration)
+        logger.error("Invalid registration date: %s", registration)
         return registration
 
     return (
@@ -150,7 +150,7 @@ class UserInfo:
     def update(
         self,
         *,
-        globaluser_data: Mapping[str, Any],
+        globaluser_data: Mapping[str, Any] | None = None,
         global_editcount: int | None = None,
         recent_editcount: int | None = None,
         recent_wikidata_editcount: int | None = None,
@@ -163,18 +163,20 @@ class UserInfo:
         Only values explicitly supplied or available in ``globaluser_data``
         are used to update the corresponding fields.
         """
-        home_wiki = str(globaluser_data.get("home") or "")
+        data = globaluser_data or {}
+
+        home_wiki = str(data.get("home") or "")
         if home_wiki:
             self.home_wiki = home_wiki
 
-        registration = str(globaluser_data.get("registration") or "")
+        registration = str(data.get("registration") or "")
         if registration:
             self.registration = registration
 
         # NOTE: Use "is None" instead of "or" so that a valid count of 0
         # is not accidentally ignored.
         if global_editcount is None:
-            global_editcount = globaluser_data.get("editcount")
+            global_editcount = data.get("editcount")
 
         if global_editcount is not None:
             parsed_global_editcount = _as_optional_int(global_editcount)
