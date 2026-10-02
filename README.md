@@ -311,6 +311,16 @@ pytest tests/ -q
 
 # Include live XTools / Meta API tests
 pytest tests/ -m network
+
+# Coverage report for src/
+pytest tests/unit/src --cov=src
+pytest tests/unit/cache --cov=src/cache
+pytest tests/unit/wiki --cov=src/wiki
+pytest tests/unit/models --cov=src/models
+pytest tests/unit/parsing --cov=src/parsing
+pytest tests/unit/services --cov=src/services
+pytest tests/unit/xtools --cov=src/xtools
+
 ```
 
 Markers:
