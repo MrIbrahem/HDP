@@ -54,7 +54,6 @@ def _make_service(
     category = MagicMock()
     users = MagicMock()
     home_wiki_provider = MagicMock()
-    recent_cache = MagicMock()
     xtools = MagicMock()
     subpages_svc = MagicMock()
     recent_provider = MagicMock()
@@ -72,7 +71,6 @@ def _make_service(
     wd_client.get_editcounts.return_value = {"Alice": 50}
 
     home_wiki_provider.get_many.return_value = {}
-    recent_cache.get_many.return_value = {}
     xtools.get_last_edit_timestamps.return_value = {}
 
     if subpages_return is not None:
@@ -82,13 +80,12 @@ def _make_service(
     recent_provider.get_many.return_value = {}
 
     service = HdpService(
-        wiki=wiki,
+        wiki_client=wiki,
         wd_client=wd_client,
         settings=settings,
         category=category,
         users=users,
         home_wiki_provider=home_wiki_provider,
-        recent_cache=recent_cache,
         xtools=xtools,
         offline=offline,
         recent_provider=recent_provider,
@@ -107,7 +104,6 @@ def _make_service(
         "category": category,
         "users": users,
         "home_wiki_provider": home_wiki_provider,
-        "recent_cache": recent_cache,
         "xtools": xtools,
         "subpages": subpages_svc,
         "recent_provider": recent_provider,
@@ -318,7 +314,7 @@ class TestLoadRows:
             "Alice": _sample_user_info("Alice"),
         }
         mocks["wiki"].get_global_editcounts.return_value = {"Alice": 1000}
-        mocks["recent_cache"].get_many.return_value = {"Alice": 42}
+        mocks["recent_provider"].get_many.return_value = {"Alice": 42}
         mocks["wiki"].get_pages_wikitext.return_value = {
             "Hardware donation program/Alice": "; country your from: Kenya\n"
         }

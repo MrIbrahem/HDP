@@ -13,7 +13,7 @@ import argparse
 import logging
 from collections.abc import Sequence
 
-from ..cache import HomeWikiCache, XtoolsRecentEditCache
+from ..cache import HomeWikiCache
 from ..config import TABLE_HEADERS_TO_ROW_KEY, Settings
 from ..models import (
     ApplicationRow,
@@ -38,37 +38,36 @@ class HdpService:
 
     def __init__(
         self,
-        wiki: WikiClient,
+        wiki_client: WikiClient,
         settings: Settings | None = None,
         wd_client: WikiClient | None = None,
         *,
         category: CategoryService | None = None,
         users: UserResolver | None = None,
         home_wiki_provider: HomeWikiProvider | None = None,
-        recent_cache: XtoolsRecentEditCache | None = None,
         recent_provider: RecentEditCountsProvider | None = None,
         xtools: XToolsClient | None = None,
         offline: bool = False,
     ) -> None:
         self.offline = offline
-        self.wiki = wiki
+        self.wiki = wiki_client
         self.wd_client = wd_client if wd_client is not None else WikiClient.load(host="www.wikidata.org")
         self.settings = settings if settings is not None else Settings.from_env()
-        self.category = category or CategoryService(wiki.site)
+        self.category = category or CategoryService(wiki_client.site)
 
-        self.users = users or UserResolver(wiki, self.settings.users_redirects)
+        self.users = users or UserResolver(wiki_client, self.settings.users_redirects)
         self.home_wiki_provider = home_wiki_provider or HomeWikiProvider(
-            cache=HomeWikiCache(self.settings.home_wiki_cache_path),
-            wiki=wiki,
+            settings=self.settings,
+            wiki_client=wiki_client,
+            cache_client=HomeWikiCache(self.settings.home_wiki_cache_path),
         )
-        self.subpages = SubPagesService(wiki, self.settings, category=self.category)
+        self.subpages = SubPagesService(wiki_client, self.settings, category=self.category)
 
         self.xtools = xtools or XToolsClient(user_agent=self.settings.user_agent)
 
         self.recent_provider = recent_provider or RecentEditCountsProvider(
-            client=self.xtools,
-            cache=recent_cache or XtoolsRecentEditCache(self.settings.edit_counts_cache_path),
-            recent_days=self.settings.recent_days,
+            settings=self.settings,
+            xtools_client=self.xtools,
         )
 
     def set_args(self, args: argparse.Namespace) -> None:
@@ -109,7 +108,7 @@ class HdpService:
             login=login,
             do_init=do_init,
         )
-        return cls(wiki=wiki, wd_client=wd_client, settings=settings)
+        return cls(wiki_client=wiki, wd_client=wd_client, settings=settings)
 
     # ------------------------------------------------------------------
     # Row building

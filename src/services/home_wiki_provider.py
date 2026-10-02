@@ -12,7 +12,7 @@ from typing import Any
 from tqdm import tqdm
 
 from ..cache import HomeWikiCache
-from ..config import TQDM_DISABLE
+from ..config import TQDM_DISABLE, Settings
 from ..wiki import WikiClient
 
 logger = logging.getLogger(__name__)
@@ -23,17 +23,19 @@ class HomeWikiProvider:
 
     def __init__(
         self,
-        cache: HomeWikiCache,
-        wiki: WikiClient,
+        wiki_client: WikiClient,
+        cache_client: HomeWikiCache | None = None,
         request_delay: float = 0.1,
+        settings: Settings | None = None,
     ) -> None:
-        self._cache = cache
-        self._wiki = wiki
+        self.settings = settings or Settings.from_env()
+        self.cache_client = cache_client or HomeWikiCache(self.settings.home_wiki_cache_path)
+        self.wiki_client = wiki_client
         self._request_delay = request_delay
 
     @property
     def _store(self) -> HomeWikiCache:
-        return self._cache._store
+        return self.cache_client._store
 
     def get_many(
         self,
@@ -51,12 +53,12 @@ class HomeWikiProvider:
         Returns:
             A dict mapping usernames to their info. Users whose lookup failed are omitted.
         """
-        self._cache.load()
+        self.cache_client.load()
 
         result: dict[str, Mapping[str, Any]] = {}
         remain: list[str] = []
         for username in users:
-            entry = self._cache.get(username)
+            entry = self.cache_client.get(username)
             if entry:
                 result[username] = entry
             else:
@@ -70,24 +72,24 @@ class HomeWikiProvider:
 
         new_count = 0
         for username in tqdm(remain, desc="Fetching home wiki", unit="user", disable=TQDM_DISABLE):
-            info = self._wiki.get_global_userinfo(username)
+            info = self.wiki_client.get_global_userinfo(username)
 
-            user_entry = self._cache.validate_user_entry(info, get_editcount=True)
+            user_entry = self.cache_client.validate_user_entry(info, get_editcount=True)
             if not user_entry:
                 logger.warning("Failed to fetch home wiki for %s", username)
                 continue
 
-            self._cache.set(username, user_entry)
+            self.cache_client.set(username, user_entry)
             result[username] = user_entry
             new_count += 1
 
             time.sleep(self._request_delay)
 
             if new_count % save_every == 0:
-                self._cache.save()
+                self.cache_client.save()
 
         if new_count:
-            self._cache.save()
+            self.cache_client.save()
 
         logger.info(
             "Home wiki cache: %s cached, %s fetched, all records: %s",

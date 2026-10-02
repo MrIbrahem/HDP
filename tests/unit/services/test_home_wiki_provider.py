@@ -25,7 +25,7 @@ def mock_sleep(monkeypatch):
 def make_provider(path, wiki) -> tuple[HomeWikiProvider, HomeWikiCache]:
     """Build a provider together with the cache it uses."""
     cache = HomeWikiCache(path)
-    return HomeWikiProvider(cache, wiki), cache
+    return HomeWikiProvider(wiki_client=wiki, cache_client=cache), cache
 
 
 # ---------------------------------------------------------------------------
@@ -180,7 +180,11 @@ class TestGetManyEdgeCases:
 
     def test_custom_request_delay_used(self, tmp_path, wiki, mock_sleep):
         wiki.get_global_userinfo.return_value = VALID
-        provider = HomeWikiProvider(HomeWikiCache(tmp_path / "c.json"), wiki, request_delay=0.5)
+        provider = HomeWikiProvider(
+            wiki_client=wiki,
+            cache_client=HomeWikiCache(tmp_path / "c.json"),
+            request_delay=0.5,
+        )
         provider.get_many(["A"])
         mock_sleep.assert_called_once_with(0.5)
 

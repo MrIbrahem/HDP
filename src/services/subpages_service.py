@@ -19,14 +19,14 @@ class SubPagesService:
 
     def __init__(
         self,
-        wiki: WikiClient,
+        wiki_client: WikiClient,
         settings: Settings,
         *,
         category: CategoryService | None = None,
     ) -> None:
-        self.wiki = wiki
+        self.wiki = wiki_client
         self.settings = settings
-        self.category = category or CategoryService(wiki.site)
+        self.category = category or CategoryService(wiki_client.site)
         self.extractor = LinkExtractor()
 
     # ------------------------------------------------------------------
