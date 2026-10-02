@@ -61,7 +61,7 @@ class TestUpdate:
         }
 
     def test_update_wikitable_data(self) -> None:
-        retult = update_table(
+        result = update_table(
             self.rows,
             self.wikitext,
             self.table_headers_to_row_key,
@@ -77,10 +77,10 @@ class TestUpdate:
             "|-\n"
             "|}"
         )
-        assert retult.strip() == expected_wikitext
+        assert result.strip() == expected_wikitext
 
     def test_update_wikitable_data_replace_values(self) -> None:
-        retult = update_table(
+        result = update_table(
             self.rows,
             self.wikitext,
             self.table_headers_to_row_key,
@@ -97,7 +97,7 @@ class TestUpdate:
             "|-\n"
             "|}"
         )
-        assert retult.strip() == expected_wikitext
+        assert result.strip() == expected_wikitext
 
 
 class TestUpdateWikitableDataEdgeCases:
@@ -431,9 +431,9 @@ class TestUpdateWikitableDataEdgeCases:
 
     def test_update_no_cells(self) -> None:
         wikitext = '{| class="wikitable sortable"\n|}'
-        retult = WikiTableDataUpdater().update_table(
+        result = WikiTableDataUpdater().update_table(
             wtp.Table(wikitext),
             {},
             {},
         )
-        assert retult is None
+        assert result is None

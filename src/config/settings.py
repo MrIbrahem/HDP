@@ -88,7 +88,7 @@ class Settings:
     def load(cls, cache_dir: Path | None = None) -> Settings:
         return cls(
             credentials=Credentials.load(),
-            cache_dir=cache_dir,
+            cache_dir=cache_dir or DEFAULT_CACHE_DIR,
         )
 
     @classmethod
