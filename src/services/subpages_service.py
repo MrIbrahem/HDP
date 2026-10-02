@@ -24,7 +24,7 @@ class SubPagesService:
         *,
         category_service: CategoryService | None = None,
     ) -> None:
-        self.wiki = wiki_client
+        self.wiki_client = wiki_client
         self.settings = settings
         self.category_service = category_service or CategoryService(wiki_client.site)
         self.extractor = LinkExtractor()
@@ -47,7 +47,7 @@ class SubPagesService:
         otherwise the page wikitext is parsed for links under that heading.
         """
         if not full_wikitext:
-            full_wikitext = self.wiki.get_page_wikitext(page_title)
+            full_wikitext = self.wiki_client.get_page_wikitext(page_title)
 
         found: set[str] = set()
 

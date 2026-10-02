@@ -29,7 +29,7 @@ class HomeWikiProvider:
         settings: Settings | None = None,
     ) -> None:
         self.settings = settings or Settings.from_env()
-        self.cache_client = cache_client or HomeWikiCache(self.settings.home_wiki_cache_path)
+        self.cache_client = cache_client or HomeWikiCache(path=self.settings.home_wiki_cache_path)
         self.wiki_client = wiki_client
         self._request_delay = request_delay
 
