@@ -34,7 +34,7 @@ class LinkExtractor:
     def extract_subpages(
         self,
         base_page: str,
-        section: Any,
+        section: wtp.WikiText | wtp.Section,
     ) -> list[str]:
         """
         Collect unique subpage names linked as ``BasePage/Sub`` inside

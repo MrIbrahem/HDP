@@ -7,13 +7,13 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def calculate_age_new(registration: str) -> str:
+def calculate_age_new(registration: str, today: date | None = None) -> str:
     """
     Turn a CentralAuth registration timestamp into a human-readable age string.
 
@@ -38,11 +38,13 @@ def calculate_age_new(registration: str) -> str:
     if registered.tzinfo is None:
         registered = registered.replace(tzinfo=UTC)
 
-    now = datetime.now(UTC)
-    if registered > now:
+    if today is None:
+        today = datetime.now(UTC)
+
+    if registered > today:
         return ""
 
-    delta = now - registered
+    delta = today - registered
     years = delta.days // 365
     months = (delta.days % 365) // 30
 
