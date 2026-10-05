@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping, Sequence
+import re
 
 from .client import WikiClient
 
@@ -41,9 +42,12 @@ class UserResolver:
         if not raw_name:
             return ""
 
-        raw_name = raw_name.replace("_", " ")
+        cleaned = raw_name.replace("_", " ")
+
         # Strip common application-page suffixes before lookup
-        cleaned = raw_name.replace("(2nd Application)", "").split("/")[0].strip()
+        cleaned = re.sub(r"\(\d\w+ Application\)", "", cleaned, flags=re.I)
+
+        cleaned = cleaned.split("/")[0].strip()
         resolved = self._static.get(cleaned.lower()) or cleaned
 
         # first letter upper (guard against empty username)
