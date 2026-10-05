@@ -287,6 +287,7 @@ class HdpService:
                 subpages,
                 unknown=unknown,
             )
+
             table_str = table.build_wikitable_template(self.load_last_edits)
 
             section_title = get_category_section_title(category)
