@@ -18,8 +18,8 @@ from ..models import (
     ApplicationRow,
     ApplicationTable,
 )
-from ..parsing import WikiTableDataUpdater
 from ..wiki import CategoryService, UserResolver, WikiClient
+from ..wtp_tables import WtpTableUpdater
 from ..xtools import XToolsClient
 from .home_wiki_provider import HomeWikiProvider
 from .recent_edits_provider import RecentEditCountsProvider
@@ -46,6 +46,7 @@ class HdpService:
         home_wiki_provider: HomeWikiProvider | None = None,
         recent_provider: RecentEditCountsProvider | None = None,
         xtools_client: XToolsClient | None = None,
+        updater: WtpTableUpdater | None = None,
         offline: bool = False,
     ) -> None:
         self.offline = offline
@@ -54,12 +55,18 @@ class HdpService:
         self.settings = settings if settings is not None else Settings.from_env()
         self.category_service = category_service or CategoryService(wiki_client.site)
 
-        self.users_resolver = users_resolver or UserResolver(wiki_client, self.settings.users_redirects)
+        self.users_resolver = users_resolver or UserResolver(
+            wiki_client,
+            self.settings.users_redirects,
+        )
         self.home_wiki_provider = home_wiki_provider or HomeWikiProvider(
-            wiki_client=wiki_client, settings=self.settings
+            wiki_client=wiki_client,
+            settings=self.settings,
         )
         self.subpages = SubPagesService(
-            wiki_client=wiki_client, settings=self.settings, category_service=self.category_service
+            wiki_client=wiki_client,
+            settings=self.settings,
+            category_service=self.category_service,
         )
 
         self.xtools_client = xtools_client or XToolsClient(user_agent=self.settings.user_agent)
@@ -68,6 +75,7 @@ class HdpService:
             settings=self.settings,
             xtools_client=self.xtools_client,
         )
+        self.updater = updater or WtpTableUpdater()
 
     def set_args(self, args: argparse.Namespace) -> None:
         self.offline = args.offline
@@ -294,8 +302,7 @@ class HdpService:
 
         row_dicts = table.as_row_dicts()
 
-        updater = WikiTableDataUpdater()
-        return updater.update_wikitable_data(
+        return self.updater.update_wikitable_data(
             rows=row_dicts,
             wikitext=full_wikitext,
             table_headers_to_row_key=header_map,

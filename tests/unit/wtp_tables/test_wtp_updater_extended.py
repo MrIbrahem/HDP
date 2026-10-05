@@ -1,5 +1,5 @@
 """
-Unit tests for src/parsing/tables_updater.py module.
+Unit tests for src/wtp_tables/wtp_updater.py module.
 """
 
 from typing import Any
@@ -7,8 +7,7 @@ from typing import Any
 import pytest
 import wikitextparser as wtp
 
-# from src.parsing.tables_updater import WikiTableDataUpdater
-from src.wtp_tables.wtp_updater import WtpTableUpdater as WikiTableDataUpdater
+from src.wtp_tables.wtp_updater import WtpTableUpdater
 
 
 def update_wikitable_data(
@@ -19,7 +18,7 @@ def update_wikitable_data(
     add_missing_headers: bool = True,
 ) -> str:
     """rows: list of rows data."""
-    manager = WikiTableDataUpdater()
+    manager = WtpTableUpdater()
 
     return manager.update_wikitable_data(
         rows=rows,
@@ -432,7 +431,7 @@ class TestUpdateWikitableDataEdgeCases:
 
     def test_update_no_cells(self) -> None:
         wikitext = '{| class="wikitable sortable"\n|}'
-        result = WikiTableDataUpdater().update_table(
+        result = WtpTableUpdater().update_table(
             wtp.Table(wikitext),
             {},
             {},

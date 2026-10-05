@@ -1,17 +1,13 @@
 """
-Unit tests for src/parsing/tables_updater.py module.
+Unit tests for src/wtp_tables/wtp_updater.py module.
 """
 
 from typing import Any
 
 import pytest
 
-from src.wtp_tables.wtp_manager import WtpTableManager as WikiTableColumnManager
-from src.wtp_tables.wtp_updater import WtpTableUpdater as WikiTableDataUpdater
-
-# from src.parsing.tables_manager import WikiTableColumnManager
-# from src.parsing.tables_updater import WikiTableDataUpdater
-
+from src.wtp_tables.wtp_manager import WtpTableManager
+from src.wtp_tables.wtp_updater import WtpTableUpdater
 
 def update_wikitable_data(
     rows: dict[str, Any],
@@ -22,8 +18,8 @@ def update_wikitable_data(
     span: bool = True,
 ) -> str:
     """rows: list of rows data."""
-    manager = WikiTableColumnManager(span)
-    updater = WikiTableDataUpdater(manager)
+    manager = WtpTableManager(span)
+    updater = WtpTableUpdater(manager)
 
     return updater.update_wikitable_data(
         rows=rows,
@@ -104,8 +100,8 @@ class TestUpdateWikitableDataSpans:
             "New Column": "new_column",
         }
 
-        manager = WikiTableColumnManager(True)
-        updater = WikiTableDataUpdater(manager)
+        manager = WtpTableManager(True)
+        updater = WtpTableUpdater(manager)
 
         result = updater.update_wikitable_data(
             rows=rows,

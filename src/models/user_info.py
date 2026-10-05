@@ -202,7 +202,7 @@ class UserInfo:
 
     def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
-        Return values expected by ``WikiTableDataUpdater`` and
+        Return values expected by ``WtpTableUpdater`` and
         ``ApplicationTable.build_wikitable``.
         """
         return {

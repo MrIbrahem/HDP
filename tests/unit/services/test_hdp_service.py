@@ -415,8 +415,7 @@ class TestGenerate:
 class TestUpdate:
     """Tests for HdpService.update."""
 
-    @patch("src.services.hdp_service.WikiTableDataUpdater")
-    def test_update_calls_updater_with_row_dicts(self, mock_updater_cls):
+    def test_update_calls_updater_with_row_dicts(self):
         service, mocks = _make_service(subpages_return=["Alice"])
         mocks["users_resolver"].normalize.return_value = "Alice"
         mocks["wiki_client"].get_page_wikitext.return_value = (
@@ -426,8 +425,8 @@ class TestUpdate:
 
         mock_updater = MagicMock()
         mock_updater.update_wikitable_data.return_value = "updated wikitext"
-        mock_updater_cls.return_value = mock_updater
 
+        service.updater = mock_updater
         result = service.update(
             "User:Mr. Ibrahem/hdp",
             section_names=["Category:Hardware donation program open requests"],
@@ -440,16 +439,15 @@ class TestUpdate:
         assert "table_headers_to_row_key" in call_kwargs
         assert call_kwargs["replace_values"] is True
 
-    @patch("src.services.hdp_service.WikiTableDataUpdater")
-    def test_update_pops_last_edit_header_when_disabled(self, mock_updater_cls):
+    def test_update_pops_last_edit_header_when_disabled(self):
         service, mocks = _make_service(subpages_return=[], load_last_edits=False)
         mocks["wiki_client"].get_page_wikitext.return_value = "page"
         mocks["subpages"].discover_subpages.return_value = set()
 
         mock_updater = MagicMock()
         mock_updater.update_wikitable_data.return_value = "out"
-        mock_updater_cls.return_value = mock_updater
 
+        service.updater = mock_updater
         service.update("User:Mr. Ibrahem/hdp", section_names=[])
 
         header_map = mock_updater.update_wikitable_data.call_args[1]["table_headers_to_row_key"]

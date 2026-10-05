@@ -129,7 +129,7 @@ class ApplicationRow:
 
     def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
-        Dict of header-key → cell value expected by ``WikiTableDataUpdater``
+        Dict of header-key → cell value expected by ``WtpTableUpdater``
         and ``ApplicationTable.build_wikitable``.
         """
         data = {
