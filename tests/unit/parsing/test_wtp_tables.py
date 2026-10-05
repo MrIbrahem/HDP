@@ -60,7 +60,8 @@ class TestWTP:
 
         cell2 = table.cells(row=1, column=5, span=True)
         assert cell2 is not None
-        assert cell2.string == '\n!Global'
+        assert cell2.string == "\n!Global"
+
 
 class TestWikiTableColumnManager:
     """Tests for WikiTableColumnManager class methods."""

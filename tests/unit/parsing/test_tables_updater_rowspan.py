@@ -30,6 +30,7 @@ def update_table(
         add_missing_headers=add_missing_headers,
     )
 
+
 class TestUpdateWikitableDataSpans:
 
     @pytest.fixture(autouse=True)
@@ -74,7 +75,6 @@ class TestUpdateWikitableDataSpans:
 
         expected = '{| class="wikitable sortable"\n! Category !! Page !! Age of account !! Home Wiki !! Approved\n|-\n| rowspan="2" | Category A !! [[Hardware donation program/EYo237]]\n| Hardware donation program/EYo237|| 25|| test|| zz\n|-\n| Hardware donation program/EYo237|| 25|| test|| yy\n|-\n|}'
         assert result == expected
-
 
     def test_table_with_colspan_in_header(self) -> None:
         """Test table where headers contain colspan attributes."""
