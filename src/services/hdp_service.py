@@ -159,9 +159,10 @@ class HdpService:
 
         # 2. Live User: redirects
         usernames = [r.username for r in rows if r.username]
-        live_redirects = self.users_resolver.resolve_batch(usernames)
+        live_redirects, missing = self.users_resolver.resolve_batch(usernames)
+
         for row in rows:
-            if row.username in live_redirects:
+            if row.user_info.username in live_redirects:
                 row.user_info.update_username(live_redirects[row.username])
 
         # 3. Application wikitext (country)
@@ -174,6 +175,10 @@ class HdpService:
             # Extract country from application page wikitext
             if wikitext:
                 row.apply_country(wikitext)
+
+            if row.user_info.full_username in missing:
+                logger.warning("Username not found for %s", row.full_title)
+                row.match_username(wikitext)
 
         # process rows
         rows = self._process_rows_users(rows)

@@ -29,6 +29,18 @@ class UserResolver:
         self.wiki_client = wiki_client
         self._static = {k.lower(): v for k, v in (static_redirects or {}).items()}
 
+    def _map_user_redirects(self, live_redirects: dict[str, str]) -> dict[str, str]:
+        result: dict[str, str] = {}
+        for src, dst in live_redirects.items():
+            # src / dst look like "User:Foo"
+            src_name = src.removeprefix("User:")
+            dst_name = dst.removeprefix("User:")
+            if src_name != dst_name:
+                result[src_name] = dst_name
+                if src_name == "Johnjoy12":
+                    logger.info("Johnjoy12 is a redirect to %s", dst_name)
+        return result
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -55,7 +67,7 @@ class UserResolver:
             resolved = resolved[0].upper() + resolved[1:]
         return resolved
 
-    def resolve_batch(self, usernames: Sequence[str]) -> dict[str, str]:
+    def resolve_batch(self, usernames: Sequence[str]) -> tuple[dict[str, str], set[str]]:
         """
         Resolve ``User:`` page redirects for a batch of usernames.
 
@@ -65,21 +77,13 @@ class UserResolver:
         titles = [f"User:{u}" for u in usernames if u]
         if not titles:
             logger.debug("No usernames provided, returning empty dict")
-            return {}
+            return {}, set()
 
-        live_redirects = self.wiki_client.solve_pages_redirects(titles)
+        live_redirects, missing = self.wiki_client.solve_pages_info(titles)
 
-        result: dict[str, str] = {}
-        for src, dst in live_redirects.items():
-            # src / dst look like "User:Foo"
-            src_name = src.removeprefix("User:")
-            dst_name = dst.removeprefix("User:")
-            if src_name != dst_name:
-                result[src_name] = dst_name
-                if src_name == "Johnjoy12":
-                    logger.info("Johnjoy12 is a redirect to %s", dst_name)
+        result = self._map_user_redirects(live_redirects)
 
-        return result
+        return result, missing
 
     def normalize_and_resolve(
         self,
@@ -90,7 +94,7 @@ class UserResolver:
         canonical usernames (same order as input, empties preserved).
         """
         normalized = [self.normalize(n) for n in raw_names]
-        live = self.resolve_batch([n for n in normalized if n])
+        live, _ = self.resolve_batch([n for n in normalized if n])
         return [live.get(n, n) for n in normalized]
 
 

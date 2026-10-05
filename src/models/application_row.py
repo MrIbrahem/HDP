@@ -10,6 +10,38 @@ from typing import Any
 
 from .user_info import UserInfo
 
+# Matches a line like: `; your username : <value>`
+# (flexible with spaces around the semicolon/colon and with letter case)
+USERNAME_LINE_RE = re.compile(
+    r"^[ \t]*;[ \t]*your[ \t]+username[ \t]*:[ \t]*(?P<value>.*?)[ \t]*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# Matches [[User:Name]] or [[User:Name|Label]]
+# (an optional leading colon, as in [[:User:Name]], is also accepted)
+USER_LINK_RE = re.compile(
+    r"^\[\[[ \t]*:?[ \t]*user[ \t]*:[ \t]*(?P<name>[^\]|]+?)[ \t]*(?:\|[^\]]*)?\]\]$",
+    re.IGNORECASE,
+)
+
+
+def extract_username(wikitext: str) -> str:
+    """Return the username found in the wikitext, or '' if none is found."""
+    # Find the first "your username" line
+    m = USERNAME_LINE_RE.search(wikitext)
+    if not m:
+        return ""
+
+    value = m.group("value").strip()
+
+    # If the value is a user link, keep only the target name (drop the label)
+    link = USER_LINK_RE.match(value)
+    if link:
+        value = link.group("name")
+
+    # Wikimedia usernames use spaces; underscores in links are equivalent
+    return value.replace("_", " ").strip()
+
 # ---------------------------------------------------------------------------
 # Pure helpers used by the models
 # ---------------------------------------------------------------------------
@@ -112,17 +144,32 @@ class ApplicationRow:
             sub=sub,
         )
 
-    def apply_user_info(self, user_info: UserInfo) -> ApplicationRow:
+    def apply_user_info(self, user_info: UserInfo) -> None:
         """
         Fill user-related columns from a ``UserInfo`` snapshot.
         """
         self.user_info = user_info
-        return self
 
-    def apply_country(self, wikitext: str) -> ApplicationRow:
+    def apply_country(self, wikitext: str) -> None:
         """Extract and set the country field from application wikitext."""
         self.country = extract_country(wikitext)
-        return self
+
+    def match_username(self, wikitext: str) -> None:
+        """
+        Extract and set the username from application wikitext.
+        Patterns:
+        `; your username : [[User:...]]`
+        `; your username : Flixtey`
+        `;your username: Muddyb`
+        `; your username : [[user:Vojtěch Dostál|Vojtěch Dostál]]`
+        `; your username : [[User:Sumanth699]]`
+        `;your username: [[User:გიო ოქრო|გიო ოქრო]]`
+        """
+        username = extract_username(wikitext)
+
+        # Only update when a username was actually found
+        if username:
+            self.user_info.update_username(username)
 
     # ------------------------------------------------------------------
     # Table / export helpers

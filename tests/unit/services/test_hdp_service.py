@@ -62,7 +62,7 @@ def _make_service(
     users_resolver.normalize.side_effect = lambda raw: (
         raw.replace("(2nd Application)", "").split("/")[0].strip().replace("_", " ").title() if raw else ""
     )
-    users_resolver.resolve_batch.return_value = {}
+    users_resolver.resolve_batch.return_value = {}, set()
 
     wiki_client.get_pages_wikitext.return_value = {}
     wiki_client.get_global_editcounts.return_value = {}
@@ -185,7 +185,7 @@ class TestLoadRows:
     def test_applies_live_redirects(self):
         service, mocks = _make_service()
         mocks["users_resolver"].normalize.side_effect = lambda s: s
-        mocks["users_resolver"].resolve_batch.return_value = {"OldName": "NewName"}
+        mocks["users_resolver"].resolve_batch.return_value = {"OldName": "NewName"}, set()
 
         # Draft will have username OldName; after redirect becomes NewName
         service.load_rows(["OldName"])

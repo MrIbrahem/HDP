@@ -361,7 +361,7 @@ class WikiClientLoader:
         logger.info("Resolved %s home wikis", len(home_wikis))
         return home_wikis
 
-    def solve_pages_redirects(self, pages: list[str]) -> dict[str, str]:
+    def solve_pages_info(self, pages: list[str]) -> tuple[dict[str, str], set[str]]:
         """
         Resolve redirects for a list of page titles.
 
@@ -369,7 +369,9 @@ class WikiClientLoader:
         """
         logger.info("Fetching redirects for %s pages ...", len(pages))
         batch_size = self.batch_size
+
         result: dict[str, str] = {}
+        missing: set[str] = set()
 
         batchs = range(0, len(pages), batch_size)
         for i in tqdm(batchs, desc="Resolve redirects for pages", unit=f"({batch_size}: batch", disable=TQDM_DISABLE):
@@ -399,12 +401,17 @@ class WikiClientLoader:
                 # page example: { "ns": 2, "title": "User:The Living love" }
                 if not isinstance(page, dict):
                     continue
+
                 target = page.get("title", "")
+                if page.get("missing"):
+                    missing.add(target)
+                    continue
+
                 for redirect in page.get("redirects") or []:
                     result[redirect["title"]] = target
 
         logger.info("Resolved %s redirects", len(result))
-        return result
+        return result, missing
 
     # ------------------------------------------------------------------
     # Last edit

@@ -5,10 +5,12 @@ Unit tests for src/models/application_row.py module.
 from types import SimpleNamespace
 
 import pytest
+from unittest.mock import MagicMock
 
 from src.models.application_row import (
     ApplicationRow,
     extract_country,
+    extract_username,
 )
 from src.models.user_info import UserInfo
 
@@ -133,16 +135,13 @@ class TestApplicationRow:
 
     # -- apply_user_info ---------------------------------------------------
 
-    def test_apply_user_info_replaces_user_info(self, row):
+    def test_apply_user_info_replaces_user_info(self, row: ApplicationRow):
         new_info = make_user_info_stub(username="Bob")
         row.apply_user_info(new_info)
         assert row.user_info is new_info
         assert row.username == "Bob"
 
-    def test_apply_user_info_returns_self(self, row):
-        assert row.apply_user_info(make_user_info_stub()) is row
-
-    def test_apply_user_info_keeps_other_fields(self, row):
+    def test_apply_user_info_keeps_other_fields(self, row: ApplicationRow):
         row.apply_user_info(make_user_info_stub(username="Bob"))
         assert row.full_title == f"{BASE}/Alice"
         assert row.sub == "Alice"
@@ -153,9 +152,6 @@ class TestApplicationRow:
     def test_apply_country_sets_country(self, row):
         row.apply_country("; country your from: Germany\n")
         assert row.country == "Germany"
-
-    def test_apply_country_returns_self(self, row):
-        assert row.apply_country("; country your from: Germany") is row
 
     def test_apply_country_missing_field_clears_country(self, row):
         row.apply_country("no country here")
@@ -304,3 +300,34 @@ class TestExtractCountry:
     def test_country_with_carriage_return(self):
         wikitext = "; country your from:Brazil\r\n"
         assert extract_country(wikitext) == "Brazil"
+
+class TestExtractUsername:
+
+    @pytest.mark.parametrize("text, expected", [
+        ("; your username : [[User:Foo]]", "Foo"),
+        ("; your username : Flixtey", "Flixtey"),
+        (";your username: Muddyb", "Muddyb"),
+        ("; your username : [[user:Vojtěch Dostál|Vojtěch Dostál]]", "Vojtěch Dostál"),
+        ("; your username : [[User:Sumanth699]]", "Sumanth699"),
+        (";your username: [[User:გიო ოქრო|გიო ოქრო]]", "გიო ოქრო"),
+        ("; Your Username : [[:User:Some_Name]]", "Some Name"),
+        ("intro\n; your username : Bar  \n; other : x", "Bar"),
+        ("no username here", ""),
+        ("; your username :", ""),
+    ])
+    def test_extract_username(self, text, expected):
+        assert extract_username(text) == expected
+
+
+    def test_match_username_sets(self):
+        app = ApplicationRow.from_subpage(sub="", base_page="")
+        app.user_info = MagicMock()
+        app.match_username("; your username : [[User:Sumanth699]]")
+        app.user_info.update_username.assert_called_once_with("Sumanth699")
+
+
+    def test_match_username_no_match(self):
+        app = ApplicationRow.from_subpage(sub="", base_page="")
+        app.user_info = MagicMock()
+        app.match_username("nothing")
+        app.user_info.update_username.assert_not_called()

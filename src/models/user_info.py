@@ -86,6 +86,10 @@ class UserInfo:
         return f"[[User:{self.username}]]" if self.username else None
 
     @property
+    def full_username(self) -> str | None:
+        return f"User:{self.username}" if self.username else None
+
+    @property
     def age(self) -> str:
         """Return the user's registration date as a MediaWiki age template."""
         return calculate_age(self.registration)
