@@ -11,7 +11,8 @@ from typing import Any
 import wikitextparser as wtp
 
 from .wtp_manager import WtpTableManager
-from .wtp_table import HEADER_PATH_SEP, WtpRow, WtpTable
+from .wtp_table import WtpTable
+from .wtp_row_cell import HEADER_PATH_SEP, WtpRow
 
 logger = logging.getLogger(__name__)
 

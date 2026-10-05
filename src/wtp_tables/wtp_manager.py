@@ -9,7 +9,8 @@ from typing import Any
 
 import wikitextparser as wtp
 
-from .wtp_table import HEADER_PATH_SEP, WtpTable
+from .wtp_table import WtpTable
+from .wtp_row_cell import HEADER_PATH_SEP
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +129,7 @@ class WtpTableManager:
             if HEADER_PATH_SEP in header:
                 logger.warning("Header path %r not found in table; skipped", header)
                 continue
+
             missing.append(header)
         return missing
 

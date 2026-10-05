@@ -60,7 +60,7 @@ class WikiTableDataUpdater:
         rows: dict[str, Any],
         table_headers_to_row_key: dict[str, str],
         replace_values: bool = False,
-    ) -> None:
+    ) -> wtp.Table:
         """
         rows keys:
             (page_link, last_update, user_link, global_editcount_str, recent_editcount_str, age, home_wiki)
@@ -69,7 +69,7 @@ class WikiTableDataUpdater:
         all_rows = self.manager.load_table_cells(table)
 
         if not all_rows:
-            return
+            return table
 
         # 1. Map header text to its column index
         header_index = self.manager.get_header_index(table)
@@ -86,6 +86,8 @@ class WikiTableDataUpdater:
                 replace_values=replace_values,
                 header_index=header_index,
             )
+
+        return table
 
     def _update_row_cells(
         self,
