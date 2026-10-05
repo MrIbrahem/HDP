@@ -108,6 +108,9 @@ class WikiTableColumnManager:
         :param position: 'after_first' to insert after 1st column, or 'end' for last.
         :param default_value: Default cell content for data rows.
         """
+        if position == "":
+            position = "after_first"
+
         if not table:
             return False
 
@@ -132,7 +135,7 @@ class WikiTableColumnManager:
             if is_header:
                 cell_str = f"\n! {col_name}"
             else:
-                formatted_val = f" {default_value}"  # .rstrip()
+                formatted_val = f" {default_value}" if default_value else ""  # .rstrip()
                 cell_str = f"\n|{formatted_val}"
 
             # Pick target cell to attach the new column delimiter

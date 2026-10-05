@@ -44,7 +44,9 @@ class WikiTableDataUpdater:
         rows keys:
             (page_link, last_update, user_link, global_editcount_str, recent_editcount_str, age, home_wiki)
         """
-        all_rows = table.cells()
+        # all_rows = table.cells()
+        all_rows = self.manager.load_table_cells(table)
+
         if not all_rows:
             return
 
@@ -117,6 +119,7 @@ class WikiTableDataUpdater:
         table_headers_to_row_key: dict[str, str],
         replace_values: bool = False,
         add_missing_headers: bool = True,
+        position: str = "after_first",
     ) -> str:
         """rows: list of rows data."""
         parsed = wtp.parse(wikitext)
@@ -127,7 +130,7 @@ class WikiTableDataUpdater:
                 self.manager.ensure_columns_exists(
                     table=table,
                     cols_name=list(table_headers_to_row_key.keys()),
-                    position="after_first",
+                    position=position,
                     default_value="",
                 )
 
