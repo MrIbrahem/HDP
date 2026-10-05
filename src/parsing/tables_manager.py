@@ -67,7 +67,7 @@ class WikiTableColumnManager:
             # Skip empty rows or non-header rows
             if not row or row[0] is None or not row[0].is_header:
                 continue
-            rows.extend( [c for c in row if c is not None])
+            rows.extend([c for c in row if c is not None])
 
         return rows
 
