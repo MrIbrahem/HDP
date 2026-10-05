@@ -154,6 +154,7 @@ class ApplicationTable:
     rows: list[ApplicationRow]
     columns: list[ApplicationColumn] = field(default_factory=lambda: list(DEFAULT_COLUMNS))
     unknown: str = ""
+    category: str = ""
 
     def build_wikitable(self, add_last_edit: bool = False) -> str:
         """

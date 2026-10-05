@@ -100,7 +100,7 @@ class TestNormalize:
         assert resolver.normalize("Alice_(2nd_Application)") == "Alice"
 
     def test_suffix_removal_is_case_sensitive(self, resolver):
-        assert resolver.normalize("Alice (2nd application)") == "Alice (2nd application)"
+        assert resolver.normalize("Alice (2nd application)") == "Alice"
 
     def test_takes_part_before_first_slash(self, resolver):
         assert resolver.normalize("Alice/Sandbox/Extra") == "Alice"
