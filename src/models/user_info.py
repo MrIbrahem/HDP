@@ -68,6 +68,7 @@ class UserInfo:
 
     home_wiki: str = ""
     registration: str = ""
+    extended_rights: str = ""
 
     global_editcount: int | None = None
     recent_editcount: int | None = None
@@ -203,7 +204,7 @@ class UserInfo:
     def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
         Return values expected by ``WtpTableUpdater`` and
-        ``ApplicationTable.build_wikitable``.
+        ``ApplicationTable.build_wikitable/build_wikitable_template``.
         """
         return {
             "global_editcount_str": self.global_editcount_str or unknown,

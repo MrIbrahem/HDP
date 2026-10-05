@@ -194,7 +194,7 @@ class TestApplicationRow:
         r = ApplicationRow.from_subpage("Alice", base_page=BASE, username="Alice")
         r.country = "Rwanda"
         data = r.to_json()
-        assert set(data) == {"user_info", "full_title", "sub", "country"}
+        assert set(data) == {"approved", "user_info", "full_title", "sub", "country"}
         assert data["full_title"] == f"{BASE}/Alice"
         assert data["sub"] == "Alice"
         assert data["country"] == "Rwanda"
@@ -226,10 +226,10 @@ class TestApplicationRow:
             "| ",
         ]
 
-    def test_build_row_with_last_edit(self, row):
+    def test_build_row_with_last_edit(self, row: ApplicationRow):
         lines = row.build_row(add_last_edit=True)
-        assert lines[-2] == "| 2026-09-01"
-        assert lines[-1] == "| "
+        assert lines[-1] == "| 2026-09-01"
+        assert lines[-2] == "| "
         assert len(lines) == 14
 
     def test_build_row_without_last_edit_has_no_date(self, row):

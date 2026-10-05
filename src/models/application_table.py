@@ -8,8 +8,8 @@ from dataclasses import dataclass, field
 
 from .application_row import ApplicationRow
 
-EMPTY_TABLE_TEMPLATE = """
-{| class="wikitable sortable"
+EMPTY_TABLE_HEADER = """
+|-
 ! rowspan="2" |Application
 ! rowspan="2" |Latest update
 ! rowspan="2" |User
@@ -26,24 +26,28 @@ EMPTY_TABLE_TEMPLATE = """
 ! Global
 ! Global no WD
 ! WD
+
 ! Global no wd
 ! WD
-|-
-| <!-- page_link -->
-| <!-- last_update -->
-| <!-- user_link -->
-| <!-- country -->
-| <!-- extended_rights -->
+"""
 
-| <!-- global_without_wikidata_str -->
-| <!-- wikidata_editcount_str -->
-| <!-- recent_editcount_str -->
-| <!-- recent_wikidata_editcount_str -->
+EMPTY_TABLE_ROW = """|-
+| {page_link}
+| {last_update}
+| {user_link}
+| {country}
+| {extended_rights}
 
-| <!-- age -->
-| <!-- home_wiki -->
-| <!-- approved -->
-|}
+| {global_editcount_str}
+| {global_without_wikidata_str}
+| {wikidata_editcount_str}
+
+| {recent_editcount_str}
+| {recent_wikidata_editcount_str}
+
+| {age}
+| {home_wiki}
+| {approved}
 """
 
 @dataclass(frozen=True, slots=True)
@@ -93,6 +97,11 @@ DEFAULT_COLUMNS: tuple[ApplicationColumn, ...] = (
         header="Extended rights",
         row_key="extended_rights",
         header_alts=[],
+    ),
+    ApplicationColumn(
+        header="User Edits > Global",
+        row_key="global_editcount_str",
+        header_alts=["Global edits without wikidata"],
     ),
     ApplicationColumn(
         header="User Edits > Global no WD",
@@ -165,6 +174,28 @@ class ApplicationTable:
 
         for row in self.rows:
             lines.extend(row.build_row(add_last_edit))
+
+        lines.append("|}")
+
+        return "\n".join(lines)
+
+    def build_wikitable_template(self, add_last_edit: bool = False) -> str:
+        """
+        Render the applications as a MediaWiki table.
+        """
+
+        lines = [
+            '{| class="wikitable sortable"',
+            EMPTY_TABLE_HEADER.strip(),
+        ]
+
+        template = EMPTY_TABLE_ROW
+        if add_last_edit:
+            template = f"{template}\n| {{last_edit}}"
+
+        for row in self.rows:
+            row_str = row.build_row_template(template)
+            lines.append(row_str.strip())
 
         lines.append("|}")
 

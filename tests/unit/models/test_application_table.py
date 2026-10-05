@@ -144,13 +144,15 @@ class TestApplicationTableHeadersToRowKeys:
             "Latest update": "last_update",
             "User": "user_link",
             "Country": "country",
+            "Extended rights": "extended_rights",
+            "User Edits > Global": "global_editcount_str",
             "User Edits > Global no WD": "global_without_wikidata_str",
             "User Edits > WD": "wikidata_editcount_str",
             "Last 3 months edits > Global no WD": "recent_editcount_str",
             "Last 3 months edits > WD": "recent_wikidata_editcount_str",
             "Account age": "age",
             "Home Wiki": "home_wiki",
-            "Last edit": "last_edit",
             "Approved": "approved",
+            "Last edit": "last_edit",
         }
         assert result == expected_result
