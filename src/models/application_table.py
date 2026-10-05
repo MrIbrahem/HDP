@@ -15,17 +15,14 @@ EMPTY_TABLE_HEADER = """
 ! rowspan="2" |User
 ! rowspan="2" |Country
 ! rowspan="2" |Extended rights
-
-! colspan="3" |User Edits
+! colspan="2" |User Edits
 ! colspan="2" |Last 3 months edits
-
 ! rowspan="2" |Account age
 ! rowspan="2" |Home Wiki
 ! rowspan="2" |Approved
 |-
 ! Global no WD
 ! WD
-
 ! Global no wd
 ! WD
 """
@@ -36,13 +33,10 @@ EMPTY_TABLE_ROW = """|-
 | {user_link}
 | {country}
 | {extended_rights}
-
 | {global_without_wikidata_str}
 | {wikidata_editcount_str}
-
 | {recent_editcount_str}
 | {recent_wikidata_editcount_str}
-
 | {age}
 | {home_wiki}
 | {approved}
