@@ -5,7 +5,8 @@ Unit tests for src/parsing/tables_manager.py module.
 import pytest
 import wikitextparser as wtp
 
-from src.parsing.tables_manager import WikiTableColumnManager
+# from src.parsing.tables_manager import WikiTableColumnManager
+from src.wtp_tables.wtp_manager import WtpTableManager as WikiTableColumnManager
 
 
 def ensure_column_in_wikitext(

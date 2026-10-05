@@ -7,8 +7,8 @@ from typing import Any
 import pytest
 import wikitextparser as wtp
 
-from src.parsing.tables_updater import WikiTableDataUpdater
-# from src.wtp_tables.wtp_updater import WtpTableUpdater as WikiTableDataUpdater
+# from src.parsing.tables_updater import WikiTableDataUpdater
+from src.wtp_tables.wtp_updater import WtpTableUpdater as WikiTableDataUpdater
 
 
 def update_wikitable_data(

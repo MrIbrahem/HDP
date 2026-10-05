@@ -53,24 +53,6 @@ class WikiTableColumnManager:
 
         return []
 
-    def _get_header_row_new(self, table: wtp.Table) -> list[Cell]:
-        """Returns the first header row's non-None cells, or [] if none found."""
-        if self.span:
-            return self._get_header_row(table)
-
-        all_cells = self.load_table_cells(table)
-        if not all_cells:
-            return []
-
-        rows = []
-        for row in all_cells:
-            # Skip empty rows or non-header rows
-            if not row or row[0] is None or not row[0].is_header:
-                continue
-            rows.extend([c for c in row if c is not None])
-
-        return rows
-
     def has_header(self, table: wtp.Table, col_name: str) -> bool:
         """
         Check if a column named `col_name` exists in the table header.
@@ -176,6 +158,7 @@ class WikiTableColumnManager:
         for header in wanted:
             if self.has_header(table, header):
                 continue
+
             missing.append(header)
         return missing
 

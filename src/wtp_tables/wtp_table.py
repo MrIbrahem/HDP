@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import wikitextparser as wtp
 from wikitextparser._cell import Cell
 
-from .wtp_row_cell import WtpRow, WtpCell
+from .wtp_row_cell import WtpCell, WtpRow
 
 logger = logging.getLogger(__name__)
 

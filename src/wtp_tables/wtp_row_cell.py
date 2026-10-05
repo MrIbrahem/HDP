@@ -69,6 +69,7 @@ class WtpRow:
         """header (lowercase) -> stripped cell value."""
         return {c.header.strip().lower(): c.value.strip() for c in self.cells}
 
+
 __all__ = [
     "HEADER_PATH_SEP",
     "WtpCell",

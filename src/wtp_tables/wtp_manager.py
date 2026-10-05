@@ -5,12 +5,12 @@ Fill wikitext tables from a `rows` dict, built on top of WtpTable.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import wikitextparser as wtp
+from wikitextparser._cell import Cell
 
-from .wtp_table import WtpTable
 from .wtp_row_cell import HEADER_PATH_SEP
+from .wtp_table import WtpTable
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class WtpTableManager:
         """
         self.span = span
 
-    def load_table_cells(self, table: wtp.Table) -> list[Any] | None:
+    def load_table_cells(self, table: wtp.Table) -> list[list[Cell]] | None:
         """
         Safely retrieve cells from a wikitext table.
         """
@@ -33,6 +33,17 @@ class WtpTableManager:
         except Exception as exc:
             logger.error("Error getting table cells: %s", exc)
             return None
+
+    def has_header(self, table: wtp.Table, col_name: str) -> bool:
+        """
+        Check if a column named `col_name` exists in the table header.
+        """
+        if not table:
+            logger.info("no table found")
+            return False
+
+        wtp_table = WtpTable.load(table)
+        return wtp_table.has_header(col_name)
 
     def add_columns(
         self,

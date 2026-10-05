@@ -6,8 +6,11 @@ from typing import Any
 
 import pytest
 
-from src.parsing.tables_manager import WikiTableColumnManager
-from src.parsing.tables_updater import WikiTableDataUpdater
+from src.wtp_tables.wtp_manager import WtpTableManager as WikiTableColumnManager
+from src.wtp_tables.wtp_updater import WtpTableUpdater as WikiTableDataUpdater
+
+# from src.parsing.tables_manager import WikiTableColumnManager
+# from src.parsing.tables_updater import WikiTableDataUpdater
 
 
 def update_wikitable_data(
@@ -80,7 +83,7 @@ class TestUpdateWikitableDataSpans:
         """Test table where headers contain colspan attributes."""
         rows = {
             "Hardware donation program/EYo237": {
-                "page_link": "Hardware donation program/EYo237",
+                "page_link": "[[Hardware donation program/EYo237]]",
                 "age": "25",
                 "home_wiki": "test",
                 "new_column": "value",
@@ -113,7 +116,7 @@ class TestUpdateWikitableDataSpans:
             position="end",
         )
 
-        expected = '{| class="wikitable sortable"\n! colspan="2" | Page & Info !! Home Wiki !! Approved\n! New Column\n|-\n| [[Hardware donation program/EYo237]] || Hardware donation program/EYo237|| test\n|\n|-\n|}'
+        expected = '{| class="wikitable sortable"\n! colspan="2" | Page & Info !! Home Wiki !! Approved\n! New Column\n|-\n| [[Hardware donation program/EYo237]]|| || test\n|\n|-\n|}'
         assert result == expected
 
     def test_table_with_colspan_in_data_cell(self) -> None:

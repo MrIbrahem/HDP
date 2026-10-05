@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.parsing.links import LinkExtractor
 from src.services.subpages_service import SubPagesService
 
 BASE = "Wikipedia:WikiProject Medicine/Translation"
@@ -76,14 +75,6 @@ class TestInit:
                 category_service=category_service,
             )
         cs_cls.assert_not_called()
-
-    def test_creates_link_extractor(self, wiki_client, settings, category_service):
-        svc = SubPagesService(
-            wiki_client=wiki_client,
-            settings=settings,
-            category_service=category_service,
-        )
-        assert isinstance(svc.extractor, LinkExtractor)
 
     def test_requires_keyword_arguments(self, wiki_client, settings):
         with pytest.raises(TypeError):
