@@ -27,6 +27,7 @@ from .subpages_service import SubPagesService
 
 logger = logging.getLogger(__name__)
 
+
 def get_category_section_title(category: str) -> str:
     data = {
         "Category:Hardware donation program open requests": "[https://meta.wikimedia.org/w/index.php?title=Special:WhatLinksHere/Template:Hardware_donation_program/open&limit=500 Open]",
@@ -35,6 +36,7 @@ def get_category_section_title(category: str) -> str:
         "Category:Hardware donation program delivered requests": "[https://meta.wikimedia.org/wiki/Category:Hardware_donation_program_delivered_requests Delivered]",
     }
     return data.get(category, category)
+
 
 class HdpService:
     """

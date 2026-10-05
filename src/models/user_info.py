@@ -203,6 +203,7 @@ class UserInfo:
             "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
         }
 
+
 __all__ = [
     "UserInfo",
     "calculate_age",
