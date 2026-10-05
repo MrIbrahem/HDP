@@ -27,6 +27,7 @@ USER_LINK_RE = re.compile(
 
 def extract_username(wikitext: str) -> str:
     """Return the username found in the wikitext, or '' if none is found."""
+    # ;Your username\n:<!--Answer on this line-->[[User:Robertjamal12|Robertjamal12]]
     # Find the first "your username" line
     m = USERNAME_LINE_RE.search(wikitext)
     if not m:
@@ -47,6 +48,8 @@ def extract_username(wikitext: str) -> str:
 
     skip_names = [
         "name here",
+        "yourusername",
+        "your user name",
     ]
     if value in skip_names:
         return ""
