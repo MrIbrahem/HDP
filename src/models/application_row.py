@@ -45,6 +45,7 @@ def extract_username(wikitext: str) -> str:
         return ""
     # Wikimedia usernames use spaces; underscores in links are equivalent
     value = value.replace("_", " ").strip()
+    value = value.rstrip(".").lstrip(".").strip()
 
     skip_names = [
         "name here",
