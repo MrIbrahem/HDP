@@ -115,3 +115,43 @@ class TestApplicationTableAsRowDicts:
         # Verify to_table_dict was called with the table's 'unknown' fallback string
         mock_row_1.to_table_dict.assert_called_once_with("UnknownData")
         mock_row_2.to_table_dict.assert_called_once_with("UnknownData")
+
+class TestApplicationTableHeadersToRowKeys:
+    def test_headers_to_row_keys(self, mock_row_1: MagicMock, mock_row_2: MagicMock) -> None:
+        """Test that headers are converted to row keys."""
+        table = ApplicationTable(rows=[mock_row_1, mock_row_2], unknown="UnknownData")
+
+        result = table.headers_to_row_keys()
+
+        # Verify the resulting dictionary structure
+        expected_result =    {
+            "Application": "page_link",
+            "Latest update": "last_update",
+            "User": "user_link",
+            "Country": "country",
+            "Global edits without wikidata": "global_without_wikidata_str",
+            "Wikidata edits": "wikidata_editcount_str",
+            "Edits in last 3 months": "recent_editcount_str",
+            "Wikidata edits in last 3 months": "recent_wikidata_editcount_str",
+            "Account age": "age",
+            "Home Wiki": "home_wiki",
+            "Last edit": "last_edit",
+            "Approved": "approved",
+        }
+        users_rows = {
+            "Hardware donation program/EYo237": {
+                "page_link": "Hardware donation program/EYo237",
+                "last_update": "25",
+                "user_link": "test",
+                "country": "",
+                "global_without_wikidata_str": "1",
+                "wikidata_editcount_str": "100",
+                "recent_editcount_str": "500",
+                "recent_wikidata_editcount_str": "200",
+                "age": "1",
+                "home_wiki": "enwiki",
+                "last_edit": "2023-01-01",
+                "approved": "Yes"
+            }
+        }
+        assert result == expected_result

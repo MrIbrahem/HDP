@@ -28,7 +28,7 @@ def sample_wikitext() -> str:
 !Global
 !Global no WD
 !WD
-!Global no wd
+!Global no WD
 !WD
 |-
 | User1
@@ -39,7 +39,7 @@ def sample_wikitext() -> str:
 | Global
 | Global no WD
 | WD
-| Global no wd
+| Global no WD
 |WD
 | Account age
 |Home Wiki
@@ -121,7 +121,7 @@ class TestWikiTableColumnManager:
             Cell("\n!Global"),
             Cell("\n!Global no WD"),
             Cell("\n!WD"),
-            Cell("\n!Global no wd"),
+            Cell("\n!Global no WD"),
             Cell("\n!WD"),
             Cell('\n! rowspan="2" | Account age'),
             Cell('\n! rowspan="2" | Home Wiki'),
@@ -138,7 +138,7 @@ class TestWikiTableColumnManager:
             Cell("\n| Global"),
             Cell("\n| Global no WD"),
             Cell("\n| WD"),
-            Cell("\n| Global no wd"),
+            Cell("\n| Global no WD"),
             Cell("\n|WD"),
             Cell("\n| Account age"),
             Cell("\n|Home Wiki"),
@@ -177,7 +177,7 @@ class TestWikiTableColumnManager:
             Cell("\n!Global"),
             Cell("\n!Global no WD"),
             Cell("\n!WD"),
-            Cell("\n!Global no wd"),
+            Cell("\n!Global no WD"),
             Cell("\n!WD"),
         ]
 
