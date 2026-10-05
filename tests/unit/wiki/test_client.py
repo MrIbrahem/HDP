@@ -553,7 +553,7 @@ class TestGetHomeWikisAndRegistration:
 class TestSolvePagesRedirects:
     def test_empty_pages(self):
         loader, _ = _loader()
-        assert loader.solve_pages_redirects([]) == {}
+        assert loader.solve_pages_info([]) == ({}, set())
 
     def test_maps_redirect_to_target(self):
         loader, site = _loader()
@@ -570,7 +570,7 @@ class TestSolvePagesRedirects:
             }
         }
 
-        result = loader.solve_pages_redirects(["User:OldName"])
+        result, _ = loader.solve_pages_info(["User:OldName"])
         assert result == {"User:OldName": "User:NewName"}
 
     def test_pages_without_redirects_omitted(self):
@@ -583,20 +583,20 @@ class TestSolvePagesRedirects:
             }
         }
 
-        assert loader.solve_pages_redirects(["User:Stable"]) == {}
+        assert loader.solve_pages_info(["User:Stable"]) == ({}, set())
 
     def test_api_error_skips_batch(self):
         loader, site = _loader()
         site.get.side_effect = RuntimeError("fail")
 
-        assert loader.solve_pages_redirects(["User:A"]) == {}
+        assert loader.solve_pages_info(["User:A"]) == ({}, set())
 
     def test_batches(self):
         loader, site = _loader()
         site.get.return_value = {"query": {"pages": []}}
 
         pages = [f"User:U{i}" for i in range(120)]
-        loader.solve_pages_redirects(pages)
+        loader.solve_pages_info(pages)
 
         assert site.get.call_count == 3
 

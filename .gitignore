@@ -67,3 +67,4 @@ _work_files/*
 !_work_files/tree.md
 .coverage
 coverage.xml
+/src/‏‏parsing_old

@@ -5,10 +5,12 @@ Unit tests for src/models/application_row.py module.
 from types import SimpleNamespace
 
 import pytest
+from unittest.mock import MagicMock
 
 from src.models.application_row import (
     ApplicationRow,
     extract_country,
+    extract_username,
 )
 from src.models.user_info import UserInfo
 
@@ -26,6 +28,7 @@ def make_user_info_stub(**overrides):
         "wikidata_editcount_str": "200",
         "recent_editcount_str": "50",
         "recent_wikidata_editcount_str": "10",
+        "extended_rights": "",
         "age": "5 years",
         "home_wiki": "enwiki",
     }
@@ -132,16 +135,13 @@ class TestApplicationRow:
 
     # -- apply_user_info ---------------------------------------------------
 
-    def test_apply_user_info_replaces_user_info(self, row):
+    def test_apply_user_info_replaces_user_info(self, row: ApplicationRow):
         new_info = make_user_info_stub(username="Bob")
         row.apply_user_info(new_info)
         assert row.user_info is new_info
         assert row.username == "Bob"
 
-    def test_apply_user_info_returns_self(self, row):
-        assert row.apply_user_info(make_user_info_stub()) is row
-
-    def test_apply_user_info_keeps_other_fields(self, row):
+    def test_apply_user_info_keeps_other_fields(self, row: ApplicationRow):
         row.apply_user_info(make_user_info_stub(username="Bob"))
         assert row.full_title == f"{BASE}/Alice"
         assert row.sub == "Alice"
@@ -152,9 +152,6 @@ class TestApplicationRow:
     def test_apply_country_sets_country(self, row):
         row.apply_country("; country your from: Germany\n")
         assert row.country == "Germany"
-
-    def test_apply_country_returns_self(self, row):
-        assert row.apply_country("; country your from: Germany") is row
 
     def test_apply_country_missing_field_clears_country(self, row):
         row.apply_country("no country here")
@@ -194,7 +191,7 @@ class TestApplicationRow:
         r = ApplicationRow.from_subpage("Alice", base_page=BASE, username="Alice")
         r.country = "Rwanda"
         data = r.to_json()
-        assert set(data) == {"user_info", "full_title", "sub", "country"}
+        assert set(data) == {"approved", "user_info", "full_title", "sub", "country"}
         assert data["full_title"] == f"{BASE}/Alice"
         assert data["sub"] == "Alice"
         assert data["country"] == "Rwanda"
@@ -216,6 +213,7 @@ class TestApplicationRow:
             f"| {row.last_update}",
             "| [[User:Alice|Alice]]",
             "| Rwanda",
+            "| ",
             "| 1,000",
             "| 800",
             "| 200",
@@ -226,15 +224,15 @@ class TestApplicationRow:
             "| ",
         ]
 
-    def test_build_row_with_last_edit(self, row):
+    def test_build_row_with_last_edit(self, row: ApplicationRow):
         lines = row.build_row(add_last_edit=True)
-        assert lines[-2] == "| 2026-09-01"
-        assert lines[-1] == "| "
-        assert len(lines) == 14
+        assert lines[-1] == "| 2026-09-01"
+        assert lines[-2] == "| "
+        assert len(lines) == 15
 
     def test_build_row_without_last_edit_has_no_date(self, row):
         assert "| 2026-09-01" not in row.build_row()
-        assert len(row.build_row()) == 13
+        assert len(row.build_row()) == 14
 
     def test_build_row_starts_with_row_separator(self, row):
         assert row.build_row()[0] == "|-"
@@ -302,3 +300,35 @@ class TestExtractCountry:
     def test_country_with_carriage_return(self):
         wikitext = "; country your from:Brazil\r\n"
         assert extract_country(wikitext) == "Brazil"
+
+class TestExtractUsername:
+
+    @pytest.mark.parametrize("text, expected", [
+        ("; your username : ...", ""),
+        ("; your username : [[User:Foo]]", "Foo"),
+        ("; your username : Flixtey", "Flixtey"),
+        (";your username: Muddyb", "Muddyb"),
+        ("; your username : [[user:Vojtěch Dostál|Vojtěch Dostál]]", "Vojtěch Dostál"),
+        ("; your username : [[User:Sumanth699]]", "Sumanth699"),
+        (";your username: [[User:გიო ოქრო|გიო ოქრო]]", "გიო ოქრო"),
+        ("; Your Username : [[:User:Some_Name]]", "Some Name"),
+        ("intro\n; your username : Bar  \n; other : x", "Bar"),
+        ("no username here", ""),
+        ("; your username :", ""),
+    ])
+    def test_extract_username(self, text, expected):
+        assert extract_username(text) == expected
+
+
+    def test_match_username_sets(self):
+        app = ApplicationRow.from_subpage(sub="", base_page="")
+        app.user_info = MagicMock()
+        app.match_username("; your username : [[User:Sumanth699]]")
+        app.user_info.update_username.assert_called_once_with("Sumanth699")
+
+
+    def test_match_username_no_match(self):
+        app = ApplicationRow.from_subpage(sub="", base_page="")
+        app.user_info = MagicMock()
+        app.match_username("nothing")
+        app.user_info.update_username.assert_not_called()

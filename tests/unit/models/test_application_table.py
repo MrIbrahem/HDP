@@ -115,3 +115,44 @@ class TestApplicationTableAsRowDicts:
         # Verify to_table_dict was called with the table's 'unknown' fallback string
         mock_row_1.to_table_dict.assert_called_once_with("UnknownData")
         mock_row_2.to_table_dict.assert_called_once_with("UnknownData")
+
+
+class TestApplicationTableHeadersToRowKeys:
+    def test_headers_to_row_keys(self, mock_row_1: MagicMock, mock_row_2: MagicMock) -> None:
+        """Test that headers are converted to row keys."""
+        table = ApplicationTable(rows=[mock_row_1, mock_row_2], unknown="UnknownData")
+
+        result = table.headers_to_row_keys()
+
+        # Verify the resulting dictionary structure
+        expected_result_old = {
+            "Application": "page_link",
+            "Latest update": "last_update",
+            "User": "user_link",
+            "Country": "country",
+            "Global edits without wikidata": "global_without_wikidata_str",
+            "Wikidata edits": "wikidata_editcount_str",
+            "Edits in last 3 months": "recent_editcount_str",
+            "Wikidata edits in last 3 months": "recent_wikidata_editcount_str",
+            "Account age": "age",
+            "Home Wiki": "home_wiki",
+            "Last edit": "last_edit",
+            "Approved": "approved",
+        }
+        expected_result = {
+            "Application": "page_link",
+            "Latest update": "last_update",
+            "User": "user_link",
+            "Country": "country",
+            "Extended rights": "extended_rights",
+            "User Edits > Global": "global_editcount_str",
+            "User Edits > Global no WD": "global_without_wikidata_str",
+            "User Edits > WD": "wikidata_editcount_str",
+            "Last 3 months edits > Global no WD": "recent_editcount_str",
+            "Last 3 months edits > WD": "recent_wikidata_editcount_str",
+            "Account age": "age",
+            "Home Wiki": "home_wiki",
+            "Approved": "approved",
+            "Last edit": "last_edit",
+        }
+        assert result == expected_result

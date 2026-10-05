@@ -1,16 +1,14 @@
 """
-Unit tests for src/parsing/tables_manager.py module.
+Unit tests for wikitextparser library.
 """
 
 import pytest
 import wikitextparser as wtp
 from wikitextparser._cell import Cell
 
-from src.parsing.tables_manager import WikiTableColumnManager
-
 
 @pytest.fixture
-def sample_wikitext() -> str:
+def sample_wikitext_2() -> str:
     """Fixture providing a standard wikitext table for testing."""
     return """
 {| class="wikitable sortable"
@@ -28,7 +26,7 @@ def sample_wikitext() -> str:
 !Global
 !Global no WD
 !WD
-!Global no wd
+!Global no WD
 !WD
 |-
 | User1
@@ -39,7 +37,7 @@ def sample_wikitext() -> str:
 | Global
 | Global no WD
 | WD
-| Global no wd
+| Global no WD
 |WD
 | Account age
 |Home Wiki
@@ -48,18 +46,29 @@ def sample_wikitext() -> str:
 |}"""
 
 
-class TestWikiTableColumnManager:
-    """Tests for WikiTableColumnManager class methods."""
+class TestWTP:
+    """Tests for wtp methods."""
 
-    def test_table_data(self, sample_wikitext):
-        table = wtp.Table(sample_wikitext)
+    def test_cells(self, sample_wikitext_2):
+        table = wtp.Table(sample_wikitext_2)
+        cell1 = table.cells(row=0, column=5, span=True)
+
+        assert cell1 is not None
+        assert cell1.string == '\n! colspan="3" | User Edits'
+
+        cell2 = table.cells(row=1, column=5, span=True)
+        assert cell2 is not None
+        assert cell2.string == "\n!Global"
+
+    def test_table_data(self, sample_wikitext_2):
+        table = wtp.Table(sample_wikitext_2)
         data = table.data(span=False)
 
         assert data is not None
         assert len(data) == 3
 
-    def test_table_cells(self, sample_wikitext):
-        table = wtp.Table(sample_wikitext)
+    def test_table_cells(self, sample_wikitext_2):
+        table = wtp.Table(sample_wikitext_2)
         cells_no_span = table.cells(span=False)
 
         assert cells_no_span is not None
@@ -71,10 +80,9 @@ class TestWikiTableColumnManager:
         assert cells_with_span is not None
         assert len(cells_with_span[1]) == 13
 
-    def test_load_table_cells(self, sample_wikitext):
-        manager = WikiTableColumnManager()
-        table = wtp.Table(sample_wikitext)
-        cells = manager.load_table_cells(table)
+    def test_load_table_cells(self, sample_wikitext_2):
+        table = wtp.Table(sample_wikitext_2)
+        cells = table.cells(span=True)
 
         assert cells is not None
         assert len(cells) == 3
@@ -106,7 +114,7 @@ class TestWikiTableColumnManager:
             Cell("\n!Global"),
             Cell("\n!Global no WD"),
             Cell("\n!WD"),
-            Cell("\n!Global no wd"),
+            Cell("\n!Global no WD"),
             Cell("\n!WD"),
             Cell('\n! rowspan="2" | Account age'),
             Cell('\n! rowspan="2" | Home Wiki'),
@@ -123,7 +131,7 @@ class TestWikiTableColumnManager:
             Cell("\n| Global"),
             Cell("\n| Global no WD"),
             Cell("\n| WD"),
-            Cell("\n| Global no wd"),
+            Cell("\n| Global no WD"),
             Cell("\n|WD"),
             Cell("\n| Account age"),
             Cell("\n|Home Wiki"),
@@ -132,10 +140,9 @@ class TestWikiTableColumnManager:
 
         assert [x.string for x in cells[2]] == [x.string for x in cells_2]
 
-    def test_load_table_cells_no_span(self, sample_wikitext):
-        manager = WikiTableColumnManager(False)
-        table = wtp.Table(sample_wikitext)
-        cells = manager.load_table_cells(table)
+    def test_load_table_cells_no_span(self, sample_wikitext_2):
+        table = wtp.Table(sample_wikitext_2)
+        cells = table.cells(span=False)
 
         assert cells is not None
         assert len(cells) == 3
@@ -162,70 +169,8 @@ class TestWikiTableColumnManager:
             Cell("\n!Global"),
             Cell("\n!Global no WD"),
             Cell("\n!WD"),
-            Cell("\n!Global no wd"),
+            Cell("\n!Global no WD"),
             Cell("\n!WD"),
         ]
 
         assert [x.string for x in cells[1]] == [x.string for x in cells_1]
-
-    def test_get_header_row(self, sample_wikitext):
-        manager = WikiTableColumnManager()
-        table = wtp.Table(sample_wikitext)
-        rows = manager._get_header_row(table)
-
-        assert rows is not None
-        assert len(rows) == 13
-
-    def test_get_header_row_no_span(self, sample_wikitext):
-        manager = WikiTableColumnManager(False)
-        table = wtp.Table(sample_wikitext)
-        rows = manager._get_header_row(table)
-
-        assert rows is not None
-        assert len(rows) == 10
-
-    def test_get_header_row_new(self, sample_wikitext):
-        manager = WikiTableColumnManager(False)
-        table = wtp.Table(sample_wikitext)
-        rows = manager._get_header_row_new(table)
-
-        assert rows is not None
-        assert len(rows) == 15
-
-    def test_get_header_index(self, sample_wikitext):
-        manager = WikiTableColumnManager()
-        table = wtp.Table(sample_wikitext)
-        rows = manager.get_header_index(table)
-
-        assert rows is not None
-        assert rows == {
-            "application": 0,
-            "latest update": 1,
-            "user": 2,
-            "country": 3,
-            "extended rights": 4,
-            "user edits": 7,
-            "last 3 months edits": 9,
-            "account age": 10,
-            "home wiki": 11,
-            "approved": 12,
-        }
-
-    def test_get_header_index_no_span(self, sample_wikitext):
-        manager = WikiTableColumnManager(False)
-        table = wtp.Table(sample_wikitext)
-        rows = manager.get_header_index(table)
-
-        assert rows is not None
-        assert rows == {
-            "application": 0,
-            "latest update": 1,
-            "user": 2,
-            "country": 3,
-            "extended rights": 4,
-            "user edits": 5,
-            "last 3 months edits": 6,
-            "account age": 7,
-            "home wiki": 8,
-            "approved": 9,
-        }

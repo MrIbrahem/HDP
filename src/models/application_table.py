@@ -8,6 +8,40 @@ from dataclasses import dataclass, field
 
 from .application_row import ApplicationRow
 
+EMPTY_TABLE_HEADER = """
+|-
+! rowspan="2" |Application
+! rowspan="2" |Latest update
+! rowspan="2" |User
+! rowspan="2" |Country
+! rowspan="2" |Extended rights
+! colspan="2" |User Edits
+! colspan="2" |Last 3 months edits
+! rowspan="2" |Account age
+! rowspan="2" |Home Wiki
+! rowspan="2" |Approved
+|-
+! Global no WD
+! WD
+! Global no WD
+! WD
+"""
+
+EMPTY_TABLE_ROW = """|-
+| {page_link}
+| {last_update}
+| {user_link}
+| {country}
+| {extended_rights}
+| {global_without_wikidata_str}
+| {wikidata_editcount_str}
+| {recent_editcount_str}
+| {recent_wikidata_editcount_str}
+| {age}
+| {home_wiki}
+| {approved}
+"""
+
 
 @dataclass(frozen=True, slots=True)
 class ApplicationColumn:
@@ -53,24 +87,34 @@ DEFAULT_COLUMNS: tuple[ApplicationColumn, ...] = (
         header_alts=[],
     ),
     ApplicationColumn(
-        header="Global edits without wikidata",
+        header="Extended rights",
+        row_key="extended_rights",
+        header_alts=[],
+    ),
+    ApplicationColumn(
+        header="User Edits > Global",
+        row_key="global_editcount_str",
+        header_alts=["Global edits without wikidata"],
+    ),
+    ApplicationColumn(
+        header="User Edits > Global no WD",
         row_key="global_without_wikidata_str",
-        header_alts=[],
+        header_alts=["Global edits without wikidata"],
     ),
     ApplicationColumn(
-        header="Wikidata edits",
+        header="User Edits > WD",
         row_key="wikidata_editcount_str",
-        header_alts=[],
+        header_alts=["Wikidata edits"],
     ),
     ApplicationColumn(
-        header="Edits in last 3 months",
+        header="Last 3 months edits > Global no WD",
         row_key="recent_editcount_str",
-        header_alts=[],
+        header_alts=["Edits in last 3 months"],
     ),
     ApplicationColumn(
-        header="Wikidata edits in last 3 months",
+        header="Last 3 months edits > WD",
         row_key="recent_wikidata_editcount_str",
-        header_alts=[],
+        header_alts=["Wikidata edits in last 3 months"],
     ),
     ApplicationColumn(
         header="Account age",
@@ -83,15 +127,15 @@ DEFAULT_COLUMNS: tuple[ApplicationColumn, ...] = (
         header_alts=[],
     ),
     ApplicationColumn(
+        header="Approved",
+        row_key="approved",
+        header_alts=[],
+    ),
+    ApplicationColumn(
         header="Last edit",
         row_key="last_edit",
         header_alts=[],
         optional=True,
-    ),
-    ApplicationColumn(
-        header="Approved",
-        row_key="approved",
-        header_alts=[],
     ),
 )
 
@@ -110,6 +154,7 @@ class ApplicationTable:
     rows: list[ApplicationRow]
     columns: list[ApplicationColumn] = field(default_factory=lambda: list(DEFAULT_COLUMNS))
     unknown: str = ""
+    category: str = ""
 
     def build_wikitable(self, add_last_edit: bool = False) -> str:
         """
@@ -123,6 +168,31 @@ class ApplicationTable:
 
         for row in self.rows:
             lines.extend(row.build_row(add_last_edit))
+
+        lines.append("|}")
+
+        return "\n".join(lines)
+
+    def build_wikitable_template(self, add_last_edit: bool = False) -> str:
+        """
+        Render the applications as a MediaWiki table.
+        """
+
+        lines = [
+            '{| class="wikitable sortable"',
+            EMPTY_TABLE_HEADER.strip(),
+        ]
+
+        if add_last_edit:
+            lines.append("! Last edit")
+
+        template = EMPTY_TABLE_ROW
+        if add_last_edit:
+            template = f"{template}\n| {{last_edit}}"
+
+        for row in self.rows:
+            row_str = row.build_row_template(template)
+            lines.append(row_str.strip())
 
         lines.append("|}")
 

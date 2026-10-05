@@ -4,7 +4,7 @@ Configuration, credentials, and project-wide constants for the HDP tools.
 
 from .constants import (
     BASE_PAGE,
-    DEFAULT_SECTION_NAMES,
+    DEFAULT_CATEGORIES,
     DEFAULT_USERS_REDIRECTS,
     RECENT_DAYS,
     SECTION_TO_CATEGORY,
@@ -20,7 +20,7 @@ from .settings import (
 __all__ = [
     "TQDM_DISABLE",
     "XTOOLS_GLOBALCONTRIBS_URL",
-    "DEFAULT_SECTION_NAMES",
+    "DEFAULT_CATEGORIES",
     "RECENT_DAYS",
     "USER_AGENT",
     "Credentials",

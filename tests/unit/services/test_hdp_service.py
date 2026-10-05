@@ -62,7 +62,7 @@ def _make_service(
     users_resolver.normalize.side_effect = lambda raw: (
         raw.replace("(2nd Application)", "").split("/")[0].strip().replace("_", " ").title() if raw else ""
     )
-    users_resolver.resolve_batch.return_value = {}
+    users_resolver.resolve_batch.return_value = {}, set()
 
     wiki_client.get_pages_wikitext.return_value = {}
     wiki_client.get_global_editcounts.return_value = {}
@@ -123,7 +123,7 @@ def _sample_user_info(username: str = "Alice") -> dict[str, Any]:
         recent_editcount=42,
         wikidata_count=100,
         last_edit="2026-09-01",
-    ).to_json()
+    ).to_table_dict()
 
 
 # ===========================================================================
@@ -185,7 +185,7 @@ class TestLoadRows:
     def test_applies_live_redirects(self):
         service, mocks = _make_service()
         mocks["users_resolver"].normalize.side_effect = lambda s: s
-        mocks["users_resolver"].resolve_batch.return_value = {"OldName": "NewName"}
+        mocks["users_resolver"].resolve_batch.return_value = {"OldName": "NewName"}, set()
 
         # Draft will have username OldName; after redirect becomes NewName
         service.load_rows(["OldName"])
@@ -366,7 +366,7 @@ class TestGenerate:
         service, mocks = _make_service(subpages_return=[])
         mocks["wiki_client"].get_page_wikitext.return_value = "page text"
 
-        result = service.generate("Hardware donation program", section_names=[])
+        result = service.generate("Hardware donation program", categories_names=[])
 
         assert result == ""
 
@@ -377,7 +377,7 @@ class TestGenerate:
 
         result = service.generate(
             "Hardware donation program",
-            section_names=["Open requests"],
+            categories_names=["Open requests"],
         )
 
         assert "=== Open requests ===" in result
@@ -389,7 +389,7 @@ class TestGenerate:
 
         service.generate(
             "Hardware donation program",
-            section_names=["Open requests", "Draft requests"],
+            categories_names=["Open requests", "Draft requests"],
         )
 
         assert mocks["subpages"]._subpages_for_section.call_count == 2
@@ -401,7 +401,7 @@ class TestGenerate:
 
         result = service.generate(
             "Hardware donation program",
-            section_names=["Open requests"],
+            categories_names=["Open requests"],
         )
 
         assert "! Last edit" in result
@@ -415,8 +415,7 @@ class TestGenerate:
 class TestUpdate:
     """Tests for HdpService.update."""
 
-    @patch("src.services.hdp_service.WikiTableDataUpdater")
-    def test_update_calls_updater_with_row_dicts(self, mock_updater_cls):
+    def test_update_calls_updater_with_row_dicts(self):
         service, mocks = _make_service(subpages_return=["Alice"])
         mocks["users_resolver"].normalize.return_value = "Alice"
         mocks["wiki_client"].get_page_wikitext.return_value = (
@@ -426,11 +425,11 @@ class TestUpdate:
 
         mock_updater = MagicMock()
         mock_updater.update_wikitable_data.return_value = "updated wikitext"
-        mock_updater_cls.return_value = mock_updater
 
+        service.updater = mock_updater
         result = service.update(
             "User:Mr. Ibrahem/hdp",
-            section_names=["Category:Hardware donation program open requests"],
+            categories_names=["Category:Hardware donation program open requests"],
         )
 
         assert result == "updated wikitext"
@@ -440,17 +439,16 @@ class TestUpdate:
         assert "table_headers_to_row_key" in call_kwargs
         assert call_kwargs["replace_values"] is True
 
-    @patch("src.services.hdp_service.WikiTableDataUpdater")
-    def test_update_pops_last_edit_header_when_disabled(self, mock_updater_cls):
+    def test_update_pops_last_edit_header_when_disabled(self):
         service, mocks = _make_service(subpages_return=[], load_last_edits=False)
         mocks["wiki_client"].get_page_wikitext.return_value = "page"
         mocks["subpages"].discover_subpages.return_value = set()
 
         mock_updater = MagicMock()
         mock_updater.update_wikitable_data.return_value = "out"
-        mock_updater_cls.return_value = mock_updater
 
-        service.update("User:Mr. Ibrahem/hdp", section_names=[])
+        service.updater = mock_updater
+        service.update("User:Mr. Ibrahem/hdp", categories_names=[])
 
         header_map = mock_updater.update_wikitable_data.call_args[1]["table_headers_to_row_key"]
         assert "Last edit" not in header_map

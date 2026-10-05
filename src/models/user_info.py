@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -62,12 +62,11 @@ class UserInfo:
     """
 
     username: str
-    # FIXME: Rename "refirect_username" to "redirect_username" after checking
-    # all consumers, serialized data, templates, and persisted data.
-    refirect_username: str = ""
+    redirect_username: str = ""
 
     home_wiki: str = ""
     registration: str = ""
+    extended_rights: str = ""
 
     global_editcount: int | None = None
     recent_editcount: int | None = None
@@ -78,27 +77,17 @@ class UserInfo:
 
     def update_username(self, username: str) -> None:
         """Update the username while preserving the previous username."""
-        self.refirect_username = self.username
+        self.redirect_username = self.username
         self.username = username
-
-    def to_json(self) -> dict[str, Any]:
-        """Return a JSON-serializable representation of the user."""
-        data = asdict(self)
-
-        data["user_link"] = self.user_link
-        data["age"] = self.age
-        data["global_without_wikidata_str"] = self.global_without_wikidata_str
-        data["global_editcount_str"] = self.global_editcount_str
-        data["recent_editcount_str"] = self.recent_editcount_str
-        data["recent_wikidata_editcount_str"] = self.recent_wikidata_editcount_str
-        data["wikidata_editcount_str"] = self.wikidata_editcount_str
-
-        return data
 
     @property
     def user_link(self) -> str | None:
         """Return the MediaWiki user-link for the current username."""
         return f"[[User:{self.username}]]" if self.username else None
+
+    @property
+    def full_username(self) -> str | None:
+        return f"User:{self.username}" if self.username else None
 
     @property
     def age(self) -> str:
@@ -202,19 +191,20 @@ class UserInfo:
 
     def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
-        Return values expected by ``WikiTableDataUpdater`` and
-        ``ApplicationTable.build_wikitable``.
+        Return values expected by ``WtpTableUpdater`` and
+        ``ApplicationTable.build_wikitable_template``.
         """
         return {
-            "global_editcount_str": self.global_editcount_str or unknown,
-            "recent_editcount_str": self.recent_editcount_str or unknown,
-            "recent_wikidata_editcount_str": (self.recent_wikidata_editcount_str or unknown),
-            "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
-            "global_without_wikidata_str": self.global_without_wikidata_str,
-            "user_link": self.user_link or unknown,
             "age": self.age,
+            "extended_rights": self.extended_rights,
+            "global_editcount_str": self.global_editcount_str or unknown,
+            "global_without_wikidata_str": self.global_without_wikidata_str,
             "home_wiki": self.home_wiki or unknown,
             "last_edit": self.last_edit or unknown,
+            "recent_editcount_str": self.recent_editcount_str or unknown,
+            "recent_wikidata_editcount_str": (self.recent_wikidata_editcount_str or unknown),
+            "user_link": self.user_link or unknown,
+            "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
         }
 
 

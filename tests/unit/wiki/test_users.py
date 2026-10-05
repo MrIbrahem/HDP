@@ -15,7 +15,7 @@ from src.wiki.users import UserResolver
 @pytest.fixture
 def wiki_client() -> MagicMock:
     client = MagicMock(name="wiki_client")
-    client.solve_pages_redirects.return_value = {}
+    client.solve_pages_info.return_value = {}, set()
     return client
 
 
@@ -100,7 +100,7 @@ class TestNormalize:
         assert resolver.normalize("Alice_(2nd_Application)") == "Alice"
 
     def test_suffix_removal_is_case_sensitive(self, resolver):
-        assert resolver.normalize("Alice (2nd application)") == "Alice (2nd application)"
+        assert resolver.normalize("Alice (2nd application)") == "Alice"
 
     def test_takes_part_before_first_slash(self, resolver):
         assert resolver.normalize("Alice/Sandbox/Extra") == "Alice"
@@ -153,7 +153,7 @@ class TestNormalize:
         r = UserResolver(wiki_client, {"a": "b", "b": "c"})
         assert r.normalize("a") == "B"
 
-    def test_does_not_call_wiki(self, resolver, wiki_client):
+    def test_does_not_call_wiki(self, resolver: UserResolver, wiki_client):
         resolver.normalize("Alice")
         assert wiki_client.mock_calls == []
 
@@ -167,7 +167,7 @@ class TestNormalize:
             ("", ""),
         ],
     )
-    def test_parametrised_examples(self, resolver, raw, expected):
+    def test_parametrised_examples(self, resolver: UserResolver, raw, expected):
         assert resolver.normalize(raw) == expected
 
 
@@ -177,78 +177,78 @@ class TestNormalize:
 
 
 class TestResolveBatch:
-    def test_empty_list_returns_empty_without_calling_wiki(self, resolver, wiki_client):
-        assert resolver.resolve_batch([]) == {}
-        wiki_client.solve_pages_redirects.assert_not_called()
+    def test_empty_list_returns_empty_without_calling_wiki(self, resolver: UserResolver, wiki_client):
+        assert resolver.resolve_batch([]) == ({}, set())
+        wiki_client.solve_pages_info.assert_not_called()
 
-    def test_only_empty_names_returns_empty_without_calling_wiki(self, resolver, wiki_client):
-        assert resolver.resolve_batch(["", ""]) == {}
-        wiki_client.solve_pages_redirects.assert_not_called()
+    def test_only_empty_names_returns_empty_without_calling_wiki(self, resolver: UserResolver, wiki_client):
+        assert resolver.resolve_batch(["", ""]) == ({}, set())
+        wiki_client.solve_pages_info.assert_not_called()
 
-    def test_builds_user_titles(self, resolver, wiki_client):
+    def test_builds_user_titles(self, resolver: UserResolver, wiki_client):
         resolver.resolve_batch(["Alice", "Bob"])
-        wiki_client.solve_pages_redirects.assert_called_once_with(["User:Alice", "User:Bob"])
+        wiki_client.solve_pages_info.assert_called_once_with(["User:Alice", "User:Bob"])
 
-    def test_skips_empty_names_in_titles(self, resolver, wiki_client):
+    def test_skips_empty_names_in_titles(self, resolver: UserResolver, wiki_client):
         resolver.resolve_batch(["Alice", "", "Bob"])
-        wiki_client.solve_pages_redirects.assert_called_once_with(["User:Alice", "User:Bob"])
+        wiki_client.solve_pages_info.assert_called_once_with(["User:Alice", "User:Bob"])
 
-    def test_accepts_tuple(self, resolver, wiki_client):
+    def test_accepts_tuple(self, resolver: UserResolver, wiki_client):
         resolver.resolve_batch(("Alice",))
-        wiki_client.solve_pages_redirects.assert_called_once_with(["User:Alice"])
+        wiki_client.solve_pages_info.assert_called_once_with(["User:Alice"])
 
-    def test_no_redirects_returns_empty(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {}
-        assert resolver.resolve_batch(["Alice"]) == {}
+    def test_no_redirects_returns_empty(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {}, set()
+        assert resolver.resolve_batch(["Alice"]) == ({}, set())
 
-    def test_maps_source_to_destination_without_prefix(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:Old": "User:New"}
-        assert resolver.resolve_batch(["Old"]) == {"Old": "New"}
+    def test_maps_source_to_destination_without_prefix(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:Old": "User:New"}, set()
+        assert resolver.resolve_batch(["Old"]) == ({"Old": "New"}, set())
 
-    def test_multiple_redirects(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {
+    def test_multiple_redirects(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {
             "User:A": "User:B",
             "User:C": "User:D",
-        }
-        assert resolver.resolve_batch(["A", "C"]) == {"A": "B", "C": "D"}
+        }, set()
+        assert resolver.resolve_batch(["A", "C"]) == ({"A": "B", "C": "D"}, set())
 
-    def test_identical_source_and_destination_omitted(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {
+    def test_identical_source_and_destination_omitted(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {
             "User:Same": "User:Same",
             "User:Old": "User:New",
-        }
-        assert resolver.resolve_batch(["Same", "Old"]) == {"Old": "New"}
+        }, set()
+        assert resolver.resolve_batch(["Same", "Old"]) == ({"Old": "New"}, set())
 
-    def test_destination_without_prefix_is_kept(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:Old": "New"}
-        assert resolver.resolve_batch(["Old"]) == {"Old": "New"}
+    def test_destination_without_prefix_is_kept(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:Old": "New"}, set()
+        assert resolver.resolve_batch(["Old"]) == ({"Old": "New"}, set())
 
-    def test_destination_with_spaces_and_unicode(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:Old": "User:مستخدم جديد"}
-        assert resolver.resolve_batch(["Old"]) == {"Old": "مستخدم جديد"}
+    def test_destination_with_spaces_and_unicode(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:Old": "User:مستخدم جديد"}, set()
+        assert resolver.resolve_batch(["Old"]) == ({"Old": "مستخدم جديد"}, set())
 
-    def test_only_leading_prefix_is_removed(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:A": "User:B User:C"}
-        assert resolver.resolve_batch(["A"]) == {"A": "B User:C"}
+    def test_only_leading_prefix_is_removed(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:A": "User:B User:C"}, set()
+        assert resolver.resolve_batch(["A"]) == ({"A": "B User:C"}, set())
 
-    def test_returns_new_dict(self, resolver, wiki_client):
-        result = resolver.resolve_batch(["Alice"])
+    def test_returns_new_dict(self, resolver: UserResolver, wiki_client):
+        result, _ = resolver.resolve_batch(["Alice"])
         assert isinstance(result, dict)
 
-    def test_johnjoy12_redirect_is_logged(self, resolver, wiki_client, caplog):
-        wiki_client.solve_pages_redirects.return_value = {"User:Johnjoy12": "User:Other"}
+    def test_johnjoy12_redirect_is_logged(self, resolver: UserResolver, wiki_client, caplog):
+        wiki_client.solve_pages_info.return_value = {"User:Johnjoy12": "User:Other"}, set()
         with caplog.at_level(logging.INFO):
-            result = resolver.resolve_batch(["Johnjoy12"])
+            result, _ = resolver.resolve_batch(["Johnjoy12"])
         assert result == {"Johnjoy12": "Other"}
         assert "Johnjoy12 is a redirect to Other" in caplog.text
 
-    def test_other_redirects_not_logged_at_info(self, resolver, wiki_client, caplog):
-        wiki_client.solve_pages_redirects.return_value = {"User:Old": "User:New"}
+    def test_other_redirects_not_logged_at_info(self, resolver: UserResolver, wiki_client, caplog):
+        wiki_client.solve_pages_info.return_value = {"User:Old": "User:New"}, set()
         with caplog.at_level(logging.INFO):
             resolver.resolve_batch(["Old"])
         assert "is a redirect to" not in caplog.text
 
-    def test_empty_input_logs_debug(self, resolver, caplog):
+    def test_empty_input_logs_debug(self, resolver: UserResolver, caplog):
         with caplog.at_level(logging.DEBUG):
             resolver.resolve_batch([])
         assert "No usernames provided" in caplog.text
@@ -260,44 +260,44 @@ class TestResolveBatch:
 
 
 class TestNormalizeAndResolve:
-    def test_empty_input(self, resolver, wiki_client):
+    def test_empty_input(self, resolver: UserResolver, wiki_client):
         assert resolver.normalize_and_resolve([]) == []
-        wiki_client.solve_pages_redirects.assert_not_called()
+        wiki_client.solve_pages_info.assert_not_called()
 
-    def test_all_empty_names_preserved_without_calling_wiki(self, resolver, wiki_client):
+    def test_all_empty_names_preserved_without_calling_wiki(self, resolver: UserResolver, wiki_client):
         assert resolver.normalize_and_resolve(["", "  ", "(2nd Application)"]) == ["", "", ""]
-        wiki_client.solve_pages_redirects.assert_not_called()
+        wiki_client.solve_pages_info.assert_not_called()
 
-    def test_normalises_without_redirects(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {}
+    def test_normalises_without_redirects(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {}, set()
         result = resolver.normalize_and_resolve(["alice", "Bob_Smith", "carol/Page"])
         assert result == ["Alice", "Bob Smith", "Carol"]
 
-    def test_empty_names_are_not_sent_to_wiki(self, resolver, wiki_client):
+    def test_empty_names_are_not_sent_to_wiki(self, resolver: UserResolver, wiki_client):
         resolver.normalize_and_resolve(["alice", "", "bob"])
-        wiki_client.solve_pages_redirects.assert_called_once_with(["User:Alice", "User:Bob"])
+        wiki_client.solve_pages_info.assert_called_once_with(["User:Alice", "User:Bob"])
 
-    def test_applies_live_redirects(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:Old": "User:New"}
+    def test_applies_live_redirects(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:Old": "User:New"}, set()
         assert resolver.normalize_and_resolve(["old", "other"]) == ["New", "Other"]
 
-    def test_preserves_order_and_empties(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:B": "User:Z"}
+    def test_preserves_order_and_empties(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:B": "User:Z"}, set()
         result = resolver.normalize_and_resolve(["a", "", "b", " ", "c"])
         assert result == ["A", "", "Z", "", "C"]
 
-    def test_duplicates_are_preserved(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:A": "User:B"}
+    def test_duplicates_are_preserved(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:A": "User:B"}, set()
         assert resolver.normalize_and_resolve(["a", "A", "a"]) == ["B", "B", "B"]
 
     def test_static_redirect_then_live_redirect(self, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:New": "User:Newer"}
+        wiki_client.solve_pages_info.return_value = {"User:New": "User:Newer"}, set()
         r = UserResolver(wiki_client, {"old": "new"})
         assert r.normalize_and_resolve(["old"]) == ["Newer"]
-        wiki_client.solve_pages_redirects.assert_called_once_with(["User:New"])
+        wiki_client.solve_pages_info.assert_called_once_with(["User:New"])
 
-    def test_live_redirect_applies_only_to_exact_normalised_name(self, resolver, wiki_client):
-        wiki_client.solve_pages_redirects.return_value = {"User:alice": "User:Z"}
+    def test_live_redirect_applies_only_to_exact_normalised_name(self, resolver: UserResolver, wiki_client):
+        wiki_client.solve_pages_info.return_value = {"User:alice": "User:Z"}, set()
         # "alice" is normalised to "Alice" before lookup, so the key doesn't match
         assert resolver.normalize_and_resolve(["alice"]) == ["Alice"]
 
@@ -310,4 +310,4 @@ class TestNormalizeAndResolve:
 
     def test_sends_normalised_names_to_wiki(self, resolver: UserResolver, wiki_client):
         resolver.normalize_and_resolve(["alice", "bob_smith"])
-        wiki_client.solve_pages_redirects.assert_called_once_with(["User:Alice", "User:Bob smith"])
+        wiki_client.solve_pages_info.assert_called_once_with(["User:Alice", "User:Bob smith"])

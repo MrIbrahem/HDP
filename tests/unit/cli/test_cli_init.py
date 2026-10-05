@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.cli import Cli
-from src.config import DEFAULT_SECTION_NAMES
+from src.config import DEFAULT_CATEGORIES
 
 BASE_PAGE = "User:Base/page"
 
@@ -305,7 +305,7 @@ class TestCmdGenerate:
 
         mock_deps.service.generate.assert_called_once_with(
             page_title=BASE_PAGE,
-            section_names=list(DEFAULT_SECTION_NAMES),
+            categories_names=list(DEFAULT_CATEGORIES),
             unknown="unknown",
         )
 
@@ -315,13 +315,13 @@ class TestCmdGenerate:
 
     def test_uses_custom_sections(self, cli, mock_deps):
         cli._cmd_generate(mock_deps.service, make_args(sections=["A", "Category:B"]))
-        assert mock_deps.service.generate.call_args.kwargs["section_names"] == ["A", "Category:B"]
+        assert mock_deps.service.generate.call_args.kwargs["categories_names"] == ["A", "Category:B"]
 
     def test_default_sections_are_a_copy(self, cli, mock_deps):
         cli._cmd_generate(mock_deps.service, make_args())
-        passed = mock_deps.service.generate.call_args.kwargs["section_names"]
-        assert passed == list(DEFAULT_SECTION_NAMES)
-        assert passed is not DEFAULT_SECTION_NAMES
+        passed = mock_deps.service.generate.call_args.kwargs["categories_names"]
+        assert passed == list(DEFAULT_CATEGORIES)
+        assert passed is not DEFAULT_CATEGORIES
 
     def test_passes_unknown_placeholder(self, cli, mock_deps):
         cli._cmd_generate(mock_deps.service, make_args(unknown="--"))
@@ -364,7 +364,7 @@ class TestCmdUpdate:
 
         mock_deps.service.update.assert_called_once_with(
             page_title="User:Mr. Ibrahem/hdp",
-            section_names=list(DEFAULT_SECTION_NAMES),
+            categories_names=list(DEFAULT_CATEGORIES),
             unknown="",
         )
 
@@ -373,7 +373,7 @@ class TestCmdUpdate:
 
         kwargs = mock_deps.service.update.call_args.kwargs
         assert kwargs["page_title"] == "User:Z"
-        assert kwargs["section_names"] == ["S1"]
+        assert kwargs["categories_names"] == ["S1"]
 
     def test_passes_unknown_placeholder(self, cli, mock_deps):
         cli._cmd_update(mock_deps.service, make_update_args(unknown="n/a"))
@@ -393,7 +393,7 @@ class TestCmdUpdate:
 
         kwargs = mock_deps.service.update.call_args.kwargs
         assert kwargs["page_title"] == "User:Mr. Ibrahem/test"
-        assert kwargs["section_names"] == []
+        assert kwargs["categories_names"] == []
 
     def test_test_mode_renames_default_output(self, cli, mock_settings, mock_deps):
         cli._cmd_update(mock_deps.service, make_update_args(test=True))
@@ -425,7 +425,7 @@ class TestRunIntegration:
         code = cli.run(["generate", "--page", "User:P", "--sections", "A", "--output", "x.wiki", "--unknown", "?"])
 
         assert code == 0
-        mock_deps.service.generate.assert_called_once_with(page_title="User:P", section_names=["A"], unknown="?")
+        mock_deps.service.generate.assert_called_once_with(page_title="User:P", categories_names=["A"], unknown="?")
         mock_settings.write_to_cache_dir.assert_called_once_with("x.wiki", "generated text")
 
     def test_update_test_flag_full_flow(self, cli, mock_settings, mock_deps):
@@ -433,7 +433,7 @@ class TestRunIntegration:
 
         assert code == 0
         mock_deps.service.update.assert_called_once_with(
-            page_title="User:Mr. Ibrahem/test", section_names=[], unknown=""
+            page_title="User:Mr. Ibrahem/test", categories_names=[], unknown=""
         )
         mock_settings.write_to_cache_dir.assert_called_once_with("test.wiki", "updated text")
 

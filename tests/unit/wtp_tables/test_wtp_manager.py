@@ -1,11 +1,11 @@
 """
-Unit tests for src/parsing/tables_manager.py module.
+Unit tests for src/wtp_tables/wtp_manager.py module.
 """
 
 import pytest
 import wikitextparser as wtp
 
-from src.parsing.tables_manager import WikiTableColumnManager
+from src.wtp_tables.wtp_manager import WtpTableManager
 
 
 def ensure_column_in_wikitext(
@@ -17,11 +17,11 @@ def ensure_column_in_wikitext(
     """
     Helper function that accepts wikitext and column name, returning updated text.
     """
-    manager = WikiTableColumnManager()
+    manager = WtpTableManager()
     table = wtp.Table(text)
-    _ = manager.ensure_column_exists(
+    _ = manager.ensure_columns_exists(
         table=table,
-        col_name=col_name,
+        cols_name=[col_name],
         position=position,
         default_value=default_value,
     )
@@ -42,23 +42,23 @@ def sample_wikitext():
 
 
 class TestWikiTableColumnManager:
-    """Tests for WikiTableColumnManager class methods."""
+    """Tests for WtpTableManager class methods."""
 
     def test_has_column_returns_true_when_exists(self, sample_wikitext):
-        manager = WikiTableColumnManager()
+        manager = WtpTableManager()
         table = wtp.Table(sample_wikitext)
 
-        assert manager.has_column(table, "Author") is True
-        assert manager.has_column(table, "author") is True  # Case-insensitive check
+        assert manager.has_header(table, "Author") is True
+        assert manager.has_header(table, "author") is True  # Case-insensitive check
 
     def test_has_column_returns_false_when_missing(self, sample_wikitext):
-        manager = WikiTableColumnManager()
+        manager = WtpTableManager()
         table = wtp.Table(sample_wikitext)
 
-        assert manager.has_column(table, "Country") is False
+        assert manager.has_header(table, "Country") is False
 
     def test_add_column_at_end(self, sample_wikitext):
-        manager = WikiTableColumnManager()
+        manager = WtpTableManager()
         table = wtp.Table(sample_wikitext)
 
         success = manager.add_column(table, col_name="Country", default_value="Yemen", position="end")
@@ -69,7 +69,7 @@ class TestWikiTableColumnManager:
         assert "| Yemen" in result
 
     def test_add_column_after_first(self, sample_wikitext):
-        manager = WikiTableColumnManager()
+        manager = WtpTableManager()
         table = wtp.Table(sample_wikitext)
 
         success = manager.add_column(table, col_name="Status", default_value="Active", position="after_first")
@@ -80,19 +80,19 @@ class TestWikiTableColumnManager:
         assert "| Active" in result
 
     def test_ensure_column_exists_adds_missing_column(self, sample_wikitext):
-        manager = WikiTableColumnManager()
+        manager = WtpTableManager()
         table = wtp.Table(sample_wikitext)
-        _ = manager.ensure_column_exists(table=table, col_name="Country", default_value="Unknown")
+        _ = manager.ensure_columns_exists(table=table, cols_name=["Country"], default_value="Unknown")
 
         result = table.string
         assert "! Country" in result
         assert "| Unknown" in result
 
     def test_ensure_column_exists_does_not_duplicate_existing(self, sample_wikitext):
-        manager = WikiTableColumnManager()
+        manager = WtpTableManager()
         table = wtp.Table(sample_wikitext)
 
-        _ = manager.ensure_column_exists(table=table, col_name="Author")
+        _ = manager.ensure_columns_exists(table=table, cols_name=["Author"])
 
         result = table.string
         # Column already exists, text should remain unchanged
