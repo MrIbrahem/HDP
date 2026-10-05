@@ -93,7 +93,7 @@ COMPLEX_WIKITEXT = """
 !Global
 !Global no WD
 !WD
-!Global no wd
+!Global no WD
 !WD
 |-
 | User1
@@ -104,7 +104,7 @@ COMPLEX_WIKITEXT = """
 | Global
 | Global no WD
 | WD
-| Global no wd
+| Global no WD
 |WD
 | Account age
 |Home Wiki

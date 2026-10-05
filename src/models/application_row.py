@@ -131,15 +131,20 @@ class ApplicationRow:
     def to_table_dict(self, unknown: str = "unknown") -> dict[str, str]:
         """
         Dict of header-key → cell value expected by ``WtpTableUpdater``
-        and ``ApplicationTable.build_wikitable/build_wikitable_template``.
+        and ``ApplicationTable.build_wikitable_template``.
         """
         data = {
             "page_link": self.page_link,
             "last_update": self.last_update,
             "country": self.country,
+            "approved": self.approved,
             **self.user_info.to_table_dict(unknown=unknown),
         }
         return data
+
+    def build_row_template(self, template: str) -> str:
+        map = self.to_table_dict(unknown="")
+        return template.format_map(map)
 
     def to_json(self) -> dict[str, Any]:
         """Full field dump (useful for debugging / JSON export)."""
@@ -151,6 +156,7 @@ class ApplicationRow:
         lines.append(f"| {self.last_update}")
         lines.append(f"| {self.user_info.user_link}")
         lines.append(f"| {self.country}")
+        lines.append(f"| {self.user_info.extended_rights}")
 
         lines.append(f"| {self.user_info.global_editcount_str}")
         lines.append(f"| {self.user_info.global_without_wikidata_str}")
@@ -166,26 +172,6 @@ class ApplicationRow:
             lines.append(f"| {self.user_info.last_edit}")
 
         return lines
-
-    def build_row_template(self, template: str) -> str:
-        map = {
-            "page_link": self.page_link,
-            "last_update": self.last_update,
-            "user_link": self.user_info.user_link,
-            "country": self.country,
-            "extended_rights": self.user_info.extended_rights,
-            "global_editcount_str": self.user_info.global_editcount_str,
-            "global_without_wikidata_str": self.user_info.global_without_wikidata_str,
-            "wikidata_editcount_str": self.user_info.wikidata_editcount_str,
-            "recent_wikidata_editcount_str": self.user_info.recent_wikidata_editcount_str,
-            "recent_editcount_str": self.user_info.recent_editcount_str,
-            "age": self.user_info.age,
-            "home_wiki": self.user_info.home_wiki,
-            "approved": self.approved,
-            "last_edit": self.user_info.last_edit or "",
-        }
-
-        return template.format_map(map)
 
 
 __all__ = [

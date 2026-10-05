@@ -123,7 +123,7 @@ def _sample_user_info(username: str = "Alice") -> dict[str, Any]:
         recent_editcount=42,
         wikidata_count=100,
         last_edit="2026-09-01",
-    ).to_json()
+    ).to_table_dict()
 
 
 # ===========================================================================

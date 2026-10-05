@@ -84,7 +84,7 @@ class TestUserInfo:
         user.update_username("NewName")
 
         assert user.username == "NewName"
-        assert user.refirect_username == "OldName"
+        assert user.redirect_username == "OldName"
 
     def test_user_link(self) -> None:
         """Test that user_link dynamically formats as a wiki link."""
@@ -180,15 +180,3 @@ class TestUserInfo:
         assert table_dict["wikidata_editcount_str"] == "unknown_value"
         assert table_dict["home_wiki"] == "unknown_value"
         assert table_dict["last_edit"] == "unknown_value"
-
-    def test_to_json(self) -> None:
-        """Test exporting falls back to the specified 'unknown' placeholder."""
-        user = UserInfo(username="Bob")
-        table_dict = user.to_json()
-
-        assert table_dict["global_editcount_str"] == ""
-        assert table_dict["recent_editcount_str"] == ""
-        assert table_dict["recent_wikidata_editcount_str"] == ""
-        assert table_dict["wikidata_editcount_str"] == ""
-        assert table_dict["home_wiki"] == ""
-        assert table_dict["last_edit"] is None

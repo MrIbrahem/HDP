@@ -23,7 +23,7 @@ EMPTY_TABLE_HEADER = """
 |-
 ! Global no WD
 ! WD
-! Global no wd
+! Global no WD
 ! WD
 """
 
