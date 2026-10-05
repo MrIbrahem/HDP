@@ -74,7 +74,7 @@ class WtpTable:
         return cls.load(table, span=span)
 
     @classmethod
-    def load(cls, table: wtp.Table, span: bool = True) -> WtpTable:
+    def load(cls, table: wtp.Table | str, span: bool = True) -> WtpTable:
         """
         Take a wikitext table (string or wtp.Table) and build a WtpTable.
 
@@ -85,6 +85,9 @@ class WtpTable:
           column (the "leaf" header). The full chain is in `header_path`.
         * Header rows themselves are also included (is_header=True).
         """
+        if isinstance(table, str):
+            table = wtp.Table(table)
+
         try:
             grid = table.cells(span=span)
         except Exception as exc:  # wikitextparser can fail on malformed tables

@@ -1,11 +1,11 @@
 """
-Unit tests for src/parsing/wtp_table.py module.
+Unit tests for src/wtp_tables/wtp_table.py module.
 """
 
 import pytest
 import wikitextparser as wtp
 
-from src.parsing.wtp_table import WtpCell, WtpRow, WtpTable
+from src.wtp_tables.wtp_table import WtpCell, WtpRow, WtpTable
 
 
 @pytest.fixture
