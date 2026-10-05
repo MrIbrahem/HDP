@@ -80,7 +80,7 @@ def complex_wikitext() -> str:
 class TestLoadSimple:
 
     def test_load_from_string(self, simple_wikitext):
-        t = WtpTable.load_text(simple_wikitext)
+        t = WtpTable.load(simple_wikitext)
 
         assert isinstance(t, WtpTable)
         assert isinstance(t.table, wtp.Table)
@@ -96,23 +96,23 @@ class TestLoadSimple:
         assert len(t) == 3
 
     def test_span_is_stored(self, simple_wikitext):
-        assert WtpTable.load_text(simple_wikitext).span is True
-        assert WtpTable.load_text(simple_wikitext, span=False).span is False
+        assert WtpTable.load(simple_wikitext).span is True
+        assert WtpTable.load(simple_wikitext, span=False).span is False
 
     def test_header_and_data_rows(self, simple_wikitext):
-        t = WtpTable.load_text(simple_wikitext)
+        t = WtpTable.load(simple_wikitext)
 
         assert [r.is_header for r in t.rows] == [True, False, False]
         assert len(t.header_rows) == 1
         assert len(t.data_rows) == 2
 
     def test_headers(self, simple_wikitext):
-        t = WtpTable.load_text(simple_wikitext)
+        t = WtpTable.load(simple_wikitext)
 
         assert t.headers == ["Page", "Age"]
 
     def test_cells_get_their_header(self, simple_wikitext):
-        t = WtpTable.load_text(simple_wikitext)
+        t = WtpTable.load(simple_wikitext)
         row = t.data_rows[0]
 
         assert [c.header for c in row.cells] == ["Page", "Age"]
@@ -121,13 +121,13 @@ class TestLoadSimple:
         assert row.cells[1].value.strip() == "1"
 
     def test_simple_table_no_span(self, simple_wikitext):
-        t = WtpTable.load_text(simple_wikitext, span=False)
+        t = WtpTable.load(simple_wikitext, span=False)
 
         assert t.headers == ["Page", "Age"]
         assert len(t.data_rows) == 2
 
     def test_iteration(self, simple_wikitext):
-        t = WtpTable.load_text(simple_wikitext)
+        t = WtpTable.load(simple_wikitext)
 
         assert list(t) == t.rows
 
@@ -140,7 +140,7 @@ class TestLoadSimple:
 class TestLoadEdgeCases:
 
     def test_empty_table(self):
-        t = WtpTable.load_text('{| class="wikitable"\n|}')
+        t = WtpTable.load('{| class="wikitable"\n|}')
 
         assert t.rows == []
         assert t.headers == []
@@ -154,7 +154,7 @@ class TestLoadEdgeCases:
 
         monkeypatch.setattr(wtp.Table, "cells", boom)
 
-        t = WtpTable.load_text(simple_wikitext)
+        t = WtpTable.load(simple_wikitext)
 
         assert t.rows == []
         assert isinstance(t.table, wtp.Table)
@@ -165,7 +165,7 @@ class TestLoadEdgeCases:
 | A
 | B
 |}"""
-        t = WtpTable.load_text(text)
+        t = WtpTable.load(text)
 
         assert t.header_rows == []
         assert len(t.data_rows) == 1
@@ -180,7 +180,7 @@ class TestLoadEdgeCases:
 class TestWtpRow:
 
     def test_get_is_case_insensitive(self, simple_wikitext):
-        row = WtpTable.load_text(simple_wikitext).data_rows[0]
+        row = WtpTable.load(simple_wikitext).data_rows[0]
 
         assert row.get("Age") is not None
         assert row.get("age") is not None
@@ -188,12 +188,12 @@ class TestWtpRow:
         assert row.get("age").value.strip() == "1"
 
     def test_get_missing_header_returns_none(self, simple_wikitext):
-        row = WtpTable.load_text(simple_wikitext).data_rows[0]
+        row = WtpTable.load(simple_wikitext).data_rows[0]
 
         assert row.get("Country") is None
 
     def test_to_dict(self, simple_wikitext):
-        row = WtpTable.load_text(simple_wikitext).data_rows[1]
+        row = WtpTable.load(simple_wikitext).data_rows[1]
 
         assert row.to_dict() == {"page": "[[B]]", "age": "2"}
 
@@ -214,14 +214,14 @@ class TestWtpRow:
 class TestWtpCell:
 
     def test_is_empty(self, lines_wikitext):
-        row = WtpTable.load_text(lines_wikitext).data_rows[0]
+        row = WtpTable.load(lines_wikitext).data_rows[0]
 
         assert row.get("Page").is_empty is False
         assert row.get("Age").is_empty is False
         assert row.get("Home Wiki").is_empty is True
 
     def test_value_setter_updates_table_string(self, lines_wikitext):
-        t = WtpTable.load_text(lines_wikitext)
+        t = WtpTable.load(lines_wikitext)
         cell = t.data_rows[0].get("Age")
 
         cell.value = " 999"
@@ -231,7 +231,7 @@ class TestWtpCell:
         assert "111" not in t.table.string
 
     def test_fill_empty_cell(self, lines_wikitext):
-        t = WtpTable.load_text(lines_wikitext)
+        t = WtpTable.load(lines_wikitext)
         cell = t.data_rows[0].get("Home Wiki")
 
         cell.value = " enwiki"
@@ -247,19 +247,19 @@ class TestWtpCell:
 class TestComplexTable:
 
     def test_row_counts(self, complex_wikitext):
-        t = WtpTable.load_text(complex_wikitext)
+        t = WtpTable.load(complex_wikitext)
 
         assert len(t) == 3
         assert len(t.header_rows) == 2
         assert len(t.data_rows) == 1
 
     def test_every_row_has_13_cells_with_span(self, complex_wikitext):
-        t = WtpTable.load_text(complex_wikitext)
+        t = WtpTable.load(complex_wikitext)
 
         assert [len(r.cells) for r in t.rows] == [13, 13, 13]
 
     def test_leaf_headers(self, complex_wikitext):
-        t = WtpTable.load_text(complex_wikitext)
+        t = WtpTable.load(complex_wikitext)
 
         assert t.headers == [
             "Application",
@@ -278,13 +278,13 @@ class TestComplexTable:
         ]
 
     def test_header_path_rowspan_has_no_duplicates(self, complex_wikitext):
-        row = WtpTable.load_text(complex_wikitext).data_rows[0]
+        row = WtpTable.load(complex_wikitext).data_rows[0]
 
         assert row.cells[0].header_path == ("Application",)
         assert row.cells[11].header_path == ("Home Wiki",)
 
     def test_header_path_colspan_has_parent(self, complex_wikitext):
-        cells = WtpTable.load_text(complex_wikitext).data_rows[0].cells
+        cells = WtpTable.load(complex_wikitext).data_rows[0].cells
 
         assert cells[5].header_path == ("User Edits", "Global")
         assert cells[7].header_path == ("User Edits", "WD")
@@ -292,7 +292,7 @@ class TestComplexTable:
         assert cells[9].header_path == ("Last 3 months edits", "WD")
 
     def test_data_row_values_by_header(self, complex_wikitext):
-        row = WtpTable.load_text(complex_wikitext).data_rows[0]
+        row = WtpTable.load(complex_wikitext).data_rows[0]
 
         assert row.get("Application").value.strip() == "User1"
         assert row.get("Country").value.strip() == "Country"
@@ -300,17 +300,17 @@ class TestComplexTable:
         assert row.get("Approved").value.strip() == "Approved"
 
     def test_duplicate_header_get_returns_first(self, complex_wikitext):
-        row = WtpTable.load_text(complex_wikitext).data_rows[0]
+        row = WtpTable.load(complex_wikitext).data_rows[0]
 
         # "WD" appears at index 7 and 9
         assert row.get("WD").index == 7
 
     def test_cell_indexes_are_sequential(self, complex_wikitext):
-        for row in WtpTable.load_text(complex_wikitext).rows:
+        for row in WtpTable.load(complex_wikitext).rows:
             assert [c.index for c in row.cells] == list(range(13))
 
     def test_no_span_keeps_literal_rows(self, complex_wikitext):
-        t = WtpTable.load_text(complex_wikitext, span=False)
+        t = WtpTable.load(complex_wikitext, span=False)
 
         assert len(t) == 3
         assert [len(r.cells) for r in t.rows] == [10, 5, 13]

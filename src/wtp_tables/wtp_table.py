@@ -69,11 +69,6 @@ class WtpTable:
     # ------------------------------------------------------------------
 
     @classmethod
-    def load_text(cls, text: str, span: bool = True) -> WtpTable:
-        table = wtp.Table(text)
-        return cls.load(table, span=span)
-
-    @classmethod
     def load(cls, table: wtp.Table | str, span: bool = True) -> WtpTable:
         """
         Take a wikitext table (string or wtp.Table) and build a WtpTable.
