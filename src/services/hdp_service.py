@@ -177,7 +177,7 @@ class HdpService:
                 row.apply_country(wikitext)
 
             if row.user_info.full_username in missing:
-                logger.warning("Username not found for %s", row.full_title)
+                logger.warning("Username missing [[%s]]", row.user_info.full_username)
                 row.match_username(wikitext)
 
         # process rows
