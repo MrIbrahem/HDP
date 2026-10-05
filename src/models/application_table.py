@@ -50,6 +50,7 @@ EMPTY_TABLE_ROW = """|-
 | {approved}
 """
 
+
 @dataclass(frozen=True, slots=True)
 class ApplicationColumn:
     """

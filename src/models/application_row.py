@@ -174,14 +174,11 @@ class ApplicationRow:
             "user_link": self.user_info.user_link,
             "country": self.country,
             "extended_rights": self.user_info.extended_rights,
-
             "global_editcount_str": self.user_info.global_editcount_str,
             "global_without_wikidata_str": self.user_info.global_without_wikidata_str,
             "wikidata_editcount_str": self.user_info.wikidata_editcount_str,
-
             "recent_wikidata_editcount_str": self.user_info.recent_wikidata_editcount_str,
             "recent_editcount_str": self.user_info.recent_editcount_str,
-
             "age": self.user_info.age,
             "home_wiki": self.user_info.home_wiki,
             "approved": self.approved,
