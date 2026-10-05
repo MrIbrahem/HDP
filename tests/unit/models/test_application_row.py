@@ -304,6 +304,7 @@ class TestExtractCountry:
 class TestExtractUsername:
 
     @pytest.mark.parametrize("text, expected", [
+        ("; your username : ...", ""),
         ("; your username : [[User:Foo]]", "Foo"),
         ("; your username : Flixtey", "Flixtey"),
         (";your username: Muddyb", "Muddyb"),

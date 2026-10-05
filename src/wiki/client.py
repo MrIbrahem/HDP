@@ -313,7 +313,7 @@ class WikiClientLoader:
             # "action": "query",
             "meta": "globaluserinfo",
             "guiuser": username,
-            "guiprop": "merged|editcount",
+            "guiprop": "merged|editcount|rights",
             "formatversion": "2",
             "format": "json",
             # "redirects": 1,

@@ -39,6 +39,10 @@ def extract_username(wikitext: str) -> str:
     if link:
         value = link.group("name")
 
+    # if value dosen't contain letters, return empty string
+    if not any(c.isalpha() for c in value):
+        return ""
+
     # Wikimedia usernames use spaces; underscores in links are equivalent
     return value.replace("_", " ").strip()
 
