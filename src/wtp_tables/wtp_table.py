@@ -13,6 +13,9 @@ from wikitextparser._cell import Cell
 
 logger = logging.getLogger(__name__)
 
+# Separator used to address a header by its path, e.g. "User Edits > WD"
+HEADER_PATH_SEP = ">"
+
 
 @dataclass
 class WtpCell:
@@ -43,13 +46,26 @@ class WtpRow:
     cells: list[WtpCell] = field(default_factory=list)
     is_header: bool = False
 
-    def get(self, header: str) -> WtpCell | None:
-        """Return the first cell whose header equals `header` (case-insensitive)."""
-        target = header.strip().lower()
+    def get_all(self, header: str) -> list[WtpCell]:
+        """
+        All cells matching `header` (case-insensitive).
+
+        `header` is either a plain leaf header ("WD") or a path using
+        ``HEADER_PATH_SEP`` ("Last 3 months edits > WD"). A path matches when
+        it equals the *end* of the cell's header_path.
+        """
+        parts = tuple(p.strip().lower() for p in header.split(HEADER_PATH_SEP))
+        found = []
         for c in self.cells:
-            if c.header.strip().lower() == target:
-                return c
-        return None
+            path = tuple(h.strip().lower() for h in c.header_path) or (c.header.strip().lower(),)
+            if len(path) >= len(parts) and path[-len(parts) :] == parts:
+                found.append(c)
+        return found
+
+    def get(self, header: str) -> WtpCell | None:
+        """First cell matching `header` (see get_all), or None."""
+        found = self.get_all(header)
+        return found[0] if found else None
 
     def to_dict(self) -> dict[str, str]:
         """header (lowercase) -> stripped cell value."""
@@ -163,6 +179,10 @@ class WtpTable:
             return []
         return [c.header for c in self.rows[0].cells]
 
+    def has_header(self, header: str) -> bool:
+        """True if `header` (leaf or path) matches at least one column."""
+        return bool(self.rows) and bool(self.rows[0].get_all(header))
+
     def __iter__(self) -> Iterator[WtpRow]:
         return iter(self.rows)
 
@@ -171,6 +191,7 @@ class WtpTable:
 
 
 __all__ = [
+    "HEADER_PATH_SEP",
     "WtpCell",
     "WtpRow",
     "WtpTable",

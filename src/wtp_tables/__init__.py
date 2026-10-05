@@ -1,4 +1,4 @@
-
+from .wtp_manager import WtpTableManager
 from .wtp_table import WtpCell, WtpRow, WtpTable
 from .wtp_updater import WtpTableUpdater
 
@@ -7,4 +7,5 @@ __all__ = [
     "WtpRow",
     "WtpTable",
     "WtpTableUpdater",
+    "WtpTableManager",
 ]

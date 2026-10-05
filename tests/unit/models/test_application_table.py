@@ -116,6 +116,7 @@ class TestApplicationTableAsRowDicts:
         mock_row_1.to_table_dict.assert_called_once_with("UnknownData")
         mock_row_2.to_table_dict.assert_called_once_with("UnknownData")
 
+
 class TestApplicationTableHeadersToRowKeys:
     def test_headers_to_row_keys(self, mock_row_1: MagicMock, mock_row_2: MagicMock) -> None:
         """Test that headers are converted to row keys."""
@@ -124,7 +125,7 @@ class TestApplicationTableHeadersToRowKeys:
         result = table.headers_to_row_keys()
 
         # Verify the resulting dictionary structure
-        expected_result =    {
+        expected_result = {
             "Application": "page_link",
             "Latest update": "last_update",
             "User": "user_link",
@@ -151,7 +152,7 @@ class TestApplicationTableHeadersToRowKeys:
                 "age": "1",
                 "home_wiki": "enwiki",
                 "last_edit": "2023-01-01",
-                "approved": "Yes"
+                "approved": "Yes",
             }
         }
         assert result == expected_result

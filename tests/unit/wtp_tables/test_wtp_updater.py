@@ -118,7 +118,7 @@ def updater() -> WtpTableUpdater:
     return WtpTableUpdater()
 
 
-def run(updater, wikitext, **kwargs) -> str:
+def run(updater: WtpTableUpdater, wikitext, **kwargs) -> str:
     return updater.update_wikitable_data(
         rows=USERS_ROWS,
         wikitext=wikitext,
@@ -243,3 +243,72 @@ class TestAddMissingHeaders:
 
         assert headers.count("home wiki") == 1
         assert headers.count("approved") == 1
+
+
+# ===========================================================================
+# Duplicate leaf headers (second header row repeats names) -> use header paths
+# ===========================================================================
+
+
+def make_complex_empty() -> str:
+    """Same structure as COMPLEX_WIKITEXT, but with an empty data row."""
+    head = COMPLEX_WIKITEXT.split("|-\n| User1")[0]
+    return head + "|-\n| User1\n" + "|\n" * 12 + "|-\n|}"
+
+
+PATH_HEADERS_TO_KEY = {
+    "Application": "page_link",
+    "User Edits > Global no WD": "global_without_wikidata_str",
+    "User Edits > WD": "wikidata_editcount_str",
+    "Last 3 months edits > Global no WD": "recent_editcount_str",
+    "Last 3 months edits > WD": "recent_wikidata_editcount_str",
+    "Home Wiki": "home_wiki",
+}
+
+PATH_ROWS = {"User1": USERS_ROWS["Hardware donation program/EYo237"]}
+
+
+class TestHeaderPaths:
+
+    def run_paths(self, updater, headers=None, **kwargs) -> str:
+        return updater.update_wikitable_data(
+            rows=PATH_ROWS,
+            wikitext=make_complex_empty(),
+            table_headers_to_row_key=headers or PATH_HEADERS_TO_KEY,
+            **kwargs,
+        )
+
+    def test_each_duplicate_column_gets_its_own_value(self, updater):
+        result = self.run_paths(updater)
+        cells = WtpTable.load(result).data_rows[0].cells
+
+        assert cells[6].value.strip() == "1"  # User Edits > Global no WD
+        assert cells[7].value.strip() == "100"  # User Edits > WD
+        assert cells[8].value.strip() == "500"  # Last 3 months edits > Global no WD
+        assert cells[9].value.strip() == "200"  # Last 3 months edits > WD
+        assert cells[11].value.strip() == "enwiki"
+
+    def test_untouched_columns_stay_empty(self, updater):
+        result = self.run_paths(updater)
+        cells = WtpTable.load(result).data_rows[0].cells
+
+        assert cells[5].is_empty  # "Global" is not in the mapping
+
+    def test_no_columns_added_when_paths_exist(self, updater):
+        result = self.run_paths(updater)
+
+        assert [len(r.cells) for r in WtpTable.load(result).rows] == [13, 13, 13]
+
+    def test_missing_path_header_is_skipped_not_added(self, updater):
+        headers = {**PATH_HEADERS_TO_KEY, "User Edits > Nope": "age"}
+        result = self.run_paths(updater, headers=headers)
+
+        assert "Nope" not in result
+        assert [len(r.cells) for r in WtpTable.load(result).rows] == [13, 13, 13]
+
+    def test_plain_ambiguous_header_fills_first_match_only(self, updater):
+        result = self.run_paths(updater, headers={"WD": "wikidata_editcount_str"})
+        cells = WtpTable.load(result).data_rows[0].cells
+
+        assert cells[7].value.strip() == "100"
+        assert cells[9].is_empty

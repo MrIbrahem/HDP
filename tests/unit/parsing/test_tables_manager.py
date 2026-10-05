@@ -48,14 +48,14 @@ class TestWikiTableColumnManager:
         manager = WikiTableColumnManager()
         table = wtp.Table(sample_wikitext)
 
-        assert manager.has_column(table, "Author") is True
-        assert manager.has_column(table, "author") is True  # Case-insensitive check
+        assert manager.has_header(table, "Author") is True
+        assert manager.has_header(table, "author") is True  # Case-insensitive check
 
     def test_has_column_returns_false_when_missing(self, sample_wikitext):
         manager = WikiTableColumnManager()
         table = wtp.Table(sample_wikitext)
 
-        assert manager.has_column(table, "Country") is False
+        assert manager.has_header(table, "Country") is False
 
     def test_add_column_at_end(self, sample_wikitext):
         manager = WikiTableColumnManager()

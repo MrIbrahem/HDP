@@ -314,3 +314,44 @@ class TestComplexTable:
 
         assert len(t) == 3
         assert [len(r.cells) for r in t.rows] == [10, 5, 13]
+
+
+# ===========================================================================
+# Header paths: duplicate leaf headers
+# ===========================================================================
+
+
+class TestHeaderPath:
+
+    def test_get_all_returns_every_duplicate(self, complex_wikitext):
+        row = WtpTable.load(complex_wikitext).data_rows[0]
+
+        assert [c.index for c in row.get_all("WD")] == [7, 9]
+        assert [c.index for c in row.get_all("Global no WD")] == [6, 8]
+
+    def test_get_with_path_is_exact(self, complex_wikitext):
+        row = WtpTable.load(complex_wikitext).data_rows[0]
+
+        assert row.get("User Edits > WD").index == 7
+        assert row.get("Last 3 months edits > WD").index == 9
+        assert row.get("User Edits > Global no WD").index == 6
+        assert row.get("Last 3 months edits > Global no WD").index == 8
+
+    def test_path_is_case_and_space_insensitive(self, complex_wikitext):
+        row = WtpTable.load(complex_wikitext).data_rows[0]
+
+        assert row.get("  user edits>wd ").index == 7
+
+    def test_path_with_wrong_parent_returns_none(self, complex_wikitext):
+        row = WtpTable.load(complex_wikitext).data_rows[0]
+
+        assert row.get("Application > WD") is None
+        assert row.get("User Edits > Home Wiki") is None
+
+    def test_has_header(self, complex_wikitext):
+        t = WtpTable.load(complex_wikitext)
+
+        assert t.has_header("WD") is True
+        assert t.has_header("Last 3 months edits > WD") is True
+        assert t.has_header("Nope") is False
+        assert WtpTable.load('{| class="wikitable"\n|}').has_header("WD") is False

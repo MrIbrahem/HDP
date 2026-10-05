@@ -71,7 +71,7 @@ class WikiTableColumnManager:
 
         return rows
 
-    def has_column(self, table: wtp.Table, col_name: str) -> bool:
+    def has_header(self, table: wtp.Table, col_name: str) -> bool:
         """
         Check if a column named `col_name` exists in the table header.
         """
@@ -93,10 +93,10 @@ class WikiTableColumnManager:
         header_row = self._get_header_row(table)
         return {cell.value.strip().lower(): idx for idx, cell in enumerate(header_row)}
 
-    def add_column(
+    def add_columns(
         self,
         table: wtp.Table,
-        col_name: str,
+        col_names: list[str],
         position: str = "after_first",
         default_value: str = "",
     ) -> bool:
@@ -111,15 +111,15 @@ class WikiTableColumnManager:
         if position == "":
             position = "after_first"
 
-        if not table:
+        if not table or not col_names:
             return False
 
-        all_cells: list[list[Cell]] | None = self.load_table_cells(table)
-        if not all_cells:
+        # grid = table.cells(span=False)
+        grid = self.load_table_cells(table)
+        if not grid:
             return False
 
-        count = 0
-        for row in all_cells:
+        for r_idx, row in enumerate(grid):
             if not row:
                 continue
 
@@ -128,21 +128,18 @@ class WikiTableColumnManager:
             if not valid:
                 continue
 
-            count += 1
-            is_header = valid[0].is_header
-
             # Format cell string depending on whether it is a header or data row
-            if is_header:
-                cell_str = f"\n! {col_name}"
+            if valid[0].is_header:
+                new_cells = "".join(f"\n! {name}" for name in col_names)
             else:
-                formatted_val = f" {default_value}" if default_value else ""  # .rstrip()
-                cell_str = f"\n|{formatted_val}"
+                formatted_val = f" {default_value}" if default_value else ""
+                new_cells = f"\n|{formatted_val}" * len(col_names)
 
             # Pick target cell to attach the new column delimiter
             target = valid[0] if position == "after_first" else valid[-1]
-            target.value = target.value + cell_str
+            target.value = target.value + new_cells
 
-        logger.info("Added column %r across %s rows", col_name, count)
+        logger.info("Added column %r across %s rows", col_names, len(grid))
 
         # NOTE: Adding new cell delimiters (\n! or \n|) directly into the cell value
         # alters the table structure dynamically. We must re-assign 'table.string'
@@ -155,31 +152,32 @@ class WikiTableColumnManager:
         table.string = table_str
         return True
 
-    # ================================
-    # Main function
-    # ================================
-
-    def ensure_column_exists(
+    def add_column(
         self,
-        *,
         table: wtp.Table,
         col_name: str,
         position: str = "after_first",
         default_value: str = "",
     ) -> bool:
-        """
-        Verifies column presence and injects its structure if missing.
-        Return True if the column was added, False if it already existed.
-        """
-        if self.has_column(table, col_name):
-            return False
-
-        return self.add_column(
-            table,
-            col_name=col_name,
+        return self.add_columns(
+            table=table,
+            col_names=[col_name],
             position=position,
             default_value=default_value,
         )
+
+    # ==============================================================
+    # Adding missing columns
+    # ==============================================================
+
+    def _missing_headers(self, table: wtp.Table, wanted: list[str]) -> list[str]:
+        """ """
+        missing = []
+        for header in wanted:
+            if self.has_header(table, header):
+                continue
+            missing.append(header)
+        return missing
 
     def ensure_columns_exists(
         self,
@@ -193,16 +191,36 @@ class WikiTableColumnManager:
         Verifies column presence and injects its structure if missing.
         """
         # Reverse so insertion order after_first preserves intended sequence
-        for col_name in reversed(cols_name):
-            if not self.has_column(table, col_name):
-                self.add_column(
-                    table=table,
-                    col_name=col_name,
-                    position=position,
-                    default_value=default_value,
-                )
+        missing = self._missing_headers(table, cols_name)
+        if missing:
+            self.add_columns(
+                table,
+                missing,
+                position,
+                default_value,
+            )
 
-        return
+    def ensure_column_exists(
+        self,
+        *,
+        table: wtp.Table,
+        col_name: str,
+        position: str = "after_first",
+        default_value: str = "",
+    ) -> bool:
+        """
+        Verifies column presence and injects its structure if missing.
+        Return True if the column was added, False if it already existed.
+        """
+        if self.has_header(table, col_name):
+            return False
+
+        return self.add_column(
+            table,
+            col_name=col_name,
+            position=position,
+            default_value=default_value,
+        )
 
 
 __all__ = [

@@ -15,10 +15,6 @@ from .tables_manager import WikiTableColumnManager
 
 logger = logging.getLogger(__name__)
 
-# ===========================================================================
-# Data updater — fill cells from a rows dict
-# ===========================================================================
-
 
 class WikiTableDataUpdater:
     """
@@ -28,6 +24,31 @@ class WikiTableDataUpdater:
 
     def __init__(self, manager: WikiTableColumnManager | None = None) -> None:
         self.manager = manager or WikiTableColumnManager()
+
+    # ==============================================================
+    # Row matching
+    # ==============================================================
+
+    @staticmethod
+    def _extract_row_data(
+        row: list[Cell],
+        rows: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        """
+        Extracts the row data from the `rows` dict based on the first link in the first cell.
+        """
+        if not row or row[0] is None or row[0].is_header:
+            return None
+
+        # Cell('\n| [[Hardware donation program/Ibjaja055]] ')
+        first_value: str = row[0].value
+        match = re.search(r"\[\[(.*?)\]\]", first_value)
+        if not match:
+            return None
+
+        # Clean the link name to match the dictionary keys
+        link = match.group(1).split("|")[0].strip().replace("_", " ")
+        return rows.get(link)
 
     # ==============================================================
     # Update a single table
@@ -61,38 +82,18 @@ class WikiTableDataUpdater:
             self._update_row_cells(
                 row=row,
                 row_data=row_data,
-                header_index=header_index,
                 table_headers_to_row_key=table_headers_to_row_key,
                 replace_values=replace_values,
+                header_index=header_index,
             )
-
-    def _extract_row_data(
-        self,
-        row: list[Cell],
-        rows: dict[str, Any],
-    ) -> dict[str, Any] | None:
-        """Extracts the row data from the `rows` dict based on the first link in the first cell."""
-        if not row or row[0] is None or row[0].is_header:
-            return None
-
-        # Cell('\n| [[Hardware donation program/Ibjaja055]] ')
-        first_value: str = row[0].value
-        match = re.search(r"\[\[(.*?)\]\]", first_value)
-        if not match:
-            return None
-
-        # Clean the link name to match the dictionary keys
-        link = match.group(1).split("|")[0].strip().replace("_", " ")
-
-        return rows.get(link)
 
     def _update_row_cells(
         self,
         row: list[Cell],
         row_data: dict[str, Any],
-        header_index: dict[str, int],
         table_headers_to_row_key: dict[str, str],
         replace_values: bool,
+        header_index: dict[str, int],
     ) -> None:
         """Updates the row's cells based on the column index."""
         for header, row_key in table_headers_to_row_key.items():

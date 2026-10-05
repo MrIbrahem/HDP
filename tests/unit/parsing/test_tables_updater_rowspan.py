@@ -10,7 +10,7 @@ from src.parsing.tables_manager import WikiTableColumnManager
 from src.parsing.tables_updater import WikiTableDataUpdater
 
 
-def update_table(
+def update_wikitable_data(
     rows: dict[str, Any],
     wikitext: str,
     table_headers_to_row_key: dict[str, str],
@@ -65,7 +65,7 @@ class TestUpdateWikitableDataSpans:
 | [[Hardware donation program/Ibjaja055]] || || || yy
 |-
 |}"""
-        result = update_table(rows, wikitext, self.table_headers_to_row_key, True, False)
+        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key, True, False)
 
         # Verify that data for the second row is updated despite cell index shift
         assert "|| 25|" in result
@@ -134,7 +134,7 @@ class TestUpdateWikitableDataSpans:
             "|}"
         )
 
-        result = update_table(rows, wikitext, self.table_headers_to_row_key)
+        result = update_wikitable_data(rows, wikitext, self.table_headers_to_row_key)
 
         # The result string should preserve the colspan attribute or update accordingly
         assert "colspan=" in result
