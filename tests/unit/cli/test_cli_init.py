@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src.cli import Cli
-from src.config import DEFAULT_SECTION_NAMES
+from src.config import DEFAULT_CATEGORIES
 
 BASE_PAGE = "User:Base/page"
 
@@ -305,7 +305,7 @@ class TestCmdGenerate:
 
         mock_deps.service.generate.assert_called_once_with(
             page_title=BASE_PAGE,
-            section_names=list(DEFAULT_SECTION_NAMES),
+            section_names=list(DEFAULT_CATEGORIES),
             unknown="unknown",
         )
 
@@ -320,8 +320,8 @@ class TestCmdGenerate:
     def test_default_sections_are_a_copy(self, cli, mock_deps):
         cli._cmd_generate(mock_deps.service, make_args())
         passed = mock_deps.service.generate.call_args.kwargs["section_names"]
-        assert passed == list(DEFAULT_SECTION_NAMES)
-        assert passed is not DEFAULT_SECTION_NAMES
+        assert passed == list(DEFAULT_CATEGORIES)
+        assert passed is not DEFAULT_CATEGORIES
 
     def test_passes_unknown_placeholder(self, cli, mock_deps):
         cli._cmd_generate(mock_deps.service, make_args(unknown="--"))
@@ -364,7 +364,7 @@ class TestCmdUpdate:
 
         mock_deps.service.update.assert_called_once_with(
             page_title="User:Mr. Ibrahem/hdp",
-            section_names=list(DEFAULT_SECTION_NAMES),
+            section_names=list(DEFAULT_CATEGORIES),
             unknown="",
         )
 

@@ -366,7 +366,7 @@ class TestGenerate:
         service, mocks = _make_service(subpages_return=[])
         mocks["wiki_client"].get_page_wikitext.return_value = "page text"
 
-        result = service.generate("Hardware donation program", section_names=[])
+        result = service.generate("Hardware donation program", categories_names=[])
 
         assert result == ""
 
@@ -377,7 +377,7 @@ class TestGenerate:
 
         result = service.generate(
             "Hardware donation program",
-            section_names=["Open requests"],
+            categories_names=["Open requests"],
         )
 
         assert "=== Open requests ===" in result
@@ -389,7 +389,7 @@ class TestGenerate:
 
         service.generate(
             "Hardware donation program",
-            section_names=["Open requests", "Draft requests"],
+            categories_names=["Open requests", "Draft requests"],
         )
 
         assert mocks["subpages"]._subpages_for_section.call_count == 2
@@ -401,7 +401,7 @@ class TestGenerate:
 
         result = service.generate(
             "Hardware donation program",
-            section_names=["Open requests"],
+            categories_names=["Open requests"],
         )
 
         assert "! Last edit" in result
@@ -429,7 +429,7 @@ class TestUpdate:
         service.updater = mock_updater
         result = service.update(
             "User:Mr. Ibrahem/hdp",
-            section_names=["Category:Hardware donation program open requests"],
+            categories_names=["Category:Hardware donation program open requests"],
         )
 
         assert result == "updated wikitext"
@@ -448,7 +448,7 @@ class TestUpdate:
         mock_updater.update_wikitable_data.return_value = "out"
 
         service.updater = mock_updater
-        service.update("User:Mr. Ibrahem/hdp", section_names=[])
+        service.update("User:Mr. Ibrahem/hdp", categories_names=[])
 
         header_map = mock_updater.update_wikitable_data.call_args[1]["table_headers_to_row_key"]
         assert "Last edit" not in header_map

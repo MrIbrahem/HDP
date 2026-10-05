@@ -27,6 +27,14 @@ from .subpages_service import SubPagesService
 
 logger = logging.getLogger(__name__)
 
+def get_category_section_title(category: str) -> str:
+    data = {
+        "Category:Hardware donation program open requests": "[https://meta.wikimedia.org/w/index.php?title=Special:WhatLinksHere/Template:Hardware_donation_program/open&limit=500 Open]",
+        "Category:Hardware donation program approved requests": "[https://meta.wikimedia.org/w/index.php?title=Special:WhatLinksHere/Template:Hardware_donation_program/approved&limit=500 Approved]",
+        "Category:Hardware donation program drafts": "[https://meta.wikimedia.org/w/index.php?title=Special:WhatLinksHere/Template:Hardware_donation_program/draft&limit=500 Drafts]",
+        "Category:Hardware donation program delivered requests": "[https://meta.wikimedia.org/wiki/Category:Hardware_donation_program_delivered_requests Delivered]",
+    }
+    return data.get(category, category)
 
 class HdpService:
     """
@@ -256,7 +264,7 @@ class HdpService:
     def generate(
         self,
         page_title: str,
-        section_names: Sequence[str],
+        categories_names: Sequence[str],
         *,
         unknown: str = "unknown",
     ) -> str:
@@ -265,18 +273,20 @@ class HdpService:
 
         Returns a single wikitext string with ``=== Section ===`` headings.
         """
-        parts: list[str] = []
+        parts: list[str] = ["== Category =="]
         full_wikitext = self.wiki_client.get_page_wikitext(page_title)
 
-        for section_title in section_names:
-            subpages = self.subpages._subpages_for_section(full_wikitext, section_title)
-            logger.info("Section %r: %s subpages", section_title, len(subpages))
+        for category in categories_names:
+            subpages = self.subpages._subpages_for_section(full_wikitext, category)
+            logger.info("Section %r: %s subpages", category, len(subpages))
             table = self.load_rows(
                 subpages,
                 unknown=unknown,
             )
             # table_str = table.build_wikitable(self.load_last_edits)
             table_str = table.build_wikitable_template(self.load_last_edits)
+
+            section_title = get_category_section_title(category)
 
             parts.append(f"=== {section_title} ===\n\n{table_str}\n")
 
@@ -285,7 +295,7 @@ class HdpService:
     def update(
         self,
         page_title: str,
-        section_names: Sequence[str],
+        categories_names: Sequence[str],
         *,
         unknown: str = "",
     ) -> str:
@@ -295,7 +305,7 @@ class HdpService:
         Returns the full updated page wikitext.
         """
         full_wikitext = self.wiki_client.get_page_wikitext(page_title)
-        subpages = self.subpages.discover_subpages(page_title, section_names, full_wikitext)
+        subpages = self.subpages.discover_subpages(page_title, categories_names, full_wikitext)
 
         table = self.load_rows(subpages, unknown=unknown)
 

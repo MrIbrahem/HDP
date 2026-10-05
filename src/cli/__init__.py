@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import logging
 
-from ..config import DEFAULT_SECTION_NAMES, Settings
+from ..config import DEFAULT_CATEGORIES, Settings
 from ..logging_setup import setup_logging
 from ..services import HdpService
 
@@ -61,11 +61,11 @@ class Cli:
 
     def _cmd_generate(self, service: HdpService, args: argparse.Namespace) -> int:
         logger.info("Starting generate script")
-        section_names = args.sections or list(DEFAULT_SECTION_NAMES)
+        section_names = args.sections or list(DEFAULT_CATEGORIES)
 
         text = service.generate(
             page_title=args.page or self.settings.base_page,
-            section_names=section_names,
+            categories_names=section_names,
             unknown=args.unknown,
         )
         if not text:
@@ -81,7 +81,7 @@ class Cli:
         page_title = args.page
         output = args.output
 
-        section_names = args.sections or list(DEFAULT_SECTION_NAMES)
+        section_names = args.sections or list(DEFAULT_CATEGORIES)
         if args.test:
             page_title = "User:Mr. Ibrahem/test"
             section_names = []
@@ -92,7 +92,7 @@ class Cli:
 
         text = service.update(
             page_title=page_title,
-            section_names=section_names,
+            categories_names=section_names,
             unknown=args.unknown,
         )
         if not text:

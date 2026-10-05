@@ -31,10 +31,11 @@ SECTION_TO_CATEGORY: dict[str, str] = {
 }
 
 # Default category list used by generate / update CLI commands
-DEFAULT_SECTION_NAMES: list[str] = [
+DEFAULT_CATEGORIES: list[str] = [
     "Category:Hardware donation program open requests",
     "Category:Hardware donation program approved requests",
     "Category:Hardware donation program drafts",
+    "Category:Hardware donation program delivered requests",
 ]
 
 # Static username redirects (lowercase key → canonical display name).
@@ -50,7 +51,7 @@ __all__ = [
     "XTOOLS_GLOBALCONTRIBS_URL",
     "SECTION_TO_CATEGORY",
     "BASE_PAGE",
-    "DEFAULT_SECTION_NAMES",
+    "DEFAULT_CATEGORIES",
     "DEFAULT_USERS_REDIRECTS",
     "RECENT_DAYS",
 ]
