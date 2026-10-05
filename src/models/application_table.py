@@ -23,7 +23,6 @@ EMPTY_TABLE_HEADER = """
 ! rowspan="2" |Home Wiki
 ! rowspan="2" |Approved
 |-
-! Global
 ! Global no WD
 ! WD
 
@@ -38,7 +37,6 @@ EMPTY_TABLE_ROW = """|-
 | {country}
 | {extended_rights}
 
-| {global_editcount_str}
 | {global_without_wikidata_str}
 | {wikidata_editcount_str}
 
