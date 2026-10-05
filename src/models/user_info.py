@@ -38,10 +38,7 @@ def calculate_age(registration: str) -> str:
         logger.error("Invalid registration date: %s", registration)
         return registration
 
-    return (
-        f"{{{{age in years and months|{reg_date.year}|"
-        f"{reg_date.month:02d}|{reg_date.day:02d}}}}}"
-    )
+    return f"{{{{age in years and months|{reg_date.year}|{reg_date.month:02d}|{reg_date.day:02d}}}}}"
 
 
 def _as_optional_int(value: Any) -> int | None:
@@ -93,9 +90,7 @@ class UserInfo:
         data["global_without_wikidata_str"] = self.global_without_wikidata_str
         data["global_editcount_str"] = self.global_editcount_str
         data["recent_editcount_str"] = self.recent_editcount_str
-        data["recent_wikidata_editcount_str"] = (
-            self.recent_wikidata_editcount_str
-        )
+        data["recent_wikidata_editcount_str"] = self.recent_wikidata_editcount_str
         data["wikidata_editcount_str"] = self.wikidata_editcount_str
 
         return data
@@ -213,9 +208,7 @@ class UserInfo:
         return {
             "global_editcount_str": self.global_editcount_str or unknown,
             "recent_editcount_str": self.recent_editcount_str or unknown,
-            "recent_wikidata_editcount_str": (
-                self.recent_wikidata_editcount_str or unknown
-            ),
+            "recent_wikidata_editcount_str": (self.recent_wikidata_editcount_str or unknown),
             "wikidata_editcount_str": self.wikidata_editcount_str or unknown,
             "global_without_wikidata_str": self.global_without_wikidata_str,
             "user_link": self.user_link or unknown,

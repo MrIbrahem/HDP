@@ -16,6 +16,7 @@ class ApplicationColumn:
 
     Attributes:
         header: The MediaWiki table header.
+        header_alts: header alternative names.
         row_key: The key used to retrieve the value from the row data.
         optional: Whether the column can be hidden when rendering.
     """
@@ -23,6 +24,7 @@ class ApplicationColumn:
     header: str
     row_key: str
     optional: bool = False
+    header_alts: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -31,53 +33,65 @@ class ApplicationColumn:
 
 DEFAULT_COLUMNS: tuple[ApplicationColumn, ...] = (
     ApplicationColumn(
-        header="Page",
+        header="Application",
         row_key="page_link",
+        header_alts=["Page"],
     ),
     ApplicationColumn(
-        header="Last edited to application",
+        header="Latest update",
         row_key="last_update",
+        header_alts=["Last edited to application"],
     ),
     ApplicationColumn(
         header="User",
         row_key="user_link",
+        header_alts=[],
     ),
     ApplicationColumn(
         header="Country",
         row_key="country",
+        header_alts=[],
     ),
     ApplicationColumn(
         header="Global edits without wikidata",
         row_key="global_without_wikidata_str",
+        header_alts=[],
     ),
     ApplicationColumn(
         header="Wikidata edits",
         row_key="wikidata_editcount_str",
+        header_alts=[],
     ),
     ApplicationColumn(
         header="Edits in last 3 months",
         row_key="recent_editcount_str",
+        header_alts=[],
     ),
     ApplicationColumn(
         header="Wikidata edits in last 3 months",
         row_key="recent_wikidata_editcount_str",
+        header_alts=[],
     ),
     ApplicationColumn(
-        header="Age of account",
+        header="Account age",
         row_key="age",
+        header_alts=["Age of account"],
     ),
     ApplicationColumn(
         header="Home Wiki",
         row_key="home_wiki",
+        header_alts=[],
     ),
     ApplicationColumn(
         header="Last edit",
         row_key="last_edit",
+        header_alts=[],
         optional=True,
     ),
     ApplicationColumn(
         header="Approved",
         row_key="approved",
+        header_alts=[],
     ),
 )
 
@@ -94,9 +108,7 @@ class ApplicationTable:
     """
 
     rows: list[ApplicationRow]
-    columns: list[ApplicationColumn] = field(
-        default_factory=lambda: list(DEFAULT_COLUMNS)
-    )
+    columns: list[ApplicationColumn] = field(default_factory=lambda: list(DEFAULT_COLUMNS))
     unknown: str = ""
 
     def build_wikitable(self, add_last_edit: bool = False) -> str:
@@ -120,23 +132,19 @@ class ApplicationTable:
         """
         Convert rows to the dictionary shape expected by the table updater.
         """
-        return {
-            row.full_title: row.to_table_dict(self.unknown)
-            for row in self.rows
-        }
+        return {row.full_title: row.to_table_dict(self.unknown) for row in self.rows}
 
-    @property
-    def headers_to_row_keys(self) -> dict[str, str]:
+    def headers_to_row_keys(self, add_last_edit: bool = True) -> dict[str, str]:
         """
         Return a mapping between table headers and row data keys.
 
         The mapping is derived from ``columns`` to avoid maintaining
         duplicate column definitions.
         """
-        return {
-            column.header: column.row_key
-            for column in self.columns
-        }
+        data = {column.header: column.row_key for column in self.columns}
+        if not add_last_edit:
+            data.pop("Last edit", None)
+        return data
 
     def _get_visible_columns(
         self,
@@ -145,11 +153,7 @@ class ApplicationTable:
         """
         Return columns that should be included in the rendered table.
         """
-        return [
-            column
-            for column in self.columns
-            if not column.optional or add_last_edit
-        ]
+        return [column for column in self.columns if not column.optional or add_last_edit]
 
     @classmethod
     def load(

@@ -217,7 +217,7 @@ class HdpService:
 
     def _fetch_recent_wikidata_edit_counts(self, users: list[str]) -> dict[str, int]:
         if not self.load_recent_editcounts or self.offline:
-            return {user: 0 for user in users}
+            return dict.fromkeys(users, 0)
         recent_wikidata = self.xtools_client.get_wikidata_recent_editcounts(
             users, recent_days=self.settings.recent_days
         )
@@ -290,9 +290,7 @@ class HdpService:
 
         table = self.load_rows(subpages, unknown=unknown)
 
-        header_map = dict(table.headers_to_row_keys)
-        if not self.load_last_edits:
-            header_map.pop("Last edit", None)
+        header_map = dict(table.headers_to_row_keys(self.load_last_edits))
 
         row_dicts = table.as_row_dicts()
 

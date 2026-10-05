@@ -22,19 +22,19 @@ class WikiTableColumnManager:
     Check, verify, and insert column structures into wikitext tables.
     """
 
-    def load_table_cells(
-        self,
-        table: wtp.Table,
-        span: bool = True,
-    ) -> list[list[Cell]] | None:
+    def __init__(self, span: bool = True) -> None:
         """
-        Safely retrieve cells from a wikitext table.
-
         ``span=False`` is required for structural edits so the literal cell
         grid is used (not the colspan/rowspan-flattened view).
         """
+        self.span = span
+
+    def load_table_cells(self, table: wtp.Table) -> list[list[Cell]] | None:
+        """
+        Safely retrieve cells from a wikitext table.
+        """
         try:
-            return table.cells(span=span)
+            return table.cells(span=self.span)
         except Exception as exc:
             logger.error("Error getting table cells: %s", exc)
             return None
@@ -52,6 +52,24 @@ class WikiTableColumnManager:
             return [c for c in row if c is not None]
 
         return []
+
+    def _get_header_row_new(self, table: wtp.Table) -> list[Cell]:
+        """Returns the first header row's non-None cells, or [] if none found."""
+        if self.span:
+            return self._get_header_row(table)
+
+        all_cells = self.load_table_cells(table)
+        if not all_cells:
+            return []
+
+        rows = []
+        for row in all_cells:
+            # Skip empty rows or non-header rows
+            if not row or row[0] is None or not row[0].is_header:
+                continue
+            rows.extend([c for c in row if c is not None])
+
+        return rows
 
     def has_column(self, table: wtp.Table, col_name: str) -> bool:
         """
@@ -152,6 +170,7 @@ class WikiTableColumnManager:
         """
         if self.has_column(table, col_name):
             return False
+
         return self.add_column(
             table,
             col_name=col_name,
