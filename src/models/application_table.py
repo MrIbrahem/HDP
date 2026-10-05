@@ -189,6 +189,9 @@ class ApplicationTable:
             EMPTY_TABLE_HEADER.strip(),
         ]
 
+        if add_last_edit:
+            lines.append("! Last edit")
+
         template = EMPTY_TABLE_ROW
         if add_last_edit:
             template = f"{template}\n| {{last_edit}}"
