@@ -8,6 +8,43 @@ from dataclasses import dataclass, field
 
 from .application_row import ApplicationRow
 
+EMPTY_TABLE_TEMPLATE = """
+{| class="wikitable sortable"
+! rowspan="2" |Application
+! rowspan="2" |Latest update
+! rowspan="2" |User
+! rowspan="2" |Country
+! rowspan="2" |Extended rights
+
+! colspan="3" |User Edits
+! colspan="2" |Last 3 months edits
+
+! rowspan="2" |Account age
+! rowspan="2" |Home Wiki
+! rowspan="2" |Approved
+|-
+! Global
+! Global no WD
+! WD
+! Global no wd
+! WD
+|-
+| <!-- page_link -->
+| <!-- last_update -->
+| <!-- user_link -->
+| <!-- country -->
+| <!-- extended_rights -->
+
+| <!-- global_without_wikidata_str -->
+| <!-- wikidata_editcount_str -->
+| <!-- recent_editcount_str -->
+| <!-- recent_wikidata_editcount_str -->
+
+| <!-- age -->
+| <!-- home_wiki -->
+| <!-- approved -->
+|}
+"""
 
 @dataclass(frozen=True, slots=True)
 class ApplicationColumn:
@@ -53,6 +90,11 @@ DEFAULT_COLUMNS: tuple[ApplicationColumn, ...] = (
         header_alts=[],
     ),
     ApplicationColumn(
+        header="Extended rights",
+        row_key="extended_rights",
+        header_alts=[],
+    ),
+    ApplicationColumn(
         header="User Edits > Global no WD",
         row_key="global_without_wikidata_str",
         header_alts=["Global edits without wikidata"],
@@ -83,15 +125,15 @@ DEFAULT_COLUMNS: tuple[ApplicationColumn, ...] = (
         header_alts=[],
     ),
     ApplicationColumn(
+        header="Approved",
+        row_key="approved",
+        header_alts=[],
+    ),
+    ApplicationColumn(
         header="Last edit",
         row_key="last_edit",
         header_alts=[],
         optional=True,
-    ),
-    ApplicationColumn(
-        header="Approved",
-        row_key="approved",
-        header_alts=[],
     ),
 )
 
