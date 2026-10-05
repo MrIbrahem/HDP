@@ -53,24 +53,24 @@ DEFAULT_COLUMNS: tuple[ApplicationColumn, ...] = (
         header_alts=[],
     ),
     ApplicationColumn(
-        header="Global edits without wikidata",
+        header="User Edits > Global no WD",
         row_key="global_without_wikidata_str",
-        header_alts=[],
+        header_alts=["Global edits without wikidata"],
     ),
     ApplicationColumn(
-        header="Wikidata edits",
+        header="User Edits > WD",
         row_key="wikidata_editcount_str",
-        header_alts=[],
+        header_alts=["Wikidata edits"],
     ),
     ApplicationColumn(
-        header="Edits in last 3 months",
+        header="Last 3 months edits > Global no WD",
         row_key="recent_editcount_str",
-        header_alts=[],
+        header_alts=["Edits in last 3 months"],
     ),
     ApplicationColumn(
-        header="Wikidata edits in last 3 months",
+        header="Last 3 months edits > WD",
         row_key="recent_wikidata_editcount_str",
-        header_alts=[],
+        header_alts=["Wikidata edits in last 3 months"],
     ),
     ApplicationColumn(
         header="Account age",

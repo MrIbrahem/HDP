@@ -125,7 +125,7 @@ class TestApplicationTableHeadersToRowKeys:
         result = table.headers_to_row_keys()
 
         # Verify the resulting dictionary structure
-        expected_result = {
+        expected_result_old = {
             "Application": "page_link",
             "Latest update": "last_update",
             "User": "user_link",
@@ -139,20 +139,18 @@ class TestApplicationTableHeadersToRowKeys:
             "Last edit": "last_edit",
             "Approved": "approved",
         }
-        users_rows = {
-            "Hardware donation program/EYo237": {
-                "page_link": "Hardware donation program/EYo237",
-                "last_update": "25",
-                "user_link": "test",
-                "country": "",
-                "global_without_wikidata_str": "1",
-                "wikidata_editcount_str": "100",
-                "recent_editcount_str": "500",
-                "recent_wikidata_editcount_str": "200",
-                "age": "1",
-                "home_wiki": "enwiki",
-                "last_edit": "2023-01-01",
-                "approved": "Yes",
-            }
+        expected_result = {
+            "Application": "page_link",
+            "Latest update": "last_update",
+            "User": "user_link",
+            "Country": "country",
+            "User Edits > Global no WD": "global_without_wikidata_str",
+            "User Edits > WD": "wikidata_editcount_str",
+            "Last 3 months edits > Global no WD": "recent_editcount_str",
+            "Last 3 months edits > WD": "recent_wikidata_editcount_str",
+            "Account age": "age",
+            "Home Wiki": "home_wiki",
+            "Last edit": "last_edit",
+            "Approved": "approved",
         }
         assert result == expected_result

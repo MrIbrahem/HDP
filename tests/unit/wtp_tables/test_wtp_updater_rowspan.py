@@ -9,6 +9,7 @@ import pytest
 from src.wtp_tables.wtp_manager import WtpTableManager
 from src.wtp_tables.wtp_updater import WtpTableUpdater
 
+
 def update_wikitable_data(
     rows: dict[str, Any],
     wikitext: str,
