@@ -19,9 +19,9 @@ def ensure_column_in_wikitext(
     """
     manager = WikiTableColumnManager()
     table = wtp.Table(text)
-    _ = manager.ensure_column_exists(
+    _ = manager.ensure_columns_exists(
         table=table,
-        col_name=col_name,
+        cols_name=[col_name],
         position=position,
         default_value=default_value,
     )
@@ -82,7 +82,7 @@ class TestWikiTableColumnManager:
     def test_ensure_column_exists_adds_missing_column(self, sample_wikitext):
         manager = WikiTableColumnManager()
         table = wtp.Table(sample_wikitext)
-        _ = manager.ensure_column_exists(table=table, col_name="Country", default_value="Unknown")
+        _ = manager.ensure_columns_exists(table=table, cols_name=["Country"], default_value="Unknown")
 
         result = table.string
         assert "! Country" in result
@@ -92,7 +92,7 @@ class TestWikiTableColumnManager:
         manager = WikiTableColumnManager()
         table = wtp.Table(sample_wikitext)
 
-        _ = manager.ensure_column_exists(table=table, col_name="Author")
+        _ = manager.ensure_columns_exists(table=table, cols_name=["Author"])
 
         result = table.string
         # Column already exists, text should remain unchanged

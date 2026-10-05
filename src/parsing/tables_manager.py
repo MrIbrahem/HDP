@@ -119,7 +119,7 @@ class WikiTableColumnManager:
         if not grid:
             return False
 
-        for r_idx, row in enumerate(grid):
+        for _r_idx, row in enumerate(grid):
             if not row:
                 continue
 
@@ -199,28 +199,6 @@ class WikiTableColumnManager:
                 position,
                 default_value,
             )
-
-    def ensure_column_exists(
-        self,
-        *,
-        table: wtp.Table,
-        col_name: str,
-        position: str = "after_first",
-        default_value: str = "",
-    ) -> bool:
-        """
-        Verifies column presence and injects its structure if missing.
-        Return True if the column was added, False if it already existed.
-        """
-        if self.has_header(table, col_name):
-            return False
-
-        return self.add_column(
-            table,
-            col_name=col_name,
-            position=position,
-            default_value=default_value,
-        )
 
 
 __all__ = [

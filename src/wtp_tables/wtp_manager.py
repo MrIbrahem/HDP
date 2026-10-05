@@ -139,6 +139,9 @@ class WtpTableManager:
         position: str = "after_first",
         default_value: str = "",
     ) -> None:
+        """
+        Verifies column presence and injects its structure if missing.
+        """
         wtp_table = WtpTable.load(table)
 
         if wtp_table.rows:
