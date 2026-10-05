@@ -42,10 +42,16 @@ def extract_username(wikitext: str) -> str:
     # if value dosen't contain letters, return empty string
     if not any(c.isalpha() for c in value):
         return ""
-
     # Wikimedia usernames use spaces; underscores in links are equivalent
-    return value.replace("_", " ").strip()
+    value = value.replace("_", " ").strip()
 
+    skip_names = [
+        "name here",
+    ]
+    if value in skip_names:
+        return ""
+
+    return value
 # ---------------------------------------------------------------------------
 # Pure helpers used by the models
 # ---------------------------------------------------------------------------
