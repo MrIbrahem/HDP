@@ -48,6 +48,20 @@ def sample_wikitext() -> str:
 |}"""
 
 
+class TestWTP:
+    """Tests for WikiTableColumnManager class methods."""
+
+    def test_cells(self, sample_wikitext):
+        table = wtp.Table(sample_wikitext)
+        cell1 = table.cells(row=0, column=5, span=True)
+
+        assert cell1 is not None
+        assert cell1.string == '\n! colspan="3" | User Edits'
+
+        cell2 = table.cells(row=1, column=5, span=True)
+        assert cell2 is not None
+        assert cell2.string == '\n!Global'
+
 class TestWikiTableColumnManager:
     """Tests for WikiTableColumnManager class methods."""
 
