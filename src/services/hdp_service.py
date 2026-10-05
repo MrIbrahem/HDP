@@ -273,10 +273,12 @@ class HdpService:
 
         Returns a single wikitext string with ``=== Section ===`` headings.
         """
-        parts: list[str] = ["== Category =="]
+        parts: list[str] = []
         full_wikitext = self.wiki_client.get_page_wikitext(page_title)
 
         for category in categories_names:
+            if not category:
+                continue
             subpages = self.subpages._subpages_for_section(full_wikitext, category)
             logger.info("Section %r: %s subpages", category, len(subpages))
             table = self.load_rows(
@@ -290,7 +292,12 @@ class HdpService:
 
             parts.append(f"=== {section_title} ===\n\n{table_str}\n")
 
-        return "".join(parts)
+        result = "".join(parts)
+
+        if not result:
+            return ""
+
+        return "== Category ==" + "\n\n" + result
 
     def update(
         self,
