@@ -290,9 +290,7 @@ class HdpService:
 
         table = self.load_rows(subpages, unknown=unknown)
 
-        header_map = dict(table.headers_to_row_keys)
-        if not self.load_last_edits:
-            header_map.pop("Last edit", None)
+        header_map = dict(table.headers_to_row_keys(self.load_last_edits))
 
         row_dicts = table.as_row_dicts()
 

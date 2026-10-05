@@ -70,7 +70,7 @@ class TestApplicationTableBuildWikitable:
         assert result.endswith("|}")
 
         # Verify default headers are present
-        assert "! Page" in result
+        assert "! Application" in result
         assert "! Country" in result
         assert "! Approved" in result
 
